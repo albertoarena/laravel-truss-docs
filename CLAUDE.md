@@ -25,15 +25,19 @@ assets are not committed here: `scripts/copy-demo-assets.mjs` fetches
 package **release**; override with `PACKAGE_REF`, e.g. `PACKAGE_REF=main`) into
 `public/demo/assets/` (generated, gitignored). Never hand-edit
 `public/demo/assets/`; change the frontend in the package repo and cut a release,
-then redeploy the docs.
+then rebuild this site (push to `main` or re-run the Publish workflow) so the
+demo picks up the newly released frontend.
 
 ## Commands
 
 - `npm ci` then `npm run dev` — local dev at http://localhost:4321
 - `npm run build` — static output in `dist/`
-- Deploy: the **Deploy Documentation** workflow (manual, `workflow_dispatch`),
-  which builds and ships to Netsons over SSH. Netsons' CI-SSH is flaky, so a run
-  may need a re-dispatch.
+- Deploy is a **server-pull** model, no inbound SSH. A push to `main` runs the
+  **Publish** workflow (`publish.yml`), which builds the site and force-pushes
+  the built output to the `deploy` branch. A cron job on the Netsons server
+  pulls that branch over HTTPS and swaps it in via an atomic release symlink.
+  Trigger a redeploy by pushing to `main` or re-running Publish
+  (`workflow_dispatch`). See `DEPLOYMENT.md` for the full runbook.
 
 ## Working in this repo
 
