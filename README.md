@@ -22,8 +22,8 @@ override with `PACKAGE_REF` (e.g. `PACKAGE_REF=main npm run build`).
 
 ## Deployment
 
-`Deploy Documentation` (`.github/workflows/deploy.yml`) builds the site and
-deploys it to Netsons over SSH (tarball + `current` symlink releases). It is
-manual (`workflow_dispatch`). Requires repo Secrets `SSH_HOST`, `SSH_USER`,
-`SSH_PRIVATE_KEY`, `SSH_KNOWN_HOSTS`, `SSH_KEY_PASSPHRASE` (optional `SSH_PORT`),
-and Variable `DEPLOY_PATH`.
+Server-pull model: CI (`.github/workflows/publish.yml`) builds the site and
+publishes it to the `deploy` branch; the host pulls that branch over HTTPS on a
+cron (`scripts/server-deploy.sh`) and flips a `current` symlink. Just push to
+`main` and the site updates within a few minutes, no secrets needed. Full
+runbook: [DEPLOYMENT.md](DEPLOYMENT.md).
