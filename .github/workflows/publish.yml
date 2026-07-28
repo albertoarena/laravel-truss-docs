@@ -1,0 +1,54 @@
+name: Publish
+
+# Builds the docs site and publishes the static output to the `deploy` branch.
+# The Netsons server pulls that branch over HTTPS via a cron job
+# (scripts/server-deploy.sh), so no SSH/FTP from CI is involved.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          # Resolves the latest package release for the demo frontend and raises
+          # the GitHub API rate limit (see scripts/copy-demo-assets.mjs).
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run build
+
+      - name: Publish dist to the deploy branch
+        run: |
+          cd dist
+          git init -q
+          git checkout -q -b deploy
+          git add -A
+          git -c user.email=actions@github.com -c user.name="github-actions[bot]" \
+            commit -q -m "build: ${GITHUB_SHA}"
+          git push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" deploy
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

@@ -13,6 +13,10 @@
 #   the live `current` symlink.
 set -euo pipefail
 
+# cron runs with a minimal PATH; ensure cPanel's git and the standard tools are
+# found (git lives under cPanel's 3rdparty bin, curl/tar under /usr/bin).
+export PATH="/usr/local/cpanel/3rdparty/lib/path-bin:/usr/local/bin:/usr/bin:/bin:${PATH:-}"
+
 BASE="${1:-$HOME/trussphp.com}"
 REPO="https://github.com/albertoarena/laravel-truss-docs.git"
 BRANCH="deploy"
@@ -21,11 +25,12 @@ STAMP="$BASE/.deployed-sha"
 
 mkdir -p "$BASE"
 
-# Keep a shallow single-branch mirror of the deploy branch.
+# Keep a shallow single-branch mirror of the deploy branch. --force on fetch so
+# a force-pushed (rewritten) deploy branch always updates cleanly.
 if [ ! -d "$SRC/.git" ]; then
   git clone --branch "$BRANCH" --single-branch --depth 1 "$REPO" "$SRC"
 else
-  git -C "$SRC" fetch --depth 1 origin "$BRANCH"
+  git -C "$SRC" fetch --depth 1 --force origin "$BRANCH"
 fi
 
 NEW="$(git -C "$SRC" rev-parse "origin/$BRANCH")"
