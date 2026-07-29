@@ -103,6 +103,13 @@ export const SECTIONS: RoadmapSection[] = [
         blurb:
           'Paste or edit DBML on this site and watch the diagram redraw, so people can try the renderer before installing anything.',
       },
+      {
+        title: 'Tenant-aware snapshot caching',
+        status: 'exploring',
+        tag: 'community requested',
+        blurb:
+          'Key the cached schema by the resolved database, not just the connection name, so multi-tenant apps that swap databases behind one connection always show the right schema.',
+      },
     ],
   },
   {
