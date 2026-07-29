@@ -3,7 +3,7 @@ import SiteLayout from '../layouts/SiteLayout.astro'
 import { SECTIONS } from '../data/roadmap.ts'
 
 // Only sections with items render, so the grid track count must follow that
-// count — otherwise an empty section (e.g. nothing "Approved next") leaves a
+// count. Otherwise an empty section (e.g. nothing "Approved next") leaves a
 // phantom column showing the grid background.
 const visible = SECTIONS.filter((section) => section.items.length > 0)
 ---
