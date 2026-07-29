@@ -56,6 +56,13 @@ export const SECTIONS: RoadmapSection[] = [
           'Introspection is scoped to the connection\'s own database, so a shared server no longer leaks tables from other databases into the diagram.',
         issueUrl: `${REPO}/issues/3`,
       },
+      {
+        title: 'Schema diff',
+        status: 'shipped',
+        version: 'v1.4.0',
+        blurb:
+          'See what changed since the last migration: added, removed, and changed tables, columns, indexes, and foreign keys, in a dashboard Changes panel and via truss:diff. Structure only.',
+      },
     ],
   },
   {
@@ -63,14 +70,7 @@ export const SECTIONS: RoadmapSection[] = [
     label: 'Approved next',
     commitment: 'Committed, building next',
     blurb: 'Decided. This is what comes next.',
-    items: [
-      {
-        title: 'Schema diff',
-        status: 'approved',
-        blurb:
-          'See what changed since the last migration: added and removed tables, columns, keys, and indexes, drawn as a before-and-after on the diagram.',
-      },
-    ],
+    items: [],
   },
   {
     status: 'exploring',

@@ -1,0 +1,86 @@
+---
+title: Schema diff
+description: See what changed in your database structure since the last migration
+---
+
+Schema diff answers a question you actually ask after running a migration: **what did that change?** Truss keeps the schema from before your last migration as a baseline, compares it against the current schema, and shows you the added, removed, and changed tables, columns, indexes, and foreign keys. Structure only, never row data.
+
+There are two ways to see it: a **"Changes" panel** in the dashboard, and the **`php artisan truss:diff`** command for the terminal and CI.
+
+## How the baseline works
+
+The `MigrationsEnded` event fires after a migration has run, so the live database is already in its new state. The only remaining record of the previous schema is the snapshot Truss had cached, so that is what becomes the baseline: on each migration, before the cache is refreshed, the currently cached snapshot is saved as the baseline.
+
+The baseline is the one thing Truss writes to disk. It is a structure-only JSON file (never row data) at `truss/baselines/{connection}.json` on the disk set by `diff.disk` (the default disk otherwise). It lives on disk rather than in the cache for a simple reason: once a migration has run, the previous schema cannot be rebuilt from the live database, so it must not depend on a cache that a deploy might clear.
+
+Because the baseline comes from the cached snapshot, a baseline is only recorded when a snapshot was already cached before the migration. The first migration on a cold cache records no baseline; the diff appears from the next migration onward.
+
+## Try it
+
+The quickest way to see a real diff, using a throwaway column you roll back afterwards:
+
+```bash
+# 1. Cache the current schema. This becomes the baseline on the next migration.
+php artisan truss:rebuild
+
+# 2. Create a migration that changes the structure.
+php artisan make:migration add_truss_probe_to_users_table
+#    In up():   $table->string('truss_probe')->nullable();
+#    In down(): $table->dropColumn('truss_probe');
+
+# 3. Migrate. The pre-migration snapshot is saved as the baseline,
+#    and the current snapshot is rebuilt with the new column.
+php artisan migrate
+
+# 4. See what changed.
+php artisan truss:diff
+```
+
+`truss:diff` prints the change:
+
+```
+Schema changes on mysql since the last migration:
+
+Changed tables:
+  ~ users
+      column added: truss_probe (varchar(255))
+```
+
+Or open the dashboard with `php artisan truss:open`, click the **Changes** button in the toolbar, and the `users` table is tinted with the change listed in the panel. Each added or changed table name in the panel is a link that focuses the diagram on that table.
+
+Roll the probe back when you are done:
+
+```bash
+php artisan migrate:rollback
+```
+
+The rollback fires `MigrationsEnded` too, so it captures a fresh baseline and rebuilds. A `truss:diff` after the rollback will now show `truss_probe` as **removed**, a second demonstration for free.
+
+## Configuration
+
+Two keys under `diff` in `config/truss.php`:
+
+```php
+'diff' => [
+    'enabled' => (bool) env('TRUSS_DIFF_ENABLED', true),
+    'disk' => env('TRUSS_DIFF_DISK'),
+],
+```
+
+- **`diff.enabled`** (default `true`) is the master switch. When `false`, no baseline is captured, **nothing is written to disk**, the dashboard "Changes" button is hidden, and `truss:diff` reports that the feature is off. The check runs before any filesystem access, so setting it false is a hard guarantee that Truss leaves your disk untouched.
+- **`diff.disk`** is the filesystem disk the baseline is written to. `null` uses the application's default disk. The path is always `truss/baselines/{connection}.json`.
+
+The baseline file is derived and safe to delete (the diff simply goes empty until the next migration records a new one). It is worth gitignoring alongside `storage/`.
+
+## In production
+
+Nothing runs on a schedule, and `truss:diff` and `truss:rebuild` are never called automatically. The only automatic action is the snapshot rebuild plus baseline capture on `MigrationsEnded`, and it happens **only when Truss is enabled**. If Truss is disabled (the default outside `local`) or installed as a `--dev` dependency, nothing is captured and nothing is written.
+
+When Truss is enabled in a non-local environment, a deploy that runs `php artisan migrate` records the baseline. Note that the baseline is taken from the cached snapshot, so if your deploy clears the cache before migrating, that run records no new baseline (the last baseline file stays in place). For reliable per-deploy diffs, use a persistent cache store and migrate before rebuilding the cache. To keep the gated dashboard but guarantee no writes to disk, set `TRUSS_DIFF_ENABLED=false`.
+
+## Caveats
+
+- **Renames read as a remove plus an add.** Tables, columns, indexes, and foreign keys are matched by name, so there is no rename detection.
+- **One baseline per connection.** The diff is always "since the last recorded migration", not a full history.
+- **Removed tables are list-only.** They no longer exist in the current diagram, so the panel lists them rather than drawing them.
+- **Structure only.** Both sides of the comparison are structure-only snapshots, so the diff can never expose row data.

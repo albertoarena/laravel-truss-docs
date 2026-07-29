@@ -37,11 +37,27 @@ php artisan truss:rebuild --connection=mysql
 
 The command always runs, regardless of `truss.enabled`.
 
+## `truss:diff`
+
+Show what changed in the database structure since the last migration: the terminal counterpart to the dashboard "Changes" panel. It compares the recorded baseline against the current snapshot and lists added, removed, and changed tables, columns, indexes, and foreign keys. Structure only, so it is safe in CI and commit hooks.
+
+```bash
+# Diff the default connection
+php artisan truss:diff
+
+# Diff a specific connection
+php artisan truss:diff --connection=mysql
+```
+
+When no baseline has been recorded yet, or when `diff.enabled` is `false`, the command says so and exits cleanly. See the [Schema diff guide](/guides/schema-diff/) for a worked example and how the baseline is captured.
+
 ## Automatic rebuilds
 
 You rarely need to run the command by hand. Truss listens for the `Illuminate\Database\Events\MigrationsEnded` event and rebuilds the snapshot automatically after `migrate`, `migrate:fresh`, and `migrate:rollback` (when Truss is enabled).
 
 The snapshot is derived, disposable data cached via the `Cache` facade, keyed per connection, and it respects `cache.ttl`. No database table is used to store it.
+
+The same event captures the schema-diff baseline: before the cache is refreshed, the previously cached snapshot is saved so a diff can show what the migration changed. This is the only thing Truss writes to disk, and only when `diff.enabled` is `true`. See the [Schema diff guide](/guides/schema-diff/).
 
 ## Publishing
 

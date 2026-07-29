@@ -14,7 +14,7 @@ import { SECTIONS } from '../data/roadmap.ts'
   </section>
 
   <div class="columns">
-    {SECTIONS.map((section) => (
+    {SECTIONS.filter((section) => section.items.length > 0).map((section) => (
       <section class:list={['col', section.status]} aria-labelledby={`h-${section.status}`}>
         <header class="col-head">
           <h2 id={`h-${section.status}`}>{section.label}</h2>

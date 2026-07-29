@@ -28,6 +28,8 @@ Every key has a sensible default and, where relevant, an `env()` override.
 | `diagram.min_zoom` | `TRUSS_MIN_ZOOM` | `0.7` | Readable floor for auto-fit. The Fit button ignores it |
 | `focus.default_depth` | `TRUSS_FOCUS_DEPTH` | `1` | Foreign-key neighbour depth when focusing a table |
 | `large_schema.warn_above` | `TRUSS_LARGE_SCHEMA_WARN_ABOVE` | `60` | Table count above which a "large schema" hint is shown |
+| `diff.enabled` | `TRUSS_DIFF_ENABLED` | `true` | Schema diff master switch. Off writes nothing to disk and hides the feature |
+| `diff.disk` | `TRUSS_DIFF_DISK` | `null` | Disk the diff baseline file is written to. Null uses the default disk |
 
 ## Notes on individual keys
 
@@ -63,6 +65,10 @@ Null (the default) self-hosts Mermaid from the package, so no CDN is contacted. 
 ### `diagram.min_zoom`
 
 The lowest zoom the automatic fit will use, so a large schema stays legible and you pan around it rather than being dumped into an unreadable overview. The Fit button ignores this floor.
+
+### `diff.enabled` and `diff.disk`
+
+Control the schema diff feature. `diff.enabled` (default `true`) is the master switch: when `false`, no baseline is captured, nothing is written to disk, the dashboard "Changes" button is hidden, and `truss:diff` reports the feature is off. The check runs before any filesystem access, so it is a hard guarantee that Truss will not touch your disk. `diff.disk` chooses the filesystem disk the baseline is written to (`null` uses the default disk); the path is always `truss/baselines/{connection}.json`. See the [Schema diff guide](/guides/schema-diff/).
 
 ## Content-Security-Policy
 
