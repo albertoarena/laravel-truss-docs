@@ -98,5 +98,35 @@
         { "name": "post_tag_tag_id_foreign", "columns": ["tag_id"], "references_table": "tags", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" }
       ]
     }
-  ]
+  ],
+  "diff": {
+    "tables_added": [
+      { "name": "comments" }
+    ],
+    "tables_removed": [
+      { "name": "legacy_imports" }
+    ],
+    "tables_changed": [
+      {
+        "name": "posts",
+        "columns_added": [
+          { "name": "published_at", "type": "timestamp", "nullable": true, "default": null }
+        ],
+        "columns_removed": [],
+        "columns_changed": [
+          { "name": "title", "changes": { "type": { "before": "varchar(200)", "after": "varchar(255)" } } }
+        ],
+        "indexes_added": [],
+        "indexes_removed": [],
+        "indexes_changed": [],
+        "foreign_keys_added": [],
+        "foreign_keys_removed": [],
+        "foreign_keys_changed": [],
+        "changes": {}
+      }
+    ],
+    "has_changes": true,
+    "baseline_generated_at": "2026-07-16T10:00:00Z",
+    "current_generated_at": "2026-07-23T10:00:00Z"
+  }
 }
