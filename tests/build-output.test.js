@@ -30,8 +30,8 @@ describe('landing page output', () => {
     expect(landing).toContain('composer require albertoarena/laravel-truss')
   })
   it('renders the static ER product band and the chord wordmark', () => {
-    expect(landing).toContain('viewBox="0 0 760 260"')
-    expect(landingText).toContain('a users table linked to a posts table')
+    expect(landing).toContain('viewBox="0 0 780 210"')
+    expect(landingText).toContain('companies, users and posts tables')
     expect(landing).toContain('wm-chord')
   })
   it('self-hosts IBM Plex Mono rather than a CDN font', () => {
