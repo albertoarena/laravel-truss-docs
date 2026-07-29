@@ -12,7 +12,7 @@
 // Everything lands flat in public/demo/assets/ because truss.css references its
 // fonts as siblings (url("ibm-plex-mono-400.woff2")) and truss.js imports its
 // modules as siblings (./selection.js). The folder is generated, not committed.
-import { cp, rm, mkdir } from 'node:fs/promises';
+import { cp, rm, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
@@ -59,5 +59,9 @@ for (const weight of ['400', '500', '600']) {
   const font = `ibm-plex-mono-${weight}.woff2`;
   await cp(join(resources, 'fonts', font), join(dest, font));
 }
+
+// Record the resolved ref so the build hook can version-stamp the demo asset
+// folder for cache-busting (see astro.config.mjs → demoAssetVersioning).
+await writeFile(join(root, '.demo-asset-version'), `${ref}\n`);
 
 console.log(`Copied Truss frontend (${ref}) into ${dest}`);

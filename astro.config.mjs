@@ -1,5 +1,41 @@
+import { readFile, writeFile, rename } from 'node:fs/promises'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
+
+// Cache-bust the live demo's frontend: at build, move the copied assets into a
+// version-stamped folder and repoint the demo HTML at it, so a new package
+// release changes every asset URL. A version-stamped folder (rather than a
+// `?v=` query) is used because the demo is an ES-module app: truss.js imports
+// its siblings (./selection.js, ./diff-view.js) and truss.css references its
+// fonts relatively, and those sub-requests inherit the folder, which a query
+// string on the entry points could not reach. Only the built output is
+// rewritten; the committed source keeps plain ./assets/ for local dev.
+function demoAssetVersioning() {
+  return {
+    name: 'demo-asset-versioning',
+    hooks: {
+      'astro:build:done': async ({ dir, logger }) => {
+        let version = 'dev'
+        try {
+          version = (await readFile(new URL('./.demo-asset-version', import.meta.url), 'utf8')).trim() || 'dev'
+        } catch { /* no version file: fall back to a stable folder name */ }
+        const safe = version.replace(/[^A-Za-z0-9._-]/g, '-')
+        const demoDir = join(fileURLToPath(dir), 'demo')
+        try {
+          await rename(join(demoDir, 'assets'), join(demoDir, `assets-${safe}`))
+          const indexPath = join(demoDir, 'index.html')
+          const html = await readFile(indexPath, 'utf8')
+          await writeFile(indexPath, html.replaceAll('./assets/', `./assets-${safe}/`))
+          logger.info(`Versioned demo assets as assets-${safe}`)
+        } catch (e) {
+          logger.warn(`Skipped demo asset versioning: ${e.message}`)
+        }
+      },
+    },
+  }
+}
 
 // Build target is env-driven. The default is the production root domain
 // (trussphp.com); SITE_URL / SITE_BASE let CI or a preview build target
@@ -87,5 +123,6 @@ export default defineConfig({
         { label: 'Credits', link: '/credits/' },
       ],
     }),
+    demoAssetVersioning(),
   ],
 })
