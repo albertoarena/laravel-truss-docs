@@ -70,6 +70,9 @@ export const SECTIONS: RoadmapSection[] = [
     label: 'Approved next',
     commitment: 'Committed, building next',
     blurb: 'Decided. This is what comes next.',
+    // Deliberately empty for now: nothing is committed as the next build. An empty
+    // section does not render (see roadmap.astro), so the grid shows three columns
+    // rather than a phantom fourth.
     items: [],
   },
   {

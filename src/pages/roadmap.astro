@@ -1,6 +1,11 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro'
 import { SECTIONS } from '../data/roadmap.ts'
+
+// Only sections with items render, so the grid track count must follow that
+// count — otherwise an empty section (e.g. nothing "Approved next") leaves a
+// phantom column showing the grid background.
+const visible = SECTIONS.filter((section) => section.items.length > 0)
 ---
 <SiteLayout title="Roadmap: Laravel Truss" description="Where Laravel Truss is headed: shipped releases, what is building next, what is being explored, and the wishlist." active="roadmap">
   <section class="intro">
@@ -13,8 +18,8 @@ import { SECTIONS } from '../data/roadmap.ts'
     </p>
   </section>
 
-  <div class="columns">
-    {SECTIONS.filter((section) => section.items.length > 0).map((section) => (
+  <div class="columns" style={`--cols:${visible.length}`}>
+    {visible.map((section) => (
       <section class:list={['col', section.status]} aria-labelledby={`h-${section.status}`}>
         <header class="col-head">
           <h2 id={`h-${section.status}`}>{section.label}</h2>
@@ -86,7 +91,7 @@ import { SECTIONS } from '../data/roadmap.ts'
 
   .columns {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(var(--cols, 4), 1fr);
     gap: 1px;
     background: var(--truss-line);
     border-top: 1px solid var(--truss-line);

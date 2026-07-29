@@ -18,7 +18,9 @@ describe('roadmap data', () => {
     for (const s of SECTIONS) {
       expect(s.label, `label for ${s.status}`).toBeTruthy()
       expect(s.commitment, `commitment for ${s.status}`).toBeTruthy()
-      expect(s.items.length, `items in ${s.status}`).toBeGreaterThan(0)
+      // A section may be empty (e.g. nothing committed as "Approved next"); an
+      // empty section simply does not render. Items must be an array either way.
+      expect(Array.isArray(s.items), `items array for ${s.status}`).toBe(true)
     }
   })
 
