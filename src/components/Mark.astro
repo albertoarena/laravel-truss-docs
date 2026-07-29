@@ -1,0 +1,38 @@
+---
+/**
+ * The Truss mark: a king-post truss, apex + two base nodes + a center node,
+ * joined by top chords, a king post, and two web members. Kept from the
+ * original mark, refined only in proportion. Uses currentColor so it inherits
+ * the surrounding ink/accent and themes for free.
+ */
+interface Props {
+  size?: number
+  class?: string
+  title?: string
+}
+const { size = 28, class: className, title } = Astro.props
+---
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 32 32"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linejoin="miter"
+  class={className}
+  role={title ? 'img' : 'presentation'}
+  aria-hidden={title ? undefined : 'true'}
+>
+  {title && <title>{title}</title>}
+  <path d="M16 5 L27 26 H5 Z" />
+  <path d="M16 5 V17" />
+  <path d="M5 26 L16 17" />
+  <path d="M27 26 L16 17" />
+  <g fill="currentColor" stroke="none">
+    <circle cx="16" cy="5" r="2.3" />
+    <circle cx="5" cy="26" r="2.3" />
+    <circle cx="27" cy="26" r="2.3" />
+    <circle cx="16" cy="17" r="2.3" />
+  </g>
+</svg>

@@ -8,7 +8,10 @@
   --sl-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   --sl-font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
-  --sl-content-width: 65rem;
+  /* Keep the doc column at a readable measure that still leaves room for the
+     sidebar and the right-hand "On this page" TOC at medium desktop widths.
+     Wider (e.g. 65rem) pushes the TOC off-screen between ~1150px and ~1500px. */
+  --sl-content-width: 45rem;
 }
 
 :root[data-theme='dark'] {
@@ -38,26 +41,130 @@
   border-radius: 0.5rem;
 }
 
-.sl-markdown-content .table-container,
-.sl-markdown-content > table {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
+/* Reference tables fit the column and wrap, rather than forcing themselves wide
+   and scrolling (which hid the last column on smaller screens). A slightly
+   smaller font and auto layout let all columns stay visible; long identifiers
+   in code cells break instead of pushing the table past the column. */
 .sl-markdown-content table {
-  border-collapse: collapse;
   width: 100%;
-  min-width: max-content;
+  table-layout: auto;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.sl-markdown-content td code,
+.sl-markdown-content th code {
+  overflow-wrap: anywhere;
 }
 
 .sl-markdown-content th,
 .sl-markdown-content td {
   border: 1px solid var(--sl-color-gray-5);
-  padding: 0.75rem;
-  white-space: nowrap;
+  padding: 0.6rem 0.9rem;
+  line-height: 1.5;
+  vertical-align: top;
+  text-align: left;
 }
 
+/* Starlight zeroes the outer padding on the first and last cells to align the
+   table with the prose edge; our cells have borders, so restore it or the code
+   chips touch the border. */
+.sl-markdown-content th:first-child,
+.sl-markdown-content td:first-child {
+  padding-inline-start: 0.9rem;
+}
+.sl-markdown-content th:last-child,
 .sl-markdown-content td:last-child {
-  white-space: normal;
-  min-width: 12rem;
+  padding-inline-end: 0.9rem;
+}
+
+/* ==========================================================================
+   Blueprint reskin: unify the Starlight docs with the custom landing/roadmap.
+   Keeps Starlight's engine (sidebar, search, TOC, edit links); restyles the
+   shell in the blueprint system. Header/footer/title come from the component
+   overrides; this handles the surrounding chrome and content.
+   ========================================================================== */
+
+:root {
+  /* Map Starlight's hairlines and nav surface to the blueprint tones. */
+  --sl-color-hairline: var(--truss-line);
+  --sl-color-hairline-shade: var(--truss-line);
+  --sl-color-hairline-light: var(--truss-line);
+  --sl-color-bg-nav: color-mix(in srgb, var(--truss-panel) 88%, transparent);
+  --sl-color-bg-sidebar: var(--truss-panel);
+}
+
+/* Faint blueprint grid behind the whole page, like the custom pages. */
+body {
+  background-image:
+    linear-gradient(var(--truss-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--truss-grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-attachment: fixed;
+}
+
+/* Sidebar: mono nav, uppercase group labels, an accent pill on the active page. */
+.sidebar a {
+  font-family: var(--sl-font-mono);
+  font-size: 0.82rem;
+  letter-spacing: -0.01em;
+}
+.sidebar .group-label .large {
+  font-family: var(--sl-font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--truss-muted);
+}
+.sidebar a[aria-current='page'] {
+  background: var(--truss-entity-even);
+  color: var(--sl-color-text-accent);
+  font-weight: 600;
+  border-radius: 0.375rem;
+}
+
+/* Right-hand table of contents: mono, to match. */
+.right-sidebar a,
+starlight-toc a {
+  font-family: var(--sl-font-mono);
+  font-size: 0.78rem;
+  letter-spacing: -0.01em;
+}
+
+/* The page title in the mono display voice, tying it to the landing headline. */
+.sl-markdown-content h1,
+.content-panel h1 {
+  font-family: var(--sl-font-mono);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Code blocks and inline code on the blueprint field color. */
+.sl-markdown-content pre {
+  background: var(--truss-field) !important;
+  border-color: var(--truss-line);
+}
+.sl-markdown-content :not(pre) > code {
+  border: 1px solid var(--truss-line);
+}
+
+/* Asides: blueprint hairline frame. */
+.starlight-aside {
+  border: 1px solid var(--truss-line);
+}
+
+/* Tables and cards on the blueprint line color. */
+.sl-markdown-content th,
+.sl-markdown-content td {
+  border-color: var(--truss-line);
+}
+.sl-markdown-content .card,
+.card {
+  border-color: var(--truss-line) !important;
+}
+
+/* Search field harmonized with the blueprint frame. */
+.sidebar-pane,
+site-search button[data-open-modal] {
+  border-color: var(--truss-line);
 }

@@ -1,0 +1,185 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro'
+import { SECTIONS } from '../data/roadmap.ts'
+---
+<SiteLayout title="Roadmap: Laravel Truss" description="Where Laravel Truss is headed: shipped releases, what is building next, what is being explored, and the wishlist." active="roadmap">
+  <section class="intro">
+    <p class="eyebrow">Roadmap</p>
+    <h1>Where Truss is headed</h1>
+    <p class="lede">
+      From shipped to wishlist, left to right. This is a direction, not a
+      promise: dates and order can change, and the further right an item sits,
+      the less certain it is.
+    </p>
+  </section>
+
+  <div class="columns">
+    {SECTIONS.map((section) => (
+      <section class:list={['col', section.status]} aria-labelledby={`h-${section.status}`}>
+        <header class="col-head">
+          <h2 id={`h-${section.status}`}>{section.label}</h2>
+          <p class="commitment">{section.commitment}</p>
+        </header>
+        <ul>
+          {section.items.map((item) => (
+            <li class="card">
+              <div class="card-top">
+                <h3>{item.title}</h3>
+                {item.version && <span class="ver">{item.version}</span>}
+              </div>
+              <p>{item.blurb}</p>
+              <div class="meta">
+                {item.tag && <span class="tag">{item.tag}</span>}
+                {item.issueUrl && (
+                  <a href={item.issueUrl} target="_blank" rel="noopener">
+                    {item.issueUrl.includes('/issues/')
+                      ? `Issue #${item.issueUrl.split('/').pop()}`
+                      : 'On GitHub'}
+                    <span aria-hidden="true"> ↗</span>
+                  </a>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+
+  <section class="sponsor">
+    <p>
+      Sponsoring via <a href="https://ko-fi.com/albertoarena" target="_blank" rel="noopener">Ko-fi</a>
+      helps move items from Exploring into Approved next. Feature ideas and
+      thumbs-up on <a href="https://github.com/albertoarena/laravel-truss/issues" target="_blank" rel="noopener">GitHub issues</a>
+      steer what gets picked up.
+    </p>
+  </section>
+</SiteLayout>
+
+<style>
+  section { padding: 0 var(--truss-gutter); }
+  @media (max-width: 640px) { section { padding: 0 22px; } }
+
+  .intro { padding-top: 52px; padding-bottom: 8px; }
+  .eyebrow {
+    font-family: var(--truss-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--truss-cyan);
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before { content: ''; width: 22px; height: 1px; background: var(--truss-cyan); }
+  .intro h1 {
+    font-family: var(--truss-font-mono);
+    font-weight: 600;
+    font-size: clamp(28px, 4.6vw, 42px);
+    letter-spacing: -0.03em;
+    color: var(--truss-fg);
+    margin: 0;
+    text-wrap: balance;
+  }
+  .lede { font-size: clamp(15px, 2.2vw, 17px); color: var(--truss-muted); max-width: 60ch; margin: 16px 0 0; }
+
+  .columns {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--truss-line);
+    border-top: 1px solid var(--truss-line);
+    border-bottom: 1px solid var(--truss-line);
+    margin: 44px 0;
+  }
+  .col { background: var(--truss-panel); padding: 24px 20px; }
+  .col-head { margin-bottom: 18px; }
+  .col-head h2 {
+    font-family: var(--truss-font-mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--truss-ink);
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  /* A small status pip before each column heading, warming left to right. */
+  .col-head h2::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .col.shipped .col-head h2::before { background: var(--truss-cyan); }
+  .col.approved .col-head h2::before { background: var(--truss-ink); }
+  .col.exploring .col-head h2::before { background: var(--truss-muted); }
+  .col.wishlist .col-head h2::before { background: transparent; border: 1.5px solid var(--truss-muted); }
+  .commitment {
+    font-family: var(--truss-font-mono);
+    font-size: 11px;
+    color: var(--truss-muted);
+    margin: 0;
+  }
+
+  .col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .card {
+    border: 1px solid var(--truss-line);
+    border-radius: var(--truss-radius);
+    background: var(--truss-field);
+    padding: 14px 14px 12px;
+  }
+  .card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .card h3 {
+    font-family: var(--truss-font-mono);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--truss-fg);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .ver {
+    font-family: var(--truss-font-mono);
+    font-size: 11px;
+    color: var(--truss-cyan);
+    flex: none;
+  }
+  .card p { margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--truss-muted); }
+  .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .tag {
+    font-family: var(--truss-font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    color: var(--truss-ink);
+    background: var(--truss-entity-even);
+    border: 1px solid var(--truss-line);
+    border-radius: 999px;
+    padding: 2px 9px;
+  }
+  .meta a {
+    font-family: var(--truss-font-mono);
+    font-size: 11.5px;
+    color: var(--truss-muted);
+    text-decoration: none;
+  }
+  .meta a:hover { color: var(--truss-fg); }
+
+  @media (max-width: 900px) { .columns { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .columns { grid-template-columns: 1fr; } }
+
+  .sponsor { padding-bottom: 56px; }
+  .sponsor p {
+    max-width: 62ch;
+    font-size: 14.5px;
+    color: var(--truss-muted);
+    border-left: 2px solid var(--truss-cyan);
+    padding-left: 16px;
+    margin: 0;
+  }
+  .sponsor a { color: var(--truss-ink); text-decoration: none; border-bottom: 1px solid var(--truss-line); }
+  .sponsor a:hover { border-color: var(--truss-ink); }
+  :global(:root[data-theme='dark']) .sponsor a,
+  :global(:root[data-theme='dark']) .meta a:hover { color: var(--truss-cyan); }
+</style>

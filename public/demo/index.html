@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Laravel Truss — Live demo</title>
+    <title>Laravel Truss: live demo</title>
 
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cstyle%3E*%7Bstroke:%2312356b;fill:none;stroke-width:1.7%7Dcircle%7Bfill:%2312356b;stroke:none%7D@media(prefers-color-scheme:dark)%7B*%7Bstroke:%235fd0e6%7Dcircle%7Bfill:%235fd0e6%7D%7D%3C/style%3E%3Cpath d='M16 5 L27 26 H5 Z'/%3E%3Cpath d='M16 5 V17'/%3E%3Cpath d='M5 26 L16 17'/%3E%3Cpath d='M27 26 L16 17'/%3E%3Ccircle cx='16' cy='5' r='2.4'/%3E%3Ccircle cx='5' cy='26' r='2.4'/%3E%3Ccircle cx='27' cy='26' r='2.4'/%3E%3Ccircle cx='16' cy='17' r='2.4'/%3E%3C/svg%3E">
 
@@ -12,8 +12,82 @@
          regardless of the site's base path without hardcoding it. -->
     <link rel="stylesheet" href="./assets/truss.css">
     <script src="./assets/vendor/mermaid.min.js"></script>
+
+    <!-- A slim site bar sits above the app so the demo belongs to trussphp.com.
+         It reuses the app's own blueprint tokens (--bp-*, set by truss.css), so
+         it stays on-palette and theme-reactive without loading anything else. -->
+    <style>
+      :root { --site-bar-h: 48px; }
+      /* The whole thing fits one screen; the diagram viewport pans on its own. */
+      html, body { overflow: hidden; }
+      /* Reserve room for the site bar on top of the app's toolbar + footer. */
+      #truss-viewport { height: calc(100vh - 54px - 28px - var(--site-bar-h)) !important; }
+      /* One theme control (in the site bar); the app's own button is redundant. */
+      #truss-theme-btn { display: none !important; }
+
+      .site-bar {
+        height: var(--site-bar-h);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; padding: 0 18px;
+        background: var(--bp-panel);
+        border-bottom: 1px solid var(--bp-panel-line);
+        font-family: var(--bp-mono);
+      }
+      .site-bar-logo {
+        display: inline-flex; align-items: center; gap: 9px;
+        text-decoration: none; color: var(--bp-ink);
+      }
+      .site-bar-word { font-weight: 600; font-size: 17px; letter-spacing: -0.05em; }
+      .site-bar-nav { display: flex; align-items: center; gap: 18px; }
+      .site-bar-nav a {
+        font-size: 13px; color: var(--bp-muted); text-decoration: none; letter-spacing: -0.01em;
+      }
+      .site-bar-nav a:hover { color: var(--bp-fg); }
+      .site-bar-theme {
+        background: transparent; border: 1px solid var(--bp-panel-line); border-radius: 7px;
+        color: var(--bp-muted); width: 32px; height: 28px; cursor: pointer; font-size: 14px; line-height: 1;
+      }
+      .site-bar-theme:hover { color: var(--bp-fg); }
+      .site-bar a:focus-visible, .site-bar-theme:focus-visible {
+        outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px;
+      }
+      @media (max-width: 560px) { .site-bar-nav a { display: none; } }
+    </style>
+
+    <!-- Reconcile the theme before paint. The app themes via data-theme on
+         <html> from its own `truss-theme` key; the rest of the site uses
+         `starlight-theme`. Seed one from the other so a choice made anywhere
+         carries into the demo, and the app's on-load applyTheme() agrees. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('truss-theme') || localStorage.getItem('starlight-theme')
+          if (t === 'light' || t === 'dark') {
+            document.documentElement.setAttribute('data-theme', t)
+            localStorage.setItem('truss-theme', t)
+            localStorage.setItem('starlight-theme', t)
+          }
+        } catch (e) {}
+      })()
+    </script>
 </head>
 <body>
+    <header class="site-bar">
+        <a class="site-bar-logo" href="../" aria-label="Laravel Truss home">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="miter" aria-hidden="true">
+                <path d="M16 5 L27 26 H5 Z"/><path d="M16 5 V17"/><path d="M5 26 L16 17"/><path d="M27 26 L16 17"/>
+                <g fill="currentColor" stroke="none"><circle cx="16" cy="5" r="2.3"/><circle cx="5" cy="26" r="2.3"/><circle cx="27" cy="26" r="2.3"/><circle cx="16" cy="17" r="2.3"/></g>
+            </svg>
+            <span class="site-bar-word">truss</span>
+        </a>
+        <nav class="site-bar-nav" aria-label="Site">
+            <a href="../getting-started/installation/">Docs</a>
+            <a href="../roadmap/">Roadmap</a>
+            <a href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener">GitHub</a>
+            <button class="site-bar-theme" type="button" aria-label="Toggle color theme" title="Toggle theme">◐</button>
+        </nav>
+    </header>
+
     <div
         id="truss-app"
         data-schema-endpoint="./schema.json"
@@ -99,7 +173,7 @@
         <div class="truss-popover" id="truss-popover" hidden></div>
 
         <footer class="truss-footer">
-            <span id="truss-stat-tables">—</span>
+            <span id="truss-stat-tables">·</span>
             <span id="truss-stat-conn"></span>
             <span class="truss-flag" id="truss-stat-fallback" hidden>SQLite&nbsp;fallback</span>
             <span class="truss-footer-spacer"></span>
@@ -115,5 +189,29 @@
             new URL('schema.json', document.baseURI).href;
     </script>
     <script type="module" src="./assets/truss.js"></script>
+
+    <!-- Site-bar theme toggle: flips data-theme on <html> (the app's CSS reacts)
+         and writes both theme keys so the choice sticks across the whole site. -->
+    <script>
+        (function () {
+            var btn = document.querySelector('.site-bar-theme');
+            if (!btn) return;
+            var root = document.documentElement;
+            function label() {
+                var t = root.getAttribute('data-theme');
+                btn.textContent = t === 'light' ? '☀' : t === 'dark' ? '☾' : '◐';
+            }
+            label();
+            btn.addEventListener('click', function () {
+                var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', next);
+                try {
+                    localStorage.setItem('truss-theme', next);
+                    localStorage.setItem('starlight-theme', next);
+                } catch (e) {}
+                label();
+            });
+        })();
+    </script>
 </body>
 </html>

@@ -44,19 +44,20 @@ export default defineConfig({
       editLink: {
         baseUrl: 'https://github.com/albertoarena/laravel-truss-docs/edit/main/',
       },
+      components: {
+        SiteTitle: './src/components/overrides/SiteTitle.astro',
+        Header: './src/components/overrides/Header.astro',
+        Footer: './src/components/overrides/Footer.astro',
+      },
       customCss: [
+        './src/styles/tokens.css',
         './src/styles/custom.css',
       ],
       sidebar: [
         {
-          label: 'Introduction',
-          items: [
-            { label: 'Overview', link: '/' },
-          ],
-        },
-        {
           label: 'Getting Started',
           items: [
+            { label: 'Home', link: '/' },
             { label: 'Installation', link: '/getting-started/installation/' },
             { label: 'Quick start', link: '/getting-started/quick-start/' },
             { label: 'Live demo', link: '/demo/', attrs: { target: '_blank' }, badge: 'Live' },

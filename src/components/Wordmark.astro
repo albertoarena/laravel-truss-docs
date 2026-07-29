@@ -1,0 +1,77 @@
+---
+/**
+ * The "truss" wordmark: IBM Plex Mono 600, tight tracking so it reads as one
+ * unit. Lowercase always.
+ *
+ *  - chord: adds the bottom-chord rule with three joint nodes (left, center,
+ *    right) tucked just under the word, echoing the mark's base. Used on the
+ *    standalone / hero wordmark, NOT in the header (there the mark sits beside
+ *    the word and already carries the truss idea).
+ *  - framework: prepends a muted lowercase "laravel " for the framework lockup
+ *    (footer, OG cover, wide nav).
+ */
+interface Props {
+  size?: number
+  chord?: boolean
+  framework?: boolean
+  class?: string
+}
+const { size = 26, chord = false, framework = false, class: className } = Astro.props
+---
+<span class:list={['wm', className]} style={`--wm-size:${size}px`}>
+  {framework && <span class="wm-prefix">laravel&#8239;</span>}
+  <span class:list={['wm-word', { chord }]}
+    >truss{chord && (
+      <span class="wm-chord" aria-hidden="true">
+        <span class="wm-node wm-node-l"></span>
+        <span class="wm-node wm-node-c"></span>
+        <span class="wm-node wm-node-r"></span>
+      </span>
+    )}</span>
+</span>
+
+<style>
+  .wm {
+    font-family: var(--truss-font-mono);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: var(--truss-ink);
+    display: inline-flex;
+    align-items: baseline;
+    font-size: var(--wm-size);
+    white-space: nowrap;
+  }
+  .wm-prefix {
+    font-weight: 400;
+    color: var(--truss-muted);
+  }
+  .wm-word {
+    position: relative;
+    display: inline-block;
+  }
+  /* Chord + nodes, tucked close under the word (tight vertical gap). */
+  .wm-word.chord {
+    padding-bottom: 0.18em;
+  }
+  .wm-chord {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.02em;
+    height: 0;
+    border-top: 0.055em solid var(--truss-cyan);
+  }
+  .wm-node {
+    position: absolute;
+    top: 0;
+    width: 0.16em;
+    height: 0.16em;
+    border-radius: 50%;
+    background: var(--truss-cyan);
+    transform: translateY(-50%);
+  }
+  .wm-node-l { left: -0.02em; }
+  .wm-node-c { left: 50%; margin-left: -0.08em; }
+  .wm-node-r { right: -0.02em; }
+</style>

@@ -1,0 +1,114 @@
+/* Shared design tokens for the custom pages (landing, roadmap) and Starlight.
+   The palette is the same "blueprint" system the package ships (resources/css/
+   truss.css), so the site, the app, and the brand all agree. Imported by both
+   SiteLayout.astro and Starlight's customCss. */
+
+/* IBM Plex Mono, self-hosted (served from /fonts, no CDN). The docs previously
+   named this font but never loaded it, so mono text fell back silently. */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-mono-600.woff2') format('woff2');
+}
+
+:root {
+  /* Type */
+  --truss-font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --truss-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /* Frame primitives (custom pages) */
+  --truss-content-width: 940px;
+  --truss-radius: 8px;
+  --truss-gutter: 40px;
+
+  /* Blueprint palette, light (default) */
+  --truss-bg: #eef1f6;
+  --truss-grid: rgba(18, 53, 107, .07);
+  --truss-grid-strong: rgba(18, 53, 107, .12);
+  --truss-panel: #fbfcfe;
+  --truss-line: #c9d4e6;
+  --truss-ink: #12356b;
+  --truss-cyan: #0e7c9b;
+  --truss-fg: #132741;
+  --truss-muted: #5f7396;
+  --truss-field: #ffffff;
+  --truss-hair: #c4d5ec;
+  --truss-entity-even: #e9f0f9;
+  --truss-entity-border: #12356b;
+  /* Foreground to sit on the ink button (near the page bg on both themes) */
+  --truss-on-ink: #eef1f6;
+}
+
+/* Dark via OS preference. Component styles read the tokens, never the media
+   query directly, so the data-theme overrides below can win in both directions. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --truss-bg: #0b1a2b;
+    --truss-grid: rgba(120, 200, 230, .055);
+    --truss-grid-strong: rgba(120, 200, 230, .11);
+    --truss-panel: #0f2338;
+    --truss-line: #22496b;
+    --truss-ink: #5fd0e6;
+    --truss-cyan: #7fe0f2;
+    --truss-fg: #d7e7f4;
+    --truss-muted: #7fa2c0;
+    --truss-field: #0e2135;
+    --truss-hair: #274a6b;
+    --truss-entity-even: #16324e;
+    --truss-entity-border: #3f7fa0;
+    --truss-on-ink: #0b1a2b;
+  }
+}
+
+/* Explicit theme selection (Starlight's toggle stamps data-theme on <html>;
+   the custom pages honor the same attribute). These must override the media
+   query in both directions. */
+:root[data-theme='light'] {
+  --truss-bg: #eef1f6;
+  --truss-grid: rgba(18, 53, 107, .07);
+  --truss-grid-strong: rgba(18, 53, 107, .12);
+  --truss-panel: #fbfcfe;
+  --truss-line: #c9d4e6;
+  --truss-ink: #12356b;
+  --truss-cyan: #0e7c9b;
+  --truss-fg: #132741;
+  --truss-muted: #5f7396;
+  --truss-field: #ffffff;
+  --truss-hair: #c4d5ec;
+  --truss-entity-even: #e9f0f9;
+  --truss-entity-border: #12356b;
+  --truss-on-ink: #eef1f6;
+}
+
+:root[data-theme='dark'] {
+  --truss-bg: #0b1a2b;
+  --truss-grid: rgba(120, 200, 230, .055);
+  --truss-grid-strong: rgba(120, 200, 230, .11);
+  --truss-panel: #0f2338;
+  --truss-line: #22496b;
+  --truss-ink: #5fd0e6;
+  --truss-cyan: #7fe0f2;
+  --truss-fg: #d7e7f4;
+  --truss-muted: #7fa2c0;
+  --truss-field: #0e2135;
+  --truss-hair: #274a6b;
+  --truss-entity-even: #16324e;
+  --truss-entity-border: #3f7fa0;
+  --truss-on-ink: #0b1a2b;
+}

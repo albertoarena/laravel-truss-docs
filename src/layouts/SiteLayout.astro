@@ -1,0 +1,289 @@
+---
+/**
+ * Shared layout for the custom (non-Starlight) pages: the landing and the
+ * roadmap. Owns the blueprint frame, the slim header and footer, head/meta
+ * (OG + Cloudflare beacon, matching astro.config), and theme handling that
+ * shares Starlight's `starlight-theme` localStorage key so the light/dark
+ * choice persists across the custom pages and the docs.
+ */
+import '../styles/tokens.css'
+import Logo from '../components/Logo.astro'
+
+interface Props {
+  title: string
+  description?: string
+  /** Active top-nav item, for aria-current. */
+  active?: 'home' | 'roadmap'
+}
+const {
+  title,
+  description = 'A live database structure viewer for Laravel. See your schema as a scrollable, zoomable ER diagram, right inside your app. Structure only, never row data.',
+  active,
+} = Astro.props
+
+const site = Astro.site ?? new URL('https://trussphp.com')
+const canonical = new URL(Astro.url.pathname, site).href
+const cover = new URL('/cover-light.png', site).href
+
+const nav = [
+  { label: 'Docs', href: '/getting-started/installation/' },
+  { label: 'Roadmap', href: '/roadmap/', key: 'roadmap' },
+  { label: 'Demo', href: '/demo/' },
+  { label: 'GitHub', href: 'https://github.com/albertoarena/laravel-truss', external: true },
+]
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={cover} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={cover} />
+
+    {/* Apply the shared theme before paint to avoid a flash. Reads Starlight's
+        key so a choice made in the docs carries over here, and vice versa. */}
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('starlight-theme')
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+          document.documentElement.dataset.theme = theme
+        } catch (e) {}
+      })()
+    </script>
+
+    {/* Cloudflare Web Analytics beacon (cookieless, public token), matching the
+        Starlight pages so RUM covers the whole site. */}
+    <script
+      is:inline
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon='{"token": "7f6eaa0832eb43cc838db8d337590f11"}'></script>
+  </head>
+
+  <body>
+    <div class="frame">
+      <header class="site-header">
+        <a class="home-link" href="/" aria-label="Laravel Truss home">
+          <Logo size={22} />
+        </a>
+        <nav class="site-nav" aria-label="Primary">
+          <ul>
+            {nav.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  target={item.external ? '_blank' : undefined}
+                  rel={item.external ? 'noopener' : undefined}
+                  aria-current={active && item.key === active ? 'page' : undefined}
+                >{item.label}</a>
+              </li>
+            ))}
+          </ul>
+          <a class="cta" href="/getting-started/installation/">Get started</a>
+          <button class="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle theme">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <circle class="sun" cx="12" cy="12" r="4" />
+              <g class="sun" stroke-linecap="round">
+                <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+              </g>
+              <path class="moon" d="M20 14.5A8 8 0 1 1 9.5 4a6.2 6.2 0 0 0 10.5 10.5z" />
+            </svg>
+          </button>
+        </nav>
+      </header>
+
+      <main class="site-main">
+        <slot />
+      </main>
+
+      <footer class="site-footer">
+        <a class="home-link" href="/" aria-label="Laravel Truss home">
+          <Logo size={20} framework />
+        </a>
+        <nav class="footer-nav" aria-label="Footer">
+          <a href="/getting-started/installation/">Get started</a>
+          <a href="/roadmap/">Roadmap</a>
+          <a href="/credits/">Credits</a>
+          <a href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://ko-fi.com/albertoarena" target="_blank" rel="noopener">Support</a>
+        </nav>
+        <p class="colophon">MIT licensed. Structure only, never row data.</p>
+      </footer>
+    </div>
+
+    <script is:inline>
+      document.querySelector('.theme-toggle')?.addEventListener('click', function () {
+        var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'
+        document.documentElement.dataset.theme = next
+        try {
+          localStorage.setItem('starlight-theme', next)
+        } catch (e) {}
+      })
+    </script>
+  </body>
+</html>
+
+<style>
+  :global(html) {
+    scroll-behavior: smooth;
+  }
+  :global(body) {
+    margin: 0;
+    background: var(--truss-bg);
+    color: var(--truss-fg);
+    font-family: var(--truss-font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      linear-gradient(var(--truss-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--truss-grid) 1px, transparent 1px);
+    background-size: 26px 26px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(html) { scroll-behavior: auto; }
+  }
+
+  /* The framed blueprint column: contained, with thin vertical rules. */
+  .frame {
+    max-width: var(--truss-content-width);
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--truss-panel);
+    border-left: 1px solid var(--truss-line);
+    border-right: 1px solid var(--truss-line);
+    display: flex;
+    flex-direction: column;
+  }
+  @media (max-width: 640px) {
+    .frame { border-left: 0; border-right: 0; }
+  }
+
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px var(--truss-gutter);
+    border-bottom: 1px solid var(--truss-line);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: color-mix(in srgb, var(--truss-panel) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(8px);
+  }
+  .home-link { text-decoration: none; display: inline-flex; }
+
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+  }
+  .site-nav ul {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .site-nav a {
+    font-family: var(--truss-font-mono);
+    font-size: 13px;
+    color: var(--truss-muted);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+  }
+  .site-nav a:hover,
+  .site-nav a[aria-current='page'] { color: var(--truss-fg); }
+  .site-nav a[aria-current='page'] { font-weight: 600; }
+
+  .cta {
+    font-family: var(--truss-font-mono) !important;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--truss-on-ink) !important;
+    background: var(--truss-ink);
+    padding: 8px 14px;
+    border-radius: var(--truss-radius);
+  }
+  .cta:hover { opacity: 0.92; }
+
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--truss-line);
+    border-radius: var(--truss-radius);
+    background: var(--truss-field);
+    color: var(--truss-muted);
+    cursor: pointer;
+  }
+  .theme-toggle:hover { color: var(--truss-fg); }
+  .theme-toggle .moon { display: none; }
+  :global(:root[data-theme='dark']) .theme-toggle .sun { display: none; }
+  :global(:root[data-theme='dark']) .theme-toggle .moon { display: inline; }
+
+  /* On narrow screens, drop the text links and keep the essentials. */
+  @media (max-width: 720px) {
+    .site-nav ul { display: none; }
+  }
+
+  .site-main { flex: 1; }
+
+  .site-footer {
+    border-top: 1px solid var(--truss-line);
+    padding: 30px var(--truss-gutter);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .footer-nav a {
+    font-family: var(--truss-font-mono);
+    font-size: 13px;
+    color: var(--truss-muted);
+    text-decoration: none;
+  }
+  .footer-nav a:hover { color: var(--truss-fg); }
+  .colophon {
+    margin: 0;
+    font-family: var(--truss-font-mono);
+    font-size: 12px;
+    color: var(--truss-muted);
+  }
+
+  :global(a:focus-visible),
+  .theme-toggle:focus-visible {
+    outline: 2px solid var(--truss-cyan);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  @media (max-width: 640px) {
+    .site-header, .site-footer { padding-left: 22px; padding-right: 22px; }
+  }
+</style>

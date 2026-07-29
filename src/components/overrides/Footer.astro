@@ -1,0 +1,59 @@
+---
+/**
+ * Starlight Footer override: keep the default in-content footer (edit link,
+ * last-updated, prev/next pagination) by rendering the default, then append the
+ * site footer so the docs close the same way the custom pages do.
+ */
+import Default from '@astrojs/starlight/components/Footer.astro'
+import Logo from '../Logo.astro'
+---
+<Default><slot /></Default>
+
+<div class="site-footer">
+  <a class="home-link" href="/" aria-label="Laravel Truss home">
+    <Logo size={18} framework />
+  </a>
+  <nav class="footer-nav" aria-label="Footer">
+    <a href="/getting-started/installation/">Get started</a>
+    <a href="/roadmap/">Roadmap</a>
+    <a href="/credits/">Credits</a>
+    <a href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://ko-fi.com/albertoarena" target="_blank" rel="noopener">Support</a>
+  </nav>
+  <p class="colophon">MIT licensed. Structure only, never row data.</p>
+</div>
+
+<style>
+  .site-footer {
+    margin-top: 2.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--truss-line);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .home-link {
+    text-decoration: none;
+    display: inline-flex;
+  }
+  .footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+  .footer-nav a {
+    font-family: var(--truss-font-mono);
+    font-size: 0.8125rem;
+    color: var(--truss-muted);
+    text-decoration: none;
+  }
+  .footer-nav a:hover {
+    color: var(--truss-fg);
+  }
+  .colophon {
+    margin: 0;
+    font-family: var(--truss-font-mono);
+    font-size: 0.75rem;
+    color: var(--truss-muted);
+  }
+</style>

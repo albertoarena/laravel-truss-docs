@@ -1,0 +1,284 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro'
+import Wordmark from '../components/Wordmark.astro'
+
+const version = 'v1.3.1'
+const installCmd = 'composer require albertoarena/laravel-truss'
+
+const features = [
+  {
+    title: 'Live ER diagram',
+    body: 'Your real schema, introspected from the live connection and drawn with Mermaid. No migration parsing, no Doctrine DBAL.',
+  },
+  {
+    title: 'Focus mode',
+    body: 'Click a table to see just it and its foreign-key neighbours, centred and highlighted, so large schemas stay legible.',
+  },
+  {
+    title: 'Pan and zoom',
+    body: 'Drag to pan, scroll or pinch to zoom, like a map. Auto-fits to a readable zoom, and a Fit button frames the whole thing.',
+  },
+  {
+    title: 'Structure only',
+    body: 'Only the CREATE TABLE shape: tables, columns, keys, indexes. No row data is ever read. Safe to gate and run in production.',
+  },
+  {
+    title: 'Self-contained',
+    body: 'Mermaid and fonts are vendored and served from the package. No CDN, so it works offline and under a strict CSP.',
+  },
+  {
+    title: 'Cached, auto-rebuilt',
+    body: 'The snapshot is cached and refreshed automatically after migrations run. A manual rebuild command is there too.',
+  },
+]
+---
+<SiteLayout title="Laravel Truss: a live database structure viewer" active="home">
+  <!-- Hero -->
+  <section class="hero">
+    <span class="badge">
+      <b>{version}</b><span class="dot">·</span>MIT<span class="dot">·</span>Laravel 12+
+    </span>
+    <h1>See your database<br /><span class="accent">structure</span>, live.</h1>
+    <p class="lede">
+      A scrollable, zoomable ER diagram of your real schema, rendered right inside
+      your Laravel app. Structure only, never a single row of data.
+    </p>
+
+    <div class="install" role="group" aria-label="Install command">
+      <code><span class="prompt">$</span> {installCmd}</code>
+      <button class="copy" type="button" data-copy={installCmd} aria-label="Copy install command">copy</button>
+    </div>
+
+    <div class="actions">
+      <a class="btn primary" href="/demo/">Live demo <span aria-hidden="true">→</span></a>
+      <a class="btn ghost" href="/getting-started/installation/">Get started</a>
+    </div>
+  </section>
+
+  <!-- Product band: static ER diagram, the visual proof -->
+  <div class="band">
+    <svg class="diagram" viewBox="0 0 760 260" role="img" aria-label="Example entity-relationship diagram: a users table linked to a posts table by a foreign key">
+      <!-- users -->
+      <g transform="translate(60,40)">
+        <rect class="ent" x="0" y="0" width="210" height="150" rx="6" />
+        <path class="ent-head" d="M6 0 h198 a6 6 0 0 1 6 6 v22 h-210 v-22 a6 6 0 0 1 6 -6 z" />
+        <text class="ent-title" x="14" y="19">users</text>
+        <text class="col" x="14" y="50">id</text><text class="typ" x="196" y="50" text-anchor="end">bigint PK</text>
+        <line class="hair" x1="0" y1="62" x2="210" y2="62" />
+        <text class="col" x="14" y="80">name</text><text class="typ" x="196" y="80" text-anchor="end">varchar</text>
+        <line class="hair" x1="0" y1="92" x2="210" y2="92" />
+        <text class="col" x="14" y="110">email</text><text class="typ" x="196" y="110" text-anchor="end">varchar UQ</text>
+        <line class="hair" x1="0" y1="122" x2="210" y2="122" />
+        <text class="col" x="14" y="140">created_at</text><text class="typ" x="196" y="140" text-anchor="end">datetime</text>
+      </g>
+      <!-- posts -->
+      <g transform="translate(490,55)">
+        <rect class="ent" x="0" y="0" width="210" height="150" rx="6" />
+        <path class="ent-head" d="M6 0 h198 a6 6 0 0 1 6 6 v22 h-210 v-22 a6 6 0 0 1 6 -6 z" />
+        <text class="ent-title" x="14" y="19">posts</text>
+        <text class="col" x="14" y="50">id</text><text class="typ" x="196" y="50" text-anchor="end">bigint PK</text>
+        <line class="hair" x1="0" y1="62" x2="210" y2="62" />
+        <text class="col" x="14" y="80">user_id</text><text class="typ" x="196" y="80" text-anchor="end">bigint FK</text>
+        <line class="hair" x1="0" y1="92" x2="210" y2="92" />
+        <text class="col" x="14" y="110">title</text><text class="typ" x="196" y="110" text-anchor="end">varchar</text>
+        <line class="hair" x1="0" y1="122" x2="210" y2="122" />
+        <text class="col" x="14" y="140">published</text><text class="typ" x="196" y="140" text-anchor="end">boolean</text>
+      </g>
+      <!-- relationship -->
+      <path class="rel" d="M270 130 C 360 130, 400 135, 490 135" />
+      <circle class="node" cx="270" cy="130" r="3.4" />
+      <circle class="node" cx="490" cy="135" r="3.4" />
+    </svg>
+    <p class="band-note">A real introspected schema, drawn in the browser. Structure only.</p>
+  </div>
+
+  <!-- Features -->
+  <section class="features">
+    <ul>
+      {features.map((f) => (
+        <li>
+          <h3>{f.title}</h3>
+          <p>{f.body}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <!-- Brand sign-off -->
+  <section class="signoff">
+    <Wordmark size={56} chord />
+    <p>Free and open source. If it saves you time, a coffee at
+      <a href="https://ko-fi.com/albertoarena" target="_blank" rel="noopener">ko-fi.com/albertoarena</a>
+      or a star on <a href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener">GitHub</a>
+      keeps it moving. See where it is headed on the
+      <a href="/roadmap/">roadmap</a>.
+    </p>
+  </section>
+</SiteLayout>
+
+<style>
+  section, .band { padding: 56px var(--truss-gutter); }
+  @media (max-width: 640px) { section, .band { padding: 40px 22px; } }
+
+  /* Hero */
+  .hero { padding-bottom: 44px; }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--truss-font-mono);
+    font-size: 12px;
+    color: var(--truss-muted);
+    border: 1px solid var(--truss-line);
+    border-radius: 999px;
+    padding: 5px 13px;
+    background: var(--truss-field);
+  }
+  .badge b { color: var(--truss-ink); font-weight: 600; }
+  .badge .dot { color: var(--truss-line); }
+
+  h1 {
+    font-family: var(--truss-font-mono);
+    font-weight: 600;
+    font-size: clamp(32px, 5.6vw, 54px);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    color: var(--truss-fg);
+    margin: 22px 0 0;
+    text-wrap: balance;
+  }
+  h1 .accent { color: var(--truss-ink); }
+  .lede {
+    font-size: clamp(15px, 2.2vw, 18px);
+    color: var(--truss-muted);
+    max-width: 54ch;
+    margin: 18px 0 0;
+  }
+
+  .install {
+    margin-top: 28px;
+    display: flex;
+    align-items: stretch;
+    max-width: 460px;
+    border: 1px solid var(--truss-line);
+    border-radius: var(--truss-radius);
+    overflow: hidden;
+    background: var(--truss-field);
+  }
+  .install code {
+    font-family: var(--truss-font-mono);
+    font-size: 13.5px;
+    color: var(--truss-fg);
+    padding: 12px 14px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .install .prompt { color: var(--truss-muted); }
+  .install .copy {
+    border: 0;
+    border-left: 1px solid var(--truss-line);
+    background: transparent;
+    color: var(--truss-muted);
+    padding: 0 15px;
+    cursor: pointer;
+    font-family: var(--truss-font-mono);
+    font-size: 12px;
+  }
+  .install .copy:hover { color: var(--truss-fg); background: var(--truss-bg); }
+  .install .copy.copied { color: var(--truss-cyan); }
+
+  .actions { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    font-family: var(--truss-font-mono);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 11px 18px;
+    border-radius: var(--truss-radius);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn.primary { background: var(--truss-ink); color: var(--truss-on-ink); }
+  .btn.primary:hover { opacity: 0.92; }
+  .btn.ghost { border: 1px solid var(--truss-line); color: var(--truss-fg); background: var(--truss-field); }
+  .btn.ghost:hover { border-color: var(--truss-muted); }
+
+  /* Product band: full-bleed within the frame, blueprint grid background */
+  .band {
+    border-top: 1px solid var(--truss-line);
+    border-bottom: 1px solid var(--truss-line);
+    background-image:
+      linear-gradient(var(--truss-grid-strong) 1px, transparent 1px),
+      linear-gradient(90deg, var(--truss-grid-strong) 1px, transparent 1px);
+    background-size: 22px 22px;
+    text-align: center;
+  }
+  .diagram { width: 100%; height: auto; max-width: 760px; margin: 0 auto; display: block; }
+  .band-note {
+    font-family: var(--truss-font-mono);
+    font-size: 12px;
+    color: var(--truss-muted);
+    margin: 18px 0 0;
+  }
+  .diagram .ent { fill: var(--truss-field); stroke: var(--truss-entity-border); stroke-width: 1.4; }
+  .diagram .ent-head { fill: var(--truss-ink); stroke: none; }
+  .diagram .ent-title { fill: var(--truss-on-ink); font: 600 12px var(--truss-font-mono); }
+  .diagram .col { font: 400 11px var(--truss-font-mono); fill: var(--truss-fg); }
+  .diagram .typ { font: 400 11px var(--truss-font-mono); fill: var(--truss-muted); }
+  .diagram .hair { stroke: var(--truss-hair); stroke-width: 1; }
+  .diagram .rel { stroke: var(--truss-cyan); stroke-width: 1.6; fill: none; }
+  .diagram .node { fill: var(--truss-cyan); }
+
+  /* Features */
+  .features { border-bottom: 1px solid var(--truss-line); }
+  .features ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--truss-line);
+    border: 1px solid var(--truss-line);
+    border-radius: var(--truss-radius);
+    overflow: hidden;
+  }
+  .features li { background: var(--truss-panel); padding: 22px 20px; }
+  .features h3 {
+    font-family: var(--truss-font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--truss-ink);
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .features p { margin: 0; font-size: 14px; color: var(--truss-muted); line-height: 1.55; }
+  @media (max-width: 800px) { .features ul { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .features ul { grid-template-columns: 1fr; } }
+
+  /* Sign-off */
+  .signoff { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .signoff p { max-width: 52ch; margin: 0; font-size: 15px; color: var(--truss-muted); }
+  .signoff a { color: var(--truss-ink); text-decoration: none; border-bottom: 1px solid var(--truss-line); }
+  .signoff a:hover { border-color: var(--truss-ink); }
+  :global(:root[data-theme='dark']) .signoff a { color: var(--truss-cyan); }
+</style>
+
+<script is:inline>
+  document.querySelectorAll('.copy[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      navigator.clipboard?.writeText(btn.dataset.copy).then(function () {
+        var prev = btn.textContent
+        btn.textContent = 'copied'
+        btn.classList.add('copied')
+        setTimeout(function () {
+          btn.textContent = prev
+          btn.classList.remove('copied')
+        }, 1600)
+      })
+    })
+  })
+</script>
