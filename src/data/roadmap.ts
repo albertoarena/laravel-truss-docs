@@ -70,10 +70,14 @@ export const SECTIONS: RoadmapSection[] = [
     label: 'Approved next',
     commitment: 'Committed, building next',
     blurb: 'Decided. This is what comes next.',
-    // Deliberately empty for now: nothing is committed as the next build. An empty
-    // section does not render (see roadmap.astro), so the grid shows three columns
-    // rather than a phantom fourth.
-    items: [],
+    items: [
+      {
+        title: 'Schema doctor',
+        status: 'approved',
+        blurb:
+          'Run truss:doctor to review your schema for problems visible from structure alone: missing primary keys, unindexed foreign keys, duplicate indexes, money stored as float, and more. It runs in the terminal and in CI, failing the build when a migration introduces a new problem. Deterministic and structure only, with no AI and no query stats.',
+      },
+    ],
   },
   {
     status: 'exploring',
