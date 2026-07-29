@@ -25,9 +25,23 @@ function demoAssetVersioning() {
         const demoDir = join(fileURLToPath(dir), 'demo')
         try {
           await rename(join(demoDir, 'assets'), join(demoDir, `assets-${safe}`))
-          const indexPath = join(demoDir, 'index.html')
-          const html = await readFile(indexPath, 'utf8')
-          await writeFile(indexPath, html.replaceAll('./assets/', `./assets-${safe}/`))
+          // Repoint every demo page at the versioned folder. The top-level page
+          // references it as ./assets/; pages nested one level deep (e.g.
+          // multi-connection/) reference it as ../assets/, so rewrite both.
+          const pages = [
+            join(demoDir, 'index.html'),
+            join(demoDir, 'multi-connection', 'index.html'),
+          ]
+          for (const page of pages) {
+            try {
+              const html = await readFile(page, 'utf8')
+              await writeFile(page, html
+                .replaceAll('./assets/', `./assets-${safe}/`)
+                .replaceAll('../assets/', `../assets-${safe}/`))
+            } catch (e) {
+              logger.warn(`Skipped repointing ${page}: ${e.message}`)
+            }
+          }
           logger.info(`Versioned demo assets as assets-${safe}`)
         } catch (e) {
           logger.warn(`Skipped demo asset versioning: ${e.message}`)
@@ -84,6 +98,7 @@ export default defineConfig({
         SiteTitle: './src/components/overrides/SiteTitle.astro',
         Header: './src/components/overrides/Header.astro',
         Footer: './src/components/overrides/Footer.astro',
+        ThemeSelect: './src/components/overrides/ThemeSelect.astro',
       },
       customCss: [
         './src/styles/tokens.css',

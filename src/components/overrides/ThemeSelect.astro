@@ -1,0 +1,96 @@
+---
+/**
+ * Override of Starlight's ThemeSelect. Replaces the light/dark/auto dropdown with
+ * a single cycling icon button (light -> dark -> system), so the docs header
+ * matches the custom pages and the demo. It uses the same `starlight-theme`
+ * value Starlight stores ('' = auto), and Starlight's own ThemeProvider still
+ * sets the initial data-theme before paint, so this only reflects and cycles it.
+ */
+---
+
+<button
+  class="theme-cycle"
+  type="button"
+  data-theme-cycle
+  data-mode="auto"
+  aria-label="Theme: system"
+  title="Theme: system (click to change)"
+>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+    <g class="ti ti-light" stroke-linecap="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </g>
+    <path class="ti ti-dark" d="M20 14.5A8 8 0 1 1 9.5 4a6.2 6.2 0 0 0 10.5 10.5z" />
+    <g class="ti ti-system" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4.5" width="18" height="12" rx="1.5" />
+      <path d="M8.5 20.5h7M12 16.5v4" />
+    </g>
+  </svg>
+</button>
+
+<script is:inline>
+  (function () {
+    var KEY = 'starlight-theme';
+    var order = ['light', 'dark', 'auto'];
+    function pref() {
+      try { var v = localStorage.getItem(KEY); if (v === 'light' || v === 'dark') return v; } catch (e) {}
+      return 'auto';
+    }
+    function resolved(p) {
+      return p === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : p;
+    }
+    function reflect(p) {
+      document.documentElement.dataset.theme = resolved(p);
+      document.querySelectorAll('[data-theme-cycle]').forEach(function (b) {
+        b.dataset.mode = p;
+        b.setAttribute('aria-label', 'Theme: ' + p);
+        b.title = 'Theme: ' + p + ' (click to change)';
+      });
+    }
+    function wire() {
+      var btns = document.querySelectorAll('[data-theme-cycle]');
+      if (!btns.length) return;
+      btns.forEach(function (b) {
+        if (b.dataset.wired) return;
+        b.dataset.wired = '1';
+        b.addEventListener('click', function () {
+          var next = order[(order.indexOf(pref()) + 1) % order.length];
+          try { localStorage.setItem(KEY, next === 'auto' ? '' : next); } catch (e) {}
+          reflect(next);
+        });
+      });
+      reflect(pref());
+    }
+    // Follow the OS while the page is open when in auto (tokens are data-theme keyed).
+    if (!window.__trussThemeCycle) {
+      window.__trussThemeCycle = 1;
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+        if (pref() === 'auto') reflect('auto');
+      });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire);
+    else wire();
+  })();
+</script>
+
+<style>
+  .theme-cycle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--sl-color-gray-1);
+    cursor: pointer;
+  }
+  .theme-cycle:hover { color: var(--sl-color-white); }
+  .theme-cycle .ti { display: none; }
+  .theme-cycle[data-mode='light'] .ti-light { display: inline; }
+  .theme-cycle[data-mode='dark'] .ti-dark { display: inline; }
+  .theme-cycle[data-mode='auto'] .ti-system { display: inline; }
+</style>

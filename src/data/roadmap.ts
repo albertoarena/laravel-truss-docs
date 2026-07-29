@@ -53,7 +53,7 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'shipped',
         version: 'v1.3.1',
         blurb:
-          'Introspection is scoped to the connection\'s own database, so a shared server no longer leaks tables from other databases into the diagram.',
+          'Introspection is scoped to each connection\'s own database, so a shared server never leaks tables from other databases, and a toolbar picker switches between the connections you configure.',
         issueUrl: `${REPO}/issues/3`,
       },
       {

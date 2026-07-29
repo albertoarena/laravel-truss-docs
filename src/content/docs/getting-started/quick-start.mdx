@@ -68,7 +68,9 @@ The image exports are rendered entirely in your browser, embed the diagram font 
 
 ## Multiple connections
 
-If you have configured more than one visualizable connection, a connection switcher appears. Switching re-fetches and re-renders without a full page reload.
+Out of the box Truss shows your application's default database connection. If you configure more than one visualizable connection (see [`connections`](/reference/configuration/#connections)), a connection switcher appears in the toolbar. Switching re-fetches and re-renders that connection's schema without a full page reload, and the choice is kept in the URL so a view can be shared. Each connection is scoped to its own database, and per-connection `excluded_tables` let you hide different tables on each.
+
+See it in the [multiple-connections demo](/demo/multi-connection/), which switches between a main application database and a separate module database.
 
 ## Next steps
 
