@@ -5,7 +5,7 @@ description: Review your database structure for problems, in the terminal, in CI
 
 The schema doctor reviews your database **structure** for problems you can spot without ever reading a row: a table with no primary key, a foreign key with no index, duplicate or redundant indexes, a foreign key whose type does not match the key it references, money stored as a float, and more. It is deterministic and structure-only, with no AI and no network call, so it is safe to run in CI.
 
-There are two ways to see it: the **`php artisan truss:doctor`** command for the terminal and CI, and a **"Health" panel** in the dashboard. Both go through the same engine, so they always agree.
+There are two front ends for one engine: the **`php artisan truss:doctor`** command in the terminal and CI, and the **Health** panel in the dashboard (the heart icon in the toolbar). The command is called "doctor" and the panel is labelled "Health", but they are the **same feature** running the same rules over the same snapshot, so they always report the same findings.
 
 ## The command
 
@@ -44,7 +44,7 @@ A rule can adapt to the database driver. The clearest case is a foreign key with
 
 ## In the dashboard
 
-Open the dashboard (`php artisan truss:open`) and the same findings are there. The heart button in the toolbar opens a **Health** panel that lists them grouped by table, with the heuristic ones marked as such. Click a table to focus the diagram on it; click the button again to close.
+The dashboard shows the same findings the command does, under the name **Health** (there is no "doctor" button; the heart icon is it). Open the dashboard (`php artisan truss:open`) and the heart button in the toolbar opens a **Health** panel that lists them grouped by table, with the heuristic ones marked as such. Click a table to focus the diagram on it; click the button again to close.
 
 You do not have to open the panel to know something is wrong: every table with a finding carries a small severity badge on the diagram, and the offending **column** is marked on the table itself. Click a marked column to read the finding for that field. The panel can be maximized when a report gets long.
 
@@ -87,6 +87,30 @@ Everything lives under `doctor` in `config/truss.php`:
 ```
 
 See the [configuration reference](/reference/configuration/) for the full key list.
+
+## Rules
+
+Every finding carries a stable **code** (e.g. `TRUSS-INT-003`), shown in both the command output and the Health panel, so you can look it up here, silence it, or change its severity in config. There are thirteen rules across three categories. Heuristic rules are name-based guesses and are **off under `recommended`** (on under `strict`).
+
+| Code | Checks | Severity | Confidence |
+| --- | --- | --- | --- |
+| `TRUSS-INT-001` | Table has no primary key | error | high |
+| `TRUSS-INT-002` | A `*_id` column matches a table but declares no foreign key | warning | heuristic |
+| `TRUSS-INT-003` | A foreign key column's type differs from the key it references | error | high |
+| `TRUSS-INT-007` | A pivot table has no unique constraint on its key pair | warning | high |
+| `TRUSS-INT-009` | A polymorphic pair (`*_type`, `*_id`) has no composite index | warning | heuristic |
+| `TRUSS-IDX-001` | A foreign key column has no supporting index | error \* | high |
+| `TRUSS-IDX-002` | Two indexes cover the same columns | warning | high |
+| `TRUSS-IDX-003` | An index is a left prefix of another, so it is redundant | warning | high |
+| `TRUSS-IDX-004` | An index duplicates the primary key | warning | high |
+| `TRUSS-IDX-005` | A `deleted_at` column is not indexed | warning | heuristic |
+| `TRUSS-IDX-006` | An `email` / `slug` / `uuid` / `token` column has no unique constraint | warning | heuristic |
+| `TRUSS-TYP-001` | A money-looking column is stored as `float` or `double` | error | heuristic |
+| `TRUSS-TYP-002` | An `is_*` / `has_*` column is stored as `varchar` | warning | heuristic |
+
+\* `TRUSS-IDX-001` is engine-aware: an **error** on PostgreSQL and SQLite, which do not auto-index foreign keys, and only **info** on MySQL and MariaDB, which do.
+
+Use these codes in `doctor.rules` (to enable, disable, or re-severity a rule) and `doctor.ignore` (to silence a known case per table or `table.column`). More rules land in later phases.
 
 ## Caveats
 
