@@ -51,6 +51,23 @@ php artisan truss:diff --connection=mysql
 
 When no baseline has been recorded yet, or when `diff.enabled` is `false`, the command says so and exits cleanly. See the [Schema diff guide](/guides/schema-diff/) for a worked example and how the baseline is captured.
 
+## `truss:doctor`
+
+Review the database structure for problems visible from structure alone (missing primary keys, unindexed foreign keys, duplicate indexes, risky types, and more) and fail the build when one is found. Deterministic and structure only, so it is safe in CI and commit hooks. Aliased `truss:check`.
+
+```bash
+# Review the default connection
+php artisan truss:doctor
+
+# JSON output for a specific connection
+php artisan truss:doctor --connection=mysql --format=json
+
+# Stricter run that also fails on warnings
+php artisan truss:doctor --preset=strict --fail-on=warning
+```
+
+Options: `--connection`, `--table`, `--only` / `--skip` (by category), `--preset` (`recommended` / `strict` / `none`), `--format` (`console` / `json`), and `--fail-on` (`error` / `warning` / `info` / `never`). Exit codes are `0` (clean), `1` (a finding at or above the fail level), and `2` (a bad option or a snapshot error). See the [Schema doctor guide](/guides/schema-doctor/) for presets, confidence, and the dashboard panel.
+
 ## Automatic rebuilds
 
 You rarely need to run the command by hand. Truss listens for the `Illuminate\Database\Events\MigrationsEnded` event and rebuilds the snapshot automatically after `migrate`, `migrate:fresh`, and `migrate:rollback` (when Truss is enabled).
