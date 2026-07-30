@@ -120,6 +120,7 @@ export default defineConfig({
             { label: 'Authorization', link: '/guides/authorization/' },
             { label: 'Focus & filter', link: '/guides/focus-and-filter/' },
             { label: 'Schema diff', link: '/guides/schema-diff/' },
+            { label: 'Schema doctor', link: '/guides/schema-doctor/' },
           ],
         },
         {

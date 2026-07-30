@@ -1,0 +1,95 @@
+---
+title: Schema doctor
+description: Review your database structure for problems, in the terminal, in CI, and in the dashboard
+---
+
+The schema doctor reviews your database **structure** for problems you can spot without ever reading a row: a table with no primary key, a foreign key with no index, duplicate or redundant indexes, a foreign key whose type does not match the key it references, money stored as a float, and more. It is deterministic and structure-only, with no AI and no network call, so it is safe to run in CI.
+
+There are two ways to see it: the **`php artisan truss:doctor`** command for the terminal and CI, and a **"Health" panel** in the dashboard. Both go through the same engine, so they always agree.
+
+## The command
+
+```bash
+# Review the default connection
+php artisan truss:doctor
+
+# A specific connection, as JSON for tooling
+php artisan truss:doctor --connection=mysql --format=json
+
+# Be stricter, and fail on warnings too
+php artisan truss:doctor --preset=strict --fail-on=warning
+```
+
+`truss:doctor` (aliased `truss:check`) prints the findings as a table grouped by table, then exits:
+
+- `0` when clean (nothing at or above the fail level),
+- `1` when a finding is at or above `--fail-on` (default `error`),
+- `2` on a bad option, a connection problem, or a missing snapshot.
+
+So a migration that introduces a problem can fail the build. Point a commit hook or a CI step at it and a new unindexed foreign key stops being something you find in production.
+
+## Presets and confidence
+
+Every rule declares a **confidence** (high or heuristic) that is kept separate from its severity. High-confidence rules are certain from the structure alone (a table genuinely has no primary key). Heuristic rules are name-based guesses (a `*_id` column that looks like a foreign key but has none, a column called `price` stored as a float): often right, sometimes a deliberate choice.
+
+- `recommended` (the default) runs **high-confidence rules only**, so the first run is quiet and trustworthy. A heuristic finding still fires at its real severity when you turn it on: confidence and severity are independent.
+- `strict` runs **everything**, heuristics included.
+- `none` runs nothing but the rules you explicitly enable.
+
+Every rule can be enabled, disabled, re-severitied, or ignored per pattern in config, so you tune the signal to your project.
+
+## Engine awareness
+
+A rule can adapt to the database driver. The clearest case is a foreign key with no index: on PostgreSQL and SQLite, which do not auto-index foreign keys, it is an **error**; on MySQL and MariaDB, which do, it is only **info**. You get the right severity for the database you actually run.
+
+## In the dashboard
+
+Open the dashboard (`php artisan truss:open`) and the same findings are there. The heart button in the toolbar opens a **Health** panel that lists them grouped by table, with the heuristic ones marked as such. Click a table to focus the diagram on it; click the button again to close.
+
+You do not have to open the panel to know something is wrong: every table with a finding carries a small severity badge on the diagram, and the offending **column** is marked on the table itself. Click a marked column to read the finding for that field. The panel can be maximized when a report gets long.
+
+Two switches under `doctor` in `config/truss.php` control the dashboard side:
+
+```php
+'doctor' => [
+    // ...preset, rules, ignore, fail_on, exclude...
+    'dashboard' => (bool) env('TRUSS_DOCTOR_DASHBOARD', true),
+    'flag_tables' => (bool) env('TRUSS_DOCTOR_FLAG_TABLES', true),
+],
+```
+
+- **`dashboard`** (default `true`) shows the Health panel at all. When `false`, the dashboard receives no findings and the panel never appears; the CLI is untouched.
+- **`flag_tables`** (default `true`) badges tables with findings on the diagram even when the panel is closed. Set it `false` to keep the diagram clean and surface findings only when you open the panel.
+
+The report rides the schema endpoint the diagram already loads, so there is no extra request, and it is gated by the same `viewTruss` authorization as the rest of the dashboard.
+
+Try it on the **[live demo](/demo/)**: open the Health panel and you will see a handful of foreign keys flagged for a missing index, and `users.email` flagged (heuristically) for having no unique constraint.
+
+## Configuration
+
+Everything lives under `doctor` in `config/truss.php`:
+
+```php
+'doctor' => [
+    'preset' => env('TRUSS_DOCTOR_PRESET', 'recommended'),  // recommended | strict | none
+    'rules' => [
+        // 'TRUSS-INT-002' => true,                  // turn a heuristic rule on
+        // 'TRUSS-IDX-001' => ['severity' => 'error'], // change a severity
+    ],
+    'ignore' => [
+        // 'TRUSS-IDX-001' => ['audit_log.actor_id'], // silence a known case (fnmatch)
+    ],
+    'fail_on' => env('TRUSS_DOCTOR_FAIL_ON', 'error'), // error | warning | info | never
+    'exclude' => [],                                    // extra tables, on top of excluded_tables
+    'dashboard' => (bool) env('TRUSS_DOCTOR_DASHBOARD', true),
+    'flag_tables' => (bool) env('TRUSS_DOCTOR_FLAG_TABLES', true),
+],
+```
+
+See the [configuration reference](/reference/configuration/) for the full key list.
+
+## Caveats
+
+- **Structure only.** The doctor reads the same cached snapshot the diagram uses and never queries row data. It cannot know selectivity or query patterns, so it reviews structure, not performance.
+- **Heuristics are guesses.** They are off by default for a reason. Turn them on when you want them, and ignore the deliberate exceptions per pattern.
+- **Deterministic.** No AI, no network. The same schema always yields the same findings, so a diff in CI output is a real structural change.

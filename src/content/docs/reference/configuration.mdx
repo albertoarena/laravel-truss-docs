@@ -30,6 +30,13 @@ Every key has a sensible default and, where relevant, an `env()` override.
 | `large_schema.warn_above` | `TRUSS_LARGE_SCHEMA_WARN_ABOVE` | `60` | Table count above which a "large schema" hint is shown |
 | `diff.enabled` | `TRUSS_DIFF_ENABLED` | `true` | Schema diff master switch. Off writes nothing to disk and hides the feature |
 | `diff.disk` | `TRUSS_DIFF_DISK` | `null` | Disk the diff baseline file is written to. Null uses the default disk |
+| `doctor.preset` | `TRUSS_DOCTOR_PRESET` | `recommended` | Which rules run: `recommended` (high-confidence), `strict` (all), `none` |
+| `doctor.rules` | | `[]` | Per-rule overrides by code: `false` disables, `true` enables, `['severity' => '...']` re-severities |
+| `doctor.ignore` | | `[]` | Per-rule fnmatch patterns (table or table.column) to silence |
+| `doctor.fail_on` | `TRUSS_DOCTOR_FAIL_ON` | `error` | Severity at or above which `truss:doctor` exits non-zero |
+| `doctor.exclude` | | `[]` | Extra tables to skip, on top of `excluded_tables` |
+| `doctor.dashboard` | `TRUSS_DOCTOR_DASHBOARD` | `true` | Show the doctor findings in the dashboard "Health" panel |
+| `doctor.flag_tables` | `TRUSS_DOCTOR_FLAG_TABLES` | `true` | Badge tables with findings on the diagram even when the panel is closed |
 
 ## Notes on individual keys
 
@@ -69,6 +76,10 @@ The lowest zoom the automatic fit will use, so a large schema stays legible and 
 ### `diff.enabled` and `diff.disk`
 
 Control the schema diff feature. `diff.enabled` (default `true`) is the master switch: when `false`, no baseline is captured, nothing is written to disk, the dashboard "Changes" button is hidden, and `truss:diff` reports the feature is off. The check runs before any filesystem access, so it is a hard guarantee that Truss will not touch your disk. `diff.disk` chooses the filesystem disk the baseline is written to (`null` uses the default disk); the path is always `truss/baselines/{connection}.json`. See the [Schema diff guide](/guides/schema-diff/).
+
+### `doctor.*`
+
+Control the [schema doctor](/guides/schema-doctor/). `doctor.preset` picks which rules run (`recommended` runs high-confidence rules only, `strict` runs everything, `none` runs nothing but what you enable). `doctor.rules` overrides individual rules by code (disable, enable a heuristic, or change a severity), and `doctor.ignore` silences known cases with fnmatch patterns on a table or `table.column`. `doctor.fail_on` sets the severity at or above which `truss:doctor` exits non-zero, and `doctor.exclude` adds tables to skip on top of `excluded_tables`. The last two are the dashboard side: `doctor.dashboard` shows the "Health" panel (when `false`, the dashboard receives no findings and the CLI is untouched), and `doctor.flag_tables` badges tables with findings on the diagram even when the panel is closed.
 
 ## Content-Security-Policy
 
