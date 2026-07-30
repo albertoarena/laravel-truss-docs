@@ -77,6 +77,13 @@ export const SECTIONS: RoadmapSection[] = [
         blurb:
           'Run truss:doctor to review your schema for problems visible from structure alone: missing primary keys, unindexed foreign keys, duplicate indexes, money stored as float, and more. It runs in the terminal and in CI, failing the build when a migration introduces a new problem. Deterministic and structure only, with no AI and no query stats.',
       },
+      {
+        title: 'Lighthouse CI',
+        status: 'approved',
+        tag: 'docs-site',
+        blurb:
+          'Automated Lighthouse audits in CI for this site and the live demo, in both light and dark mode, so performance, accessibility, and best-practices scores stay high and a regression fails the build.',
+      },
     ],
   },
   {
