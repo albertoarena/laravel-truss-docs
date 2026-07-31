@@ -34,6 +34,20 @@ describe('landing page output', () => {
     expect(landingText).toContain('companies, users and posts tables')
     expect(landing).toContain('wm-chord')
   })
+  it('uses a sequential heading order with no skipped levels (a11y)', () => {
+    // Lighthouse flags "heading elements not in sequentially-descending order".
+    // The hand-authored landing owns its own hierarchy (Starlight does not), so
+    // guard it: start at h1 and never jump more than one level down.
+    const levels = [...landing.matchAll(/<h([1-6])[\s>]/g)].map((m) => Number(m[1]))
+    expect(levels.length, 'landing has headings').toBeGreaterThan(0)
+    expect(levels[0], 'first heading is the h1').toBe(1)
+    for (let i = 1; i < levels.length; i++) {
+      expect(
+        levels[i] - levels[i - 1],
+        `heading order skips a level: h${levels[i - 1]} then h${levels[i]}`,
+      ).toBeLessThanOrEqual(1)
+    }
+  })
   it('self-hosts IBM Plex Mono rather than a CDN font', () => {
     expect(landing).toContain('/fonts/ibm-plex-mono-')
     expect(landing).not.toMatch(/fonts\.googleapis\.com|fonts\.gstatic\.com/)
