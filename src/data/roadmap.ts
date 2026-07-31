@@ -42,11 +42,18 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
-        title: 'Data dictionary and DBML export',
+        title: 'Schema doctor',
         status: 'shipped',
-        version: 'v1.3.0',
+        version: 'v1.5.0',
         blurb:
-          'Save the current selection as a Markdown data dictionary or a DBML file that opens in dbdiagram.io. Generated in the browser, structure only.',
+          'Run truss:doctor to review your schema for problems visible from structure alone: missing primary keys, unindexed foreign keys, duplicate indexes, money stored as float, and more. It runs in the terminal and in CI, failing the build when a migration introduces a new problem, and a dashboard Health panel flags the same findings on the diagram. Deterministic and structure only, with no AI and no query stats.',
+      },
+      {
+        title: 'Schema diff',
+        status: 'shipped',
+        version: 'v1.4.0',
+        blurb:
+          'See what changed since the last migration: added, removed, and changed tables, columns, indexes, and foreign keys, in a dashboard Changes panel and via truss:diff. Structure only.',
       },
       {
         title: 'Multi-database schema scoping',
@@ -57,11 +64,11 @@ export const SECTIONS: RoadmapSection[] = [
         issueUrl: `${REPO}/issues/3`,
       },
       {
-        title: 'Schema diff',
+        title: 'Data dictionary and DBML export',
         status: 'shipped',
-        version: 'v1.4.0',
+        version: 'v1.3.0',
         blurb:
-          'See what changed since the last migration: added, removed, and changed tables, columns, indexes, and foreign keys, in a dashboard Changes panel and via truss:diff. Structure only.',
+          'Save the current selection as a Markdown data dictionary or a DBML file that opens in dbdiagram.io. Generated in the browser, structure only.',
       },
     ],
   },
@@ -72,10 +79,10 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Decided. This is what comes next.',
     items: [
       {
-        title: 'Schema doctor',
+        title: 'Schema export for CI and tooling',
         status: 'approved',
         blurb:
-          'Run truss:doctor to review your schema for problems visible from structure alone: missing primary keys, unindexed foreign keys, duplicate indexes, money stored as float, and more. It runs in the terminal and in CI, failing the build when a migration introduces a new problem. Deterministic and structure only, with no AI and no query stats.',
+          'Generate your schema from the command line with truss:export, so CI can commit an up-to-date schema file and fail the build when it drifts. Structure only, deterministic, and pipeable into your own tools.',
       },
       {
         title: 'Lighthouse CI',
@@ -92,6 +99,18 @@ export const SECTIONS: RoadmapSection[] = [
     commitment: 'Investigating, may or may not happen',
     blurb: 'On the table, not yet decided.',
     items: [
+      {
+        title: 'Schema doctor: more rules and CI formats',
+        status: 'exploring',
+        blurb:
+          'A second pass on truss:doctor: the rest of the rule catalogue, a laravel preset, GitHub and JUnit output for inline CI annotations, a suppression workflow to baseline known findings, and a since-baseline mode that only reports problems a migration newly introduced.',
+      },
+      {
+        title: 'Truss as AI context',
+        status: 'exploring',
+        blurb:
+          'Annotate your schema with meaning, from config or from database comments, and export a compact version tuned for feeding to an AI agent or a text-to-SQL tool. Structure only, no AI inside Truss.',
+      },
       {
         title: 'Semantic relationship labels',
         status: 'exploring',
@@ -151,6 +170,12 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'wishlist',
         blurb:
           'Surface the diagram inside a Filament admin panel as a first-class page.',
+      },
+      {
+        title: 'MCP server',
+        status: 'wishlist',
+        blurb:
+          'An MCP server so agents like Claude Code and Cursor can pull your live schema directly. Read-only, structure only.',
       },
       {
         title: 'Structural lint hints',
