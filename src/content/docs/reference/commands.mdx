@@ -51,6 +51,23 @@ php artisan truss:diff --connection=mysql
 
 When no baseline has been recorded yet, or when `diff.enabled` is `false`, the command says so and exits cleanly. See the [Schema diff guide](/guides/schema-diff/) for a worked example and how the baseline is captured.
 
+## `truss:export`
+
+Export the database structure to a standard format (DBML, JSON, CSV, a Markdown data dictionary, or Mermaid) for CI, tooling, and version control. It writes to stdout by default so it pipes cleanly, or to a file with `--output`. Deterministic and structure only, so it is safe in CI and commit hooks.
+
+```bash
+# DBML to stdout
+php artisan truss:export
+
+# A format to a file
+php artisan truss:export --format=json --output=docs/schema.json
+
+# Fail the build if the committed file is out of date
+php artisan truss:export --format=dbml --output=docs/schema.dbml --check
+```
+
+Options: `--format` (`dbml` / `json` / `csv` / `markdown` / `mermaid`), `--connection`, `--tables` and `--exclude` (config `excluded_tables` always wins), `--output` (a file path; stdout otherwise), `--check` (exit non-zero if `--output` would change, writing nothing), and `--fresh` (rebuild the snapshot first). Exit codes are `0` (written or up to date), `1` (`--check` found drift), and `2` (a usage or runtime error). See the [Schema export guide](/guides/schema-export/) for the formats and the CI drift-check recipe.
+
 ## `truss:doctor`
 
 Review the database structure for problems visible from structure alone (missing primary keys, unindexed foreign keys, duplicate indexes, risky types, and more) and fail the build when one is found. Deterministic and structure only, so it is safe in CI and commit hooks. Aliased `truss:check`.

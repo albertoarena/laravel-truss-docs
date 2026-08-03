@@ -121,6 +121,8 @@ export default defineConfig({
             { label: 'Focus & filter', link: '/guides/focus-and-filter/' },
             { label: 'Schema diff', link: '/guides/schema-diff/' },
             { label: 'Schema doctor', link: '/guides/schema-doctor/' },
+            { label: 'Schema export', link: '/guides/schema-export/' },
+            { label: 'Theming', link: '/guides/theming/' },
           ],
         },
         {

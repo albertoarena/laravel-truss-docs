@@ -42,6 +42,20 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Schema export for CI and tooling',
+        status: 'shipped',
+        version: 'v1.6.0',
+        blurb:
+          'Generate your schema from the command line with truss:export (DBML, JSON, CSV, Markdown, or Mermaid), so CI can commit an up-to-date schema file and fail the build when it drifts. Deterministic, structure only, and pipeable into your own tools.',
+      },
+      {
+        title: 'Theming and custom palettes',
+        status: 'shipped',
+        version: 'v1.6.0',
+        blurb:
+          'Define your own colours and fonts from config so the dashboard matches the app Truss is embedded in. A few semantic knobs re-skin the whole diagram, chrome and all, in light and dark. Config driven, CSP safe, no build step.',
+      },
+      {
         title: 'Schema doctor',
         status: 'shipped',
         version: 'v1.5.0',
@@ -78,18 +92,6 @@ export const SECTIONS: RoadmapSection[] = [
     commitment: 'Committed, building next',
     blurb: 'Decided. This is what comes next.',
     items: [
-      {
-        title: 'Schema export for CI and tooling',
-        status: 'approved',
-        blurb:
-          'Generate your schema from the command line with truss:export, so CI can commit an up-to-date schema file and fail the build when it drifts. Structure only, deterministic, and pipeable into your own tools.',
-      },
-      {
-        title: 'Theming and custom palettes',
-        status: 'approved',
-        blurb:
-          'Beyond the light and dark blueprint themes: define your own colours and fonts so the diagram matches the app Truss is embedded in. Config driven, no build step.',
-      },
       {
         title: 'Lighthouse CI',
         status: 'approved',

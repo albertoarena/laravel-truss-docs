@@ -1,0 +1,70 @@
+---
+title: Theming
+description: Match the dashboard to your app by defining your own colours and fonts from config
+---
+
+Truss ships a light and dark "blueprint" theme. To make the dashboard match the app it is embedded in, redefine its colours and fonts from config under `truss.theme`. Everything is optional: you set a few semantic knobs and the rest stay on the default, so a handful of values re-skins the whole dashboard, chrome and diagram alike, in both light and dark.
+
+## Publish the config first
+
+A default install ships no `config/truss.php` (Truss runs on its bundled defaults), so before you can set a theme, publish the config:
+
+```bash
+php artisan vendor:publish --tag=truss-config
+```
+
+Then edit the `theme` block:
+
+```php
+// config/truss.php
+'theme' => [
+    'fonts' => [
+        'sans' => 'Inter, system-ui, sans-serif',
+    ],
+    'colors' => [
+        'light' => [
+            'accent' => '#3730a3',
+            'background' => '#ffffff',
+        ],
+        'dark' => [
+            'accent' => '#a5b4fc',
+            'background' => '#0b1020',
+        ],
+    ],
+],
+```
+
+## The colour knobs
+
+You set semantic roles, not raw internal variables. Each knob drives the tokens it is responsible for, so a couple of values stay coherent:
+
+| Knob | Paints |
+| --- | --- |
+| `accent` | Primary accent: headings, primary-key badges, entity borders, the focus ring |
+| `accent-secondary` | Secondary accent |
+| `background` | The canvas and page background |
+| `surface` | Panels and table bodies |
+| `surface-alt` | Row striping |
+| `text` | Body and diagram text |
+| `muted` | Secondary text |
+| `border` | Table, panel, and field lines |
+
+Set a knob under both `light` and `dark` to theme both modes, or omit `dark` to theme light only. Anything you do not set keeps the shipped default, so a brand match is usually five to eight values, not a full repaint. The light and dark toggle keeps working across a custom palette.
+
+Colours accept hex (`#3730a3`), `rgb()` / `rgba()` / `hsl()` / `hsla()`, or a CSS colour keyword (`rebeccapurple`, `transparent`).
+
+## Fonts
+
+`fonts.mono` and `fonts.sans` take **font-family names only**, for example `'JetBrains Mono, monospace'`. Name a font your app already loads or a system font; Truss does not serve font files for a custom theme (it self-hosts only its own IBM Plex Mono). If you want a bespoke font, load it in your app and name it here. The `mono` family also drives the diagram text.
+
+You can set the two font families from the environment instead of the config file with `TRUSS_THEME_FONT_MONO` and `TRUSS_THEME_FONT_SANS`.
+
+## How it is delivered, and why it is CSP safe
+
+The overrides are served as a normal, same-origin stylesheet from a gated route, linked after the base sheet, and **only when a theme is configured**, so a default install makes no extra request. Because it is a served stylesheet and not an inline `<style>`, a strict Content-Security-Policy still needs only `style-src 'self'` for Truss's own styles, unchanged from a default install.
+
+Every value is validated before it is written into the stylesheet, so an invalid or unsafe value is ignored and falls back to the default rather than breaking the sheet. You cannot break the dashboard with a typo in a colour.
+
+## Accessibility
+
+A custom palette is yours to keep accessible: Truss will not stop you choosing colours that fail contrast. Check both light and dark against WCAG AA, especially your `text` on `background` and `surface`, and the `accent` used for badges and borders.

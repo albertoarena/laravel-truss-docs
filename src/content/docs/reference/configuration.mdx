@@ -23,9 +23,11 @@ Every key has a sensible default and, where relevant, an `env()` override.
 | `connections` | | `[]` | Which DB connections are visualizable (defaults to the app's default) |
 | `excluded_tables` | | framework tables | Tables filtered out server-side, never sent to the browser |
 | `diagram.type_labels` | `TRUSS_TYPE_LABELS` | `native` | Default column-type labels: `native` or `laravel` |
-| `diagram.theme` | `TRUSS_DIAGRAM_THEME` | `default` | Mermaid base theme |
 | `diagram.mermaid_url` | `TRUSS_MERMAID_URL` | `null` | Where to load Mermaid from. Null self-hosts (no CDN) |
 | `diagram.min_zoom` | `TRUSS_MIN_ZOOM` | `0.7` | Readable floor for auto-fit. The Fit button ignores it |
+| `theme.colors` | | `[]` | Custom colour overrides by semantic knob, under `light` and `dark` |
+| `theme.fonts.mono` | `TRUSS_THEME_FONT_MONO` | `null` | Monospace font family (also drives the diagram text) |
+| `theme.fonts.sans` | `TRUSS_THEME_FONT_SANS` | `null` | Sans-serif font family |
 | `focus.default_depth` | `TRUSS_FOCUS_DEPTH` | `1` | Foreign-key neighbour depth when focusing a table |
 | `large_schema.warn_above` | `TRUSS_LARGE_SCHEMA_WARN_ABOVE` | `60` | Table count above which a "large schema" hint is shown |
 | `diff.enabled` | `TRUSS_DIFF_ENABLED` | `true` | Schema diff master switch. Off writes nothing to disk and hides the feature |
@@ -72,6 +74,10 @@ Null (the default) self-hosts Mermaid from the package, so no CDN is contacted. 
 ### `diagram.min_zoom`
 
 The lowest zoom the automatic fit will use, so a large schema stays legible and you pan around it rather than being dumped into an unreadable overview. The Fit button ignores this floor.
+
+### `theme.*`
+
+Redefine the dashboard's colours and fonts to match your app. `theme.colors` takes a small set of semantic knobs (`accent`, `accent-secondary`, `background`, `surface`, `surface-alt`, `text`, `muted`, `border`) under `light` and `dark`; only the knobs you set are overridden, so a handful of values re-skins the whole dashboard in both modes. `theme.fonts.mono` and `theme.fonts.sans` take font-family names only (a font your app already loads or a system font). The overrides are served as a same-origin stylesheet, linked only when a theme is configured, so a default install makes no extra request and a strict CSP still needs only `style-src 'self'`. Every value is validated before it is emitted, so an invalid value falls back to the default. See the [Theming guide](/guides/theming/).
 
 ### `diff.enabled` and `diff.disk`
 

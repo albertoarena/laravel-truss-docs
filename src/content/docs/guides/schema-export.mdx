@@ -1,0 +1,77 @@
+---
+title: Schema export
+description: Export your database structure from the command line for CI, tooling, and version control
+---
+
+`php artisan truss:export` writes your database **structure** to a standard file format, from the command line, so it is not just a button in the dashboard. A CI job can commit an up-to-date schema file and fail the build when it drifts, a script or tool can read the snapshot, and you can pipe the output anywhere. It is the command-line counterpart to the dashboard export, generated from PHP, and like everything in Truss it is structure only, with no network call, so it is safe in CI and commit hooks.
+
+## Formats
+
+One flag, five formats. Pick the one that suits the job:
+
+| `--format` | Best for |
+| --- | --- |
+| `dbml` (default) | Version control and diagrams: opens in dbdiagram.io and other DBML tools |
+| `json` | Feeding your own tooling: the whole schema as an array of tables |
+| `csv` | Spreadsheets: one row per column, with a `table` column |
+| `markdown` | A data dictionary to paste into a README or wiki |
+| `mermaid` | An `erDiagram` block to embed in Markdown docs |
+
+## The command
+
+Output goes to **stdout by default** so it pipes cleanly; `--output` writes a file instead.
+
+```bash
+# DBML to stdout
+php artisan truss:export
+
+# A specific format to a file
+php artisan truss:export --format=json --output=docs/schema.json
+
+# Only some tables (config excluded_tables still apply)
+php artisan truss:export --tables=orders,order_lines
+
+# A specific connection, skipping a table
+php artisan truss:export --connection=mysql --exclude=telemetry
+```
+
+Options: `--format`, `--connection`, `--tables` (allowlist), `--exclude` (blocklist, applied after `--tables`), `--output` (a file path; stdout otherwise), `--check` (see below), and `--fresh` (rebuild the cached snapshot first).
+
+Config `excluded_tables` always wins over `--tables`, so you cannot filter your way to an excluded table and the export never exposes structure the dashboard hides.
+
+## Deterministic by design
+
+The output is deterministic: the same schema always produces the same bytes, whatever order the database happens to report its tables in. Tables are sorted alphabetically, foreign keys by source column, indexes by name, and nothing time, version, or host dependent enters the file. That is what makes the drift check below reliable, and it means a committed export file only changes when the schema really does.
+
+## Fail CI on drift with `--check`
+
+`--check` regenerates the export, compares it against the file at `--output`, writes nothing, and exits non-zero when they differ. Commit the export file, then add one CI step:
+
+```bash
+# Fail the build if the committed schema file is out of date
+php artisan truss:export --format=dbml --output=docs/schema.dbml --check
+```
+
+Now a migration that changes the structure without refreshing the committed file fails the build, the same way `truss:doctor` fails on a structural problem. `--check` needs `--output`, since there is nothing to compare against otherwise.
+
+## Exit codes
+
+- `0`: written, or (with `--check`) the file is up to date.
+- `1`: `--check` found drift. The one actionable non-error signal, so CI can tell "the file is stale" from "the command broke".
+- `2`: a usage or runtime error (unknown format, an unmanaged or unreachable connection, an unwritable path, `--check` without `--output`, or no tables matched the filters).
+
+## Committing a schema file
+
+A common setup is a `schema.dbml` in the repo, refreshed by the person who runs the migration and enforced by CI:
+
+```bash
+# Regenerate after a migration
+php artisan truss:export --format=dbml --output=docs/schema.dbml
+```
+
+```yaml
+# In CI, alongside your test step
+- run: php artisan truss:export --format=dbml --output=docs/schema.dbml --check
+```
+
+The file becomes a reviewable record of every structural change, and the check keeps it honest. Structure only: the export reads the same cached snapshot the diagram uses and never queries a row.
