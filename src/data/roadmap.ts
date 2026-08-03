@@ -85,6 +85,12 @@ export const SECTIONS: RoadmapSection[] = [
           'Generate your schema from the command line with truss:export, so CI can commit an up-to-date schema file and fail the build when it drifts. Structure only, deterministic, and pipeable into your own tools.',
       },
       {
+        title: 'Theming and custom palettes',
+        status: 'approved',
+        blurb:
+          'Beyond the light and dark blueprint themes: define your own colours and fonts so the diagram matches the app Truss is embedded in. Config driven, no build step.',
+      },
+      {
         title: 'Lighthouse CI',
         status: 'approved',
         tag: 'docs-site',
@@ -122,12 +128,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'exploring',
         blurb:
           'Saved views, domain grouping, and a Cmd-K jump so a hundred-table schema stays navigable.',
-      },
-      {
-        title: 'Theming and custom palettes',
-        status: 'exploring',
-        blurb:
-          'Beyond the light and dark blueprint themes: bring your own palette so the diagram matches your app or your docs.',
       },
       {
         title: 'Live DBML playground',
