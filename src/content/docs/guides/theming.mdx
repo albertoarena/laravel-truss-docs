@@ -42,11 +42,11 @@ You set semantic roles, not raw internal variables. Each knob drives the tokens 
 | --- | --- |
 | `accent` | Primary accent: headings, primary-key badges, entity borders, the focus ring |
 | `accent-secondary` | Secondary accent |
-| `background` | The canvas and page background |
-| `surface` | Panels and table bodies |
+| `background` | The canvas and page background, and the relationship-label backdrop |
+| `surface` | Panels, table bodies, rows, and inputs |
 | `surface-alt` | Row striping |
 | `text` | Body and diagram text |
-| `muted` | Secondary text |
+| `muted` | Secondary text, and the relationship lines and labels |
 | `border` | Table, panel, and field lines |
 
 Set a knob under both `light` and `dark` to theme both modes, or omit `dark` to theme light only. Anything you do not set keeps the shipped default, so a brand match is usually five to eight values, not a full repaint. The light and dark toggle keeps working across a custom palette.

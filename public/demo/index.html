@@ -63,6 +63,42 @@
         outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px;
       }
       @media (max-width: 560px) { .site-bar-nav a { display: none; } }
+
+      /* Palette picker: a demo of the v1.6.0 theming feature. Each palette is a
+         set of truss.theme knob values, applied as --bp-* overrides on
+         [data-palette] exactly as the shipped theme.css does. */
+      .site-bar-palettes { display: inline-flex; align-items: center; gap: 6px; }
+      .pal {
+        background: transparent; border: 1px solid transparent; border-radius: 7px;
+        width: 26px; height: 26px; padding: 0; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .pal:hover { border-color: var(--bp-panel-line); }
+      .pal[aria-pressed='true'] { border-color: var(--bp-ink); }
+      .pal-dot { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .2); }
+      .pal[data-palette-set='blueprint'] .pal-dot { background: #12356b; }
+      .pal[data-palette-set='ember'] .pal-dot { background: #c2410c; }
+      .pal[data-palette-set='contrast'] .pal-dot { background: #111827; }
+      .site-bar-code {
+        background: transparent; border: 1px solid var(--bp-panel-line); border-radius: 7px;
+        color: var(--bp-muted); height: 28px; padding: 0 8px; cursor: pointer;
+        font-family: var(--bp-mono); font-size: 12px; line-height: 1;
+      }
+      .site-bar-code:hover { color: var(--bp-fg); }
+      .site-bar-code[aria-expanded='true'] { color: var(--bp-ink); border-color: var(--bp-ink); }
+      .pal:focus-visible, .site-bar-code:focus-visible {
+        outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px;
+      }
+      #demo-config {
+        position: fixed; top: calc(var(--site-bar-h) + 6px); right: 14px; z-index: 60;
+        margin: 0; max-width: min(92vw, 460px); max-height: 60vh; overflow: auto;
+        background: var(--bp-panel); color: var(--bp-fg);
+        border: 1px solid var(--bp-panel-line); border-radius: 8px; padding: 14px 16px;
+        font-family: var(--bp-mono); font-size: 12px; line-height: 1.55; white-space: pre;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, .22);
+      }
+      #demo-config[hidden] { display: none; }
+      @media (max-width: 560px) { .site-bar-code { display: none; } }
     </style>
 
     <!-- Reconcile the theme before paint. The app themes via data-theme on
@@ -85,6 +121,71 @@
         } catch (e) {}
       })()
     </script>
+
+    <!-- Palette picker for the demo: a few example truss.theme palettes, applied
+         before paint as --bp-* overrides on [data-palette], mirroring the shipped
+         theme.css (light on :root, dark on the media query and the forced-dark
+         selector). The same values render the "config" snippet, so what you see
+         is exactly what the config produces. -->
+    <script>
+      (function () {
+        var KNOBS = {
+          'accent': ['ink', 'focus-border'],
+          'accent-secondary': ['cyan'],
+          'background': ['bg', 'edge-bg'],
+          'surface': ['panel', 'entity-bg', 'row-odd', 'field'],
+          'surface-alt': ['row-even'],
+          'text': ['fg', 'entity-text'],
+          'muted': ['muted', 'rel', 'edge'],
+          'border': ['entity-border', 'hair', 'panel-line', 'field-line']
+        };
+        var PALETTES = {
+          ember: {
+            light: { 'accent': '#b45309', 'accent-secondary': '#0f766e', 'background': '#faf6f0', 'surface': '#fffdf8', 'surface-alt': '#f4ebda', 'text': '#3a2a1c', 'muted': '#785a3c', 'border': '#c8873f' },
+            dark: { 'accent': '#fbbf24', 'accent-secondary': '#5eead4', 'background': '#1b130b', 'surface': '#26190d', 'surface-alt': '#33230f', 'text': '#f5e6d0', 'muted': '#c2a17c', 'border': '#8a6428' }
+          },
+          contrast: {
+            light: { 'accent': '#111827', 'accent-secondary': '#374151', 'background': '#ffffff', 'surface': '#ffffff', 'surface-alt': '#eef1f4', 'text': '#000000', 'muted': '#3d4453', 'border': '#111827' },
+            dark: { 'accent': '#ffffff', 'accent-secondary': '#cbd5e1', 'background': '#000000', 'surface': '#0b0b0c', 'surface-alt': '#17181a', 'text': '#ffffff', 'muted': '#aab2c0', 'border': '#e5e7eb' }
+          }
+        };
+        window.__trussDemoPalettes = { KNOBS: KNOBS, PALETTES: PALETTES };
+
+        function hexToRgb(v) {
+          if (!/^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v || '')) return null;
+          var h = v.slice(1);
+          if (h.length <= 4) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+          return parseInt(h.slice(0, 2), 16) + ', ' + parseInt(h.slice(2, 4), 16) + ', ' + parseInt(h.slice(4, 6), 16);
+        }
+        function decls(vals) {
+          var css = '';
+          for (var knob in vals) {
+            var toks = KNOBS[knob];
+            if (!toks) continue;
+            for (var i = 0; i < toks.length; i++) css += '--bp-' + toks[i] + ':' + vals[knob] + ';';
+          }
+          // Grid follows the accent, as a faint tint (mirrors ThemeStylesheet).
+          var rgb = hexToRgb(vals.accent);
+          if (rgb) css += '--bp-grid:rgba(' + rgb + ',0.07);--bp-grid-strong:rgba(' + rgb + ',0.12);';
+          return css;
+        }
+        var out = '';
+        for (var key in PALETTES) {
+          var sel = ':root[data-palette="' + key + '"]';
+          out += sel + '{' + decls(PALETTES[key].light) + '}';
+          out += '@media (prefers-color-scheme: dark){' + sel + ':not([data-theme="light"]){' + decls(PALETTES[key].dark) + '}}';
+          out += sel + '[data-theme="dark"]{' + decls(PALETTES[key].dark) + '}';
+        }
+        var style = document.createElement('style');
+        style.textContent = out;
+        document.head.appendChild(style);
+
+        try {
+          var saved = localStorage.getItem('truss-demo-palette');
+          if (saved && PALETTES[saved]) document.documentElement.setAttribute('data-palette', saved);
+        } catch (e) {}
+      })();
+    </script>
 </head>
 <body>
     <header class="site-bar">
@@ -102,6 +203,12 @@
             <a class="gh" href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82a7.55 7.55 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
             </a>
+            <div class="site-bar-palettes" role="group" aria-label="Palette">
+                <button type="button" class="pal" data-palette-set="blueprint" aria-pressed="true" title="Blueprint (default)" aria-label="Blueprint theme"><span class="pal-dot" aria-hidden="true"></span></button>
+                <button type="button" class="pal" data-palette-set="ember" aria-pressed="false" title="Ember (custom)" aria-label="Ember theme"><span class="pal-dot" aria-hidden="true"></span></button>
+                <button type="button" class="pal" data-palette-set="contrast" aria-pressed="false" title="Contrast (custom)" aria-label="Contrast theme"><span class="pal-dot" aria-hidden="true"></span></button>
+                <button type="button" class="site-bar-code" id="demo-config-btn" aria-expanded="false" aria-controls="demo-config" title="Show the config for this palette">&lt;/&gt;</button>
+            </div>
             <button class="site-bar-theme" type="button" data-theme-cycle data-mode="auto" aria-label="Theme: system" title="Theme: system (click to change)">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <g class="ti ti-light" stroke-linecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></g>
@@ -111,6 +218,8 @@
             </button>
         </nav>
     </header>
+
+    <pre id="demo-config" hidden aria-live="polite"></pre>
 
     <div
         id="truss-app"
@@ -269,6 +378,57 @@
                 reflect(next);
             });
             reflect(pref());
+        })();
+    </script>
+
+    <!-- Palette picker wiring: swap data-palette, persist it, and keep the swatch
+         state and the config snippet in sync. The snippet is built from the same
+         values that produced the palette CSS, so it matches what is applied. -->
+    <script>
+        (function () {
+            var data = window.__trussDemoPalettes;
+            if (!data) return;
+            var PALETTES = data.PALETTES;
+            var root = document.documentElement;
+            var swatches = Array.prototype.slice.call(document.querySelectorAll('[data-palette-set]'));
+            var cfgBtn = document.getElementById('demo-config-btn');
+            var cfg = document.getElementById('demo-config');
+            var ORDER = ['accent', 'accent-secondary', 'background', 'surface', 'surface-alt', 'text', 'muted', 'border'];
+
+            function current() { return root.getAttribute('data-palette') || 'blueprint'; }
+
+            function block(vals) {
+                return ORDER.filter(function (k) { return vals[k]; })
+                    .map(function (k) { return "            '" + k + "' => '" + vals[k] + "',"; })
+                    .join('\n');
+            }
+            function snippet(key) {
+                if (key === 'blueprint') return '// Blueprint is the shipped default, no config needed.';
+                var p = PALETTES[key];
+                return "// config/truss.php\n'theme' => [\n    'colors' => [\n"
+                    + "        'light' => [\n" + block(p.light) + "\n        ],\n"
+                    + "        'dark' => [\n" + block(p.dark) + "\n        ],\n"
+                    + '    ],\n],';
+            }
+            function reflect() {
+                var cur = current();
+                swatches.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.paletteSet === cur ? 'true' : 'false'); });
+                if (cfg) cfg.textContent = snippet(cur);
+            }
+            function set(key) {
+                if (key === 'blueprint') root.removeAttribute('data-palette');
+                else root.setAttribute('data-palette', key);
+                try { key === 'blueprint' ? localStorage.removeItem('truss-demo-palette') : localStorage.setItem('truss-demo-palette', key); } catch (e) {}
+                reflect();
+            }
+            swatches.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.paletteSet); }); });
+            if (cfgBtn && cfg) {
+                cfgBtn.addEventListener('click', function () {
+                    if (cfg.hasAttribute('hidden')) { cfg.removeAttribute('hidden'); cfgBtn.setAttribute('aria-expanded', 'true'); }
+                    else { cfg.setAttribute('hidden', ''); cfgBtn.setAttribute('aria-expanded', 'false'); }
+                });
+            }
+            reflect();
         })();
     </script>
 </body>
