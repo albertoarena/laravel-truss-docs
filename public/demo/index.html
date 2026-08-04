@@ -141,6 +141,10 @@
         };
         var PALETTES = {
           ember: {
+            // Fonts are a mode-independent theme knob (truss.theme.fonts). Ember
+            // pairs a typewriter mono with an editorial serif, both system stacks
+            // (the demo loads no webfonts), to show the knob alongside the colours.
+            fonts: { mono: '"Courier New", ui-monospace, monospace', sans: 'Georgia, "Times New Roman", serif' },
             light: { 'accent': '#b45309', 'accent-secondary': '#0f766e', 'background': '#faf6f0', 'surface': '#fffdf8', 'surface-alt': '#f4ebda', 'text': '#3a2a1c', 'muted': '#785a3c', 'border': '#c8873f' },
             dark: { 'accent': '#fbbf24', 'accent-secondary': '#5eead4', 'background': '#1b130b', 'surface': '#26190d', 'surface-alt': '#33230f', 'text': '#f5e6d0', 'muted': '#c2a17c', 'border': '#8a6428' }
           },
@@ -169,10 +173,19 @@
           if (rgb) css += '--bp-grid:rgba(' + rgb + ',0.07);--bp-grid-strong:rgba(' + rgb + ',0.12);';
           return css;
         }
+        // Fonts have no light/dark split in the package (they live on :root), so
+        // emit them once on the base selector and let both modes inherit them.
+        function fontDecls(fonts) {
+          if (!fonts) return '';
+          var css = '';
+          if (fonts.mono) css += '--bp-mono:' + fonts.mono + ';';
+          if (fonts.sans) css += '--bp-sans:' + fonts.sans + ';';
+          return css;
+        }
         var out = '';
         for (var key in PALETTES) {
           var sel = ':root[data-palette="' + key + '"]';
-          out += sel + '{' + decls(PALETTES[key].light) + '}';
+          out += sel + '{' + fontDecls(PALETTES[key].fonts) + decls(PALETTES[key].light) + '}';
           out += '@media (prefers-color-scheme: dark){' + sel + ':not([data-theme="light"]){' + decls(PALETTES[key].dark) + '}}';
           out += sel + '[data-theme="dark"]{' + decls(PALETTES[key].dark) + '}';
         }
@@ -198,6 +211,7 @@
         </a>
         <nav class="site-bar-nav" aria-label="Site">
             <a href="./multi-connection/">Multiple connections</a>
+            <a href="../theme-builder/">Theme builder</a>
             <a href="../getting-started/installation/">Docs</a>
             <a href="../roadmap/">Roadmap</a>
             <a class="gh" href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
@@ -402,10 +416,18 @@
                     .map(function (k) { return "            '" + k + "' => '" + vals[k] + "',"; })
                     .join('\n');
             }
+            function fontBlock(fonts) {
+                if (!fonts) return '';
+                var lines = [];
+                if (fonts.mono) lines.push("        'mono' => '" + fonts.mono + "',");
+                if (fonts.sans) lines.push("        'sans' => '" + fonts.sans + "',");
+                if (!lines.length) return '';
+                return "    'fonts' => [\n" + lines.join('\n') + "\n    ],\n";
+            }
             function snippet(key) {
                 if (key === 'blueprint') return '// Blueprint is the shipped default, no config needed.';
                 var p = PALETTES[key];
-                return "// config/truss.php\n'theme' => [\n    'colors' => [\n"
+                return "// config/truss.php\n'theme' => [\n" + fontBlock(p.fonts) + "    'colors' => [\n"
                     + "        'light' => [\n" + block(p.light) + "\n        ],\n"
                     + "        'dark' => [\n" + block(p.dark) + "\n        ],\n"
                     + '    ],\n],';

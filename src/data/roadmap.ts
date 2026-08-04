@@ -42,6 +42,13 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Theme builder',
+        status: 'shipped',
+        tag: 'docs-site',
+        blurb:
+          'Design a Truss theme in the browser: dial in colours and fonts against a live dashboard preview, then copy a ready-to-paste config block. Every value maps to the shipped truss.theme knobs, so what you build is exactly what the package produces.',
+      },
+      {
         title: 'Schema export for CI and tooling',
         status: 'shipped',
         version: 'v1.6.0',

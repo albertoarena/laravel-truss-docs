@@ -25,19 +25,23 @@ function demoAssetVersioning() {
         const demoDir = join(fileURLToPath(dir), 'demo')
         try {
           await rename(join(demoDir, 'assets'), join(demoDir, `assets-${safe}`))
-          // Repoint every demo page at the versioned folder. The top-level page
-          // references it as ./assets/; pages nested one level deep (e.g.
-          // multi-connection/) reference it as ../assets/, so rewrite both.
-          const pages = [
-            join(demoDir, 'index.html'),
-            join(demoDir, 'multi-connection', 'index.html'),
+          // Repoint every page that references the demo assets at the versioned
+          // folder. The demo's top-level page uses ./assets/; pages nested one
+          // level deep (multi-connection/) use ../assets/; the theme builder, a
+          // sibling of demo/, links the demo stylesheet as ../demo/assets/. Each
+          // gets the same version stamp.
+          const rewrites = [
+            { page: join(demoDir, 'index.html'), find: ['./assets/', '../assets/'] },
+            { page: join(demoDir, 'multi-connection', 'index.html'), find: ['./assets/', '../assets/'] },
+            { page: join(fileURLToPath(dir), 'theme-builder', 'index.html'), find: ['../demo/assets/'] },
           ]
-          for (const page of pages) {
+          for (const { page, find } of rewrites) {
             try {
-              const html = await readFile(page, 'utf8')
-              await writeFile(page, html
-                .replaceAll('./assets/', `./assets-${safe}/`)
-                .replaceAll('../assets/', `../assets-${safe}/`))
+              let html = await readFile(page, 'utf8')
+              for (const token of find) {
+                html = html.replaceAll(token, token.replace('assets/', `assets-${safe}/`))
+              }
+              await writeFile(page, html)
             } catch (e) {
               logger.warn(`Skipped repointing ${page}: ${e.message}`)
             }

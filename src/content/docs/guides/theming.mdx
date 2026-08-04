@@ -5,6 +5,10 @@ description: Match the dashboard to your app by defining your own colours and fo
 
 Truss ships a light and dark "blueprint" theme. To make the dashboard match the app it is embedded in, redefine its colours and fonts from config under `truss.theme`. Everything is optional: you set a few semantic knobs and the rest stay on the default, so a handful of values re-skins the whole dashboard, chrome and diagram alike, in both light and dark.
 
+:::tip[Prefer to design it visually?]
+Use the [theme builder](/theme-builder/) to dial in colours and fonts against a live dashboard preview, then copy a ready-to-paste config block. What you build there maps to exactly the `truss.theme` knobs described below.
+:::
+
 ## Publish the config first
 
 A default install ships no `config/truss.php` (Truss runs on its bundled defaults), so before you can set a theme, publish the config:
