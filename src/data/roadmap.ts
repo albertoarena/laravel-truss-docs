@@ -100,6 +100,12 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Decided. This is what comes next.',
     items: [
       {
+        title: 'Truss as AI context',
+        status: 'approved',
+        blurb:
+          'Annotate your schema with meaning, from config or from database comments, and export a compact version tuned for feeding to an AI agent or a text-to-SQL tool. Structure only, no AI inside Truss.',
+      },
+      {
         title: 'Lighthouse CI',
         status: 'approved',
         tag: 'docs-site',
@@ -119,12 +125,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'exploring',
         blurb:
           'A second pass on truss:doctor: the rest of the rule catalogue, a laravel preset, GitHub and JUnit output for inline CI annotations, a suppression workflow to baseline known findings, and a since-baseline mode that only reports problems a migration newly introduced.',
-      },
-      {
-        title: 'Truss as AI context',
-        status: 'exploring',
-        blurb:
-          'Annotate your schema with meaning, from config or from database comments, and export a compact version tuned for feeding to an AI agent or a text-to-SQL tool. Structure only, no AI inside Truss.',
       },
       {
         title: 'Semantic relationship labels',
