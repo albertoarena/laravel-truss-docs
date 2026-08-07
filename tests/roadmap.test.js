@@ -44,10 +44,16 @@ describe('roadmap data', () => {
     }
   })
 
-  it('marks shipped items with the release that landed them', () => {
+  it('marks shipped package releases with the version that landed them', () => {
     const shipped = SECTIONS.find((s) => s.status === 'shipped').items
     for (const item of shipped) {
-      expect(item.version, `version for ${item.title}`).toMatch(/^v\d+\.\d+\.\d+$/)
+      if (item.tag === 'docs-site') {
+        // Docs-site tools ship with the website, not a package release, so they
+        // carry no version. Guard against one being fabricated.
+        expect(item.version, `docs-site item ${item.title} must not claim a package version`).toBeUndefined()
+      } else {
+        expect(item.version, `version for ${item.title}`).toMatch(/^v\d+\.\d+\.\d+$/)
+      }
     }
   })
 
