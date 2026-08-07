@@ -1,0 +1,10 @@
+# Socket.dev configuration: https://docs.socket.dev/docs/socket-yml
+version: 2
+
+issueRules:
+  # False-positive "obfuscated code" flags on first-party build tooling and generated
+  # code that is only ever run at build time for this static Starlight site:
+  #   - @astrojs/compiler ships a WebAssembly binary
+  #   - astro core and robust-predicates are generated / minified but trusted
+  # None of it is served to visitors, so the obfuscation alert is noise here.
+  obfuscatedFile: false
