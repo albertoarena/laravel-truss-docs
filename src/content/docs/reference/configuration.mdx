@@ -22,6 +22,12 @@ Every key has a sensible default and, where relevant, an `env()` override.
 | `cache.ttl` | `TRUSS_CACHE_TTL` | `3600` | Seconds a schema snapshot is cached |
 | `connections` | | `[]` | Which DB connections are visualizable (defaults to the app's default) |
 | `excluded_tables` | | framework tables | Tables filtered out server-side, never sent to the browser |
+| `annotations.source` | | `['config', 'database']` | Ordered precedence for resolving an annotation; first match wins |
+| `annotations.notes` | | `[]` | Global notes rendered in a header block by the formats that have one |
+| `annotations.tables` | | `[]` | Per-table annotations, keyed by table name |
+| `annotations.columns` | | `[]` | Per-column annotations, keyed by `table.column` |
+| `export.default_format` | `TRUSS_EXPORT_FORMAT` | `dbml` | Format `truss:export` and the facade use when none is given |
+| `mcp.enabled` | `TRUSS_MCP_ENABLED` | `true` | Register the MCP server when `laravel/mcp` is installed |
 | `diagram.type_labels` | `TRUSS_TYPE_LABELS` | `native` | Default column-type labels: `native` or `laravel` |
 | `diagram.mermaid_url` | `TRUSS_MERMAID_URL` | `null` | Where to load Mermaid from. Null self-hosts (no CDN) |
 | `diagram.min_zoom` | `TRUSS_MIN_ZOOM` | `0.7` | Readable floor for auto-fit. The Fit button ignores it |
@@ -78,6 +84,18 @@ The lowest zoom the automatic fit will use, so a large schema stays legible and 
 ### `theme.*`
 
 Redefine the dashboard's colours and fonts to match your app. `theme.colors` takes a small set of semantic knobs (`accent`, `accent-secondary`, `background`, `surface`, `surface-alt`, `text`, `muted`, `border`) under `light` and `dark`; only the knobs you set are overridden, so a handful of values re-skins the whole dashboard in both modes. `theme.fonts.mono` and `theme.fonts.sans` take font-family names only (a font your app already loads or a system font). The overrides are served as a same-origin stylesheet, linked only when a theme is configured, so a default install makes no extra request and a strict CSP still needs only `style-src 'self'`. Every value is validated before it is emitted, so an invalid value falls back to the default. See the [Theming guide](/guides/theming/).
+
+### `annotations.*`
+
+Declare the business meaning a type cannot carry, so it renders into the exports and the MCP tools. `annotations.source` is an ordered list, resolved first match wins: `config` reads the maps below, `database` reads native table and column comments (MySQL, MariaDB, and Postgres; SQLite and SQL Server have none and are skipped). Drop `database` to ignore comments. `annotations.notes` are global notes, `annotations.tables` is keyed by table name, and `annotations.columns` by `table.column`. A comment is part of the `CREATE TABLE` definition, not row content, so reading it stays structure only. See [Truss as AI context](/guides/ai-context/).
+
+### `export.default_format`
+
+The format `truss:export` and the `Truss` facade use when none is given, one of `dbml`, `json`, `csv`, `markdown`, `mermaid`, or `llm`. Defaults to `dbml`, a standard other tools already read.
+
+### `mcp.enabled`
+
+Master switch for the optional [MCP server](/guides/mcp-server/). It has no effect unless the optional `laravel/mcp` package is installed, so a host that does not opt in is unaffected; when the package is present, the server registers unless this is `false`.
 
 ### `diff.enabled` and `diff.disk`
 

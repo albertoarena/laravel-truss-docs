@@ -16,6 +16,7 @@ One flag, five formats. Pick the one that suits the job:
 | `csv` | Spreadsheets: one row per column, with a `table` column |
 | `markdown` | A data dictionary to paste into a README or wiki |
 | `mermaid` | An `erDiagram` block to embed in Markdown docs |
+| `llm` | Feeding a coding agent: a dense, token-tuned plaintext layout |
 
 ## The command
 
@@ -35,7 +36,7 @@ php artisan truss:export --tables=orders,order_lines
 php artisan truss:export --connection=mysql --exclude=telemetry
 ```
 
-Options: `--format`, `--connection`, `--tables` (allowlist), `--exclude` (blocklist, applied after `--tables`), `--output` (a file path; stdout otherwise), `--check` (see below), and `--fresh` (rebuild the cached snapshot first).
+Options: `--format`, `--connection`, `--tables` (allowlist), `--exclude` (blocklist, applied after `--tables`), `--output` (a file path; stdout otherwise), `--check` (see below), and `--fresh` (rebuild the cached snapshot first). For feeding an agent, `--compact`, `--focus`/`--depth`, and `--no-annotations` are covered in [Truss as AI context](/guides/ai-context/).
 
 Config `excluded_tables` always wins over `--tables`, so you cannot filter your way to an excluded table and the export never exposes structure the dashboard hides.
 
@@ -75,3 +76,7 @@ php artisan truss:export --format=dbml --output=docs/schema.dbml
 ```
 
 The file becomes a reviewable record of every structural change, and the check keeps it honest. Structure only: the export reads the same cached snapshot the diagram uses and never queries a row.
+
+## Feeding an AI agent
+
+The same export doubles as grounding context for a coding agent. Annotate the structure with meaning, trim it with `--compact`, narrow it with `--focus`, and reach for the `llm` format, or build it in code with the `Truss` facade. See [Truss as AI context](/guides/ai-context/). To let an agent query the schema on demand rather than from a paste, see the [MCP server](/guides/mcp-server/).
