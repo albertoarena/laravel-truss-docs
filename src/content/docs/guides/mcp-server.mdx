@@ -1,0 +1,59 @@
+---
+title: MCP server
+description: Let a coding agent query your live schema on demand over the Model Context Protocol
+---
+
+Pasting an export is fine, but it goes stale the moment your next migration runs. The Truss MCP server lets an agent that speaks the [Model Context Protocol](https://modelcontextprotocol.io/) (Claude Code, Cursor, and others) query your **current** schema on demand instead. It is read-only and structure only by construction: it answers with structure, it never returns row data, and there is no AI inside Truss.
+
+## Install and start
+
+The server is optional and adds no required dependency. Opt in by installing the first-party `laravel/mcp` package, then start the server:
+
+```bash
+composer require laravel/mcp
+php artisan mcp:start truss
+```
+
+Truss registers the server itself, so there is nothing to add to `routes/ai.php`. It is enabled by default once `laravel/mcp` is installed; set `truss.mcp.enabled` to `false` to turn it off.
+
+:::note
+The MCP feature needs Laravel 12.41.1 or newer (or Laravel 13). Because `laravel/mcp` is optional, that is a requirement of the feature, not of Truss itself, whose own minimum is unchanged.
+:::
+
+## Connect your client
+
+Point your MCP client at the local command. For Claude Code or Cursor, add a stdio server to your MCP config:
+
+```json
+{
+  "mcpServers": {
+    "truss": { "command": "php", "args": ["artisan", "mcp:start", "truss"] }
+  }
+}
+```
+
+## Tools and resource
+
+The server exposes five tools and one resource, all read-only and structure only:
+
+| Name | What it returns |
+| --- | --- |
+| `list_tables` | Every table with a one-line structural summary (column count, whether it has a primary key, foreign-key count) |
+| `describe_table` | One table's columns, primary key, indexes, foreign keys, and annotations |
+| `get_schema` | The whole structure in any format (`dbml`, `json`, `csv`, `markdown`, `mermaid`, `llm`), optionally compact or limited to some tables |
+| `focus_table` | A table and its foreign-key neighbourhood, out to a given depth |
+| `get_structural_review` | The deterministic `truss:doctor` findings for the schema |
+
+The resource `truss://schema` is the "read the whole thing" convenience: the entire structure as one compact, annotated document.
+
+Each tool takes an optional `connection` argument and reads the same annotations you configure for the export, so the meaning you declare shows up here too.
+
+## The same guarantees, everywhere
+
+Every tool drives the same engine as the CLI and the facade, so it inherits every safeguard automatically:
+
+- **Structure only, never row data.** Proven by the same canary test that guards the exports.
+- **Excluded tables stay excluded.** `truss.excluded_tables` is stripped before anything is returned, so an excluded table can never surface through a tool or the resource.
+- **Only managed connections.** A connection you have not configured under `truss.connections` is rejected.
+
+The web (HTTP) transport is a planned follow-up; today the server runs over local stdio, which adds no new remote surface and no new authentication question. To build context without a running server, see [Truss as AI context](/guides/ai-context/).
