@@ -55,6 +55,19 @@ const features = [
       <a class="btn ghost" href="/demo/multi-connection/">Multiple connections</a>
       <a class="btn ghost" href="/getting-started/installation/">Get started</a>
     </div>
+
+    <p class="proof">
+      <a
+        class="proof-pill"
+        href="https://laraveldaily.com/package/albertoarena-laravel-truss/268"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Featured in Laravel Daily's Best Packages directory"
+      >
+        <span class="proof-star" aria-hidden="true">★</span>
+        Featured in Laravel Daily's Best Packages
+      </a>
+    </p>
   </section>
 
   <!-- Product band: static ER diagram, the visual proof -->
@@ -211,6 +224,25 @@ const features = [
   .btn.primary:hover { opacity: 0.92; }
   .btn.ghost { border: 1px solid var(--truss-line); color: var(--truss-fg); background: var(--truss-field); }
   .btn.ghost:hover { border-color: var(--truss-muted); }
+
+  /* Social proof: a small "as featured in" pill below the hero, kept out of the
+     CTA row so it reads as a trust signal, not a conversion action. */
+  .proof { margin: 26px 0 0; }
+  .proof-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--truss-font-mono);
+    font-size: 12px;
+    color: var(--truss-muted);
+    border: 1px solid var(--truss-line);
+    border-radius: 999px;
+    padding: 6px 14px;
+    background: var(--truss-field);
+    text-decoration: none;
+  }
+  .proof-pill:hover { border-color: var(--truss-muted); color: var(--truss-fg); }
+  .proof-star { color: var(--truss-ink); }
 
   /* Product band: full-bleed within the frame, blueprint grid background */
   .band {
