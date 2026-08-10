@@ -53,7 +53,7 @@ When no baseline has been recorded yet, or when `diff.enabled` is `false`, the c
 
 ## `truss:export`
 
-Export the database structure to a standard format (DBML, JSON, CSV, a Markdown data dictionary, or Mermaid) for CI, tooling, and version control. It writes to stdout by default so it pipes cleanly, or to a file with `--output`. Deterministic and structure only, so it is safe in CI and commit hooks.
+Export the database structure to a standard format (DBML, JSON, CSV, a Markdown data dictionary, Mermaid, or a token-tuned `llm` format) for CI, tooling, and version control. It writes to stdout by default so it pipes cleanly, or to a file with `--output`. Deterministic and structure only, so it is safe in CI and commit hooks.
 
 ```bash
 # DBML to stdout
@@ -66,7 +66,7 @@ php artisan truss:export --format=json --output=docs/schema.json
 php artisan truss:export --format=dbml --output=docs/schema.dbml --check
 ```
 
-Options: `--format` (`dbml` / `json` / `csv` / `markdown` / `mermaid`), `--connection`, `--tables` and `--exclude` (config `excluded_tables` always wins), `--output` (a file path; stdout otherwise), `--check` (exit non-zero if `--output` would change, writing nothing), and `--fresh` (rebuild the snapshot first). Exit codes are `0` (written or up to date), `1` (`--check` found drift), and `2` (a usage or runtime error). See the [Schema export guide](/guides/schema-export/) for the formats and the CI drift-check recipe.
+Options: `--format` (`dbml` / `json` / `csv` / `markdown` / `mermaid` / `llm`), `--connection`, `--tables` and `--exclude` (config `excluded_tables` always wins), `--output` (a file path; stdout otherwise), `--check` (exit non-zero if `--output` would change, writing nothing), and `--fresh` (rebuild the snapshot first). For AI-context output, add `--compact` (drop defaults and non-unique indexes), `--focus=<table>` with `--depth=<n>` (a table and its foreign-key neighbourhood), and `--no-annotations` (strip configured annotations). Exit codes are `0` (written or up to date), `1` (`--check` found drift), and `2` (a usage or runtime error). See the [Schema export guide](/guides/schema-export/) for the formats and the CI drift-check recipe, and [Truss as AI context](/guides/ai-context/) for the annotation, compact, and focus flags.
 
 ## `truss:doctor`
 
@@ -84,6 +84,16 @@ php artisan truss:doctor --preset=strict --fail-on=warning
 ```
 
 Options: `--connection`, `--table`, `--only` / `--skip` (by category), `--preset` (`recommended` / `strict` / `none`), `--format` (`console` / `json`), and `--fail-on` (`error` / `warning` / `info` / `never`). Exit codes are `0` (clean), `1` (a finding at or above the fail level), and `2` (a bad option or a snapshot error). See the [Schema doctor guide](/guides/schema-doctor/) for presets, confidence, and the dashboard panel.
+
+## `mcp:start`
+
+Start the optional Truss MCP server so a coding agent can query your live schema. The command comes from the optional `laravel/mcp` package (`composer require laravel/mcp`); Truss registers the `truss` server, so there is nothing to add to `routes/ai.php`.
+
+```bash
+php artisan mcp:start truss
+```
+
+Read-only and structure only. See the [MCP server guide](/guides/mcp-server/) for the tools, the resource, and the client configuration.
 
 ## Automatic rebuilds
 

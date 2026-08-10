@@ -1,0 +1,70 @@
+---
+title: Truss as AI context
+description: Hand your real, live database structure to a coding agent as grounding context, so it stops inventing columns
+---
+
+A coding agent guesses at your schema. It invents a `users.full_name` column that is really `name`, or a `status` string that is really an integer. Truss already knows the real structure, so hand it over: the same deterministic, structure-only export that feeds CI doubles as grounding context for Claude Code, Cursor, or any agent. It stays structure only, never row data.
+
+Three flags turn the export into context worth pasting or piping into an agent, and annotations add the meaning a type cannot carry.
+
+## Annotations
+
+Types and foreign keys say what the shape is, not what it means. That `status = 1` is paid, that `total_amount` is integer cents, that `legacy_orders` is deprecated. Declare that meaning under `truss.annotations`, per table, per column, and as global notes:
+
+```php
+// config/truss.php
+'annotations' => [
+    'source'  => ['config', 'database'], // first match wins; drop 'database' to ignore DB comments
+    'notes'   => ['All timestamps are UTC.', 'Monetary columns are integer cents unless stated.'],
+    'tables'  => ['orders' => 'One row per order, not per line item.'],
+    'columns' => ['orders.status' => '0 draft, 1 paid, 2 refunded'],
+],
+```
+
+Keeping `'database'` in `source` also reads native table and column comments (MySQL, MariaDB, and Postgres; SQLite and SQL Server have none and are skipped). A comment is part of the `CREATE TABLE` definition, not row content, so this stays structure only, the same boundary as a column default. Annotations render into every text format and are removed with `--no-annotations`.
+
+## Compact and focus
+
+```bash
+# A dense, token-trimmed plaintext format built for agents
+php artisan truss:export --format=llm
+
+# Drop defaults and non-unique indexes to shrink the output
+php artisan truss:export --compact
+
+# One table and its foreign-key neighbourhood, out to N hops
+php artisan truss:export --focus=orders --depth=1
+```
+
+`--compact` drops the detail an agent does not need (column defaults and non-unique indexes) without losing a single table, column, or foreign key. `--focus` narrows the export to one table and the tables it connects to, so you can ground the agent on the slice it is working in. The `llm` format is a bespoke, dense plaintext layout tuned for token budgets; DBML stays the default because it is a standard other tools already read.
+
+## In code: the Truss facade
+
+The same pipeline is available programmatically, so you can build context in your own code, tooling, or tests without shelling out:
+
+```php
+use AlbertoArena\Truss\Facades\Truss;
+
+$context = Truss::snapshot()
+    ->only(['orders', 'order_lines'])
+    ->focus('orders', depth: 1)
+    ->compact()
+    ->toDbml();
+```
+
+The builder is immutable, so a base builder is safe to share and branch. It offers `only()`, `except()`, `focus()`, `compact()`, `withoutAnnotations()`, `fresh()`, and `connection()`, with a terminal per format: `toDbml()`, `toJson()`, `toCsv()`, `toMarkdown()`, `toMermaid()`, `toLlm()`, and `toArray()`. It produces exactly the same bytes as `truss:export` for the same filters.
+
+## Over HTTP: the gated route
+
+The dashboard download button and any HTTP client share one route, `GET {prefix}/export/{format}`, behind the `viewTruss` gate. It accepts the same filters as query parameters (`only`, `except`, `focus`, `depth`, `compact`, `connection`), so the command, the facade, and the dashboard all produce identical output from one source of truth.
+
+## A schema is not a semantic layer
+
+Truss tells an agent what exists, not what the business means beyond the annotations you write. Two honesty notes worth keeping in mind:
+
+- The structure-only guarantee holds on every surface here (flags, facade, route). No export, in any format or flag combination, ever contains row data.
+- If you pair this context with a tool that executes generated SQL, that tool needs its own read-only connection and its own validation. Truss produces context; it never runs a query for you.
+
+## Next
+
+For an agent that queries your schema on demand rather than from a paste, see the [MCP server](/guides/mcp-server/).

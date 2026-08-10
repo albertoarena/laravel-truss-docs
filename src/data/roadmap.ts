@@ -42,6 +42,20 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Truss as AI context',
+        status: 'shipped',
+        version: 'v1.8.0',
+        blurb:
+          'Turn your schema into grounding context for a coding agent so it stops inventing columns. Annotate it with meaning from config or database comments, trim it with compact mode, narrow it to one table and its foreign-key neighbourhood, and export a token-tuned llm format. Build it in code with the fluent Truss facade or fetch it over a gated route. Structure only, no AI inside Truss.',
+      },
+      {
+        title: 'MCP server',
+        status: 'shipped',
+        version: 'v1.8.0',
+        blurb:
+          'An optional Model Context Protocol server so agents like Claude Code and Cursor pull your live schema on demand, with tools to list and describe tables, export the structure in any format, and focus a table. Read-only and structure only.',
+      },
+      {
         title: 'Theme builder',
         status: 'shipped',
         tag: 'docs-site',
@@ -99,12 +113,6 @@ export const SECTIONS: RoadmapSection[] = [
     commitment: 'Committed, building next',
     blurb: 'Decided. This is what comes next.',
     items: [
-      {
-        title: 'Truss as AI context',
-        status: 'approved',
-        blurb:
-          'Annotate your schema with meaning, from config or from database comments, and export a compact version tuned for feeding to an AI agent or a text-to-SQL tool. Structure only, no AI inside Truss.',
-      },
       {
         title: 'Lighthouse CI',
         status: 'approved',
@@ -179,12 +187,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'wishlist',
         blurb:
           'Surface the diagram inside a Filament admin panel as a first-class page.',
-      },
-      {
-        title: 'MCP server',
-        status: 'wishlist',
-        blurb:
-          'An MCP server so agents like Claude Code and Cursor can pull your live schema directly. Read-only, structure only.',
       },
       {
         title: 'Structural lint hints',

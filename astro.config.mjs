@@ -127,6 +127,8 @@ export default defineConfig({
             { label: 'Schema diff', link: '/guides/schema-diff/' },
             { label: 'Schema doctor', link: '/guides/schema-doctor/' },
             { label: 'Schema export', link: '/guides/schema-export/' },
+            { label: 'Truss as AI context', link: '/guides/ai-context/', badge: 'New' },
+            { label: 'MCP server', link: '/guides/mcp-server/', badge: 'New' },
             { label: 'Theming', link: '/guides/theming/' },
           ],
         },
