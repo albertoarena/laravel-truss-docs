@@ -22,7 +22,7 @@ The MCP feature needs Laravel 12.41.1 or newer (or Laravel 13). Because `laravel
 
 ## Connect your client
 
-Point your MCP client at the local command. For Claude Code or Cursor, add a stdio server to your MCP config:
+Point your MCP client at the local command. For Claude Code or Cursor, which run inside your project, add a stdio server to your MCP config with the short form:
 
 ```json
 {
@@ -31,6 +31,26 @@ Point your MCP client at the local command. For Claude Code or Cursor, add a std
   }
 }
 ```
+
+### Claude Desktop
+
+Claude Desktop launches the server from its own working directory with a minimal environment, so it does not see your shell's `PATH` or your project folder. Use **absolute paths** for both the PHP binary and `artisan`, and pass any environment the app needs. Edit `claude_desktop_config.json` (Settings, Developer, Edit Config; on macOS it lives at `~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "truss": {
+      "command": "/absolute/path/to/php",
+      "args": ["/absolute/path/to/your/app/artisan", "mcp:start", "truss"],
+      "env": { "APP_ENV": "local" }
+    }
+  }
+}
+```
+
+Find the paths with `which php` and the app's `pwd`, then fully quit and reopen Desktop. The `truss` tools then appear in the tools list. If it does not connect, check `~/Library/Logs/Claude/mcp*.log`; the usual causes are a wrong `php` path or a missing environment variable the app needs to boot.
+
+The tools declare themselves read-only (they advertise the MCP `readOnlyHint`), so a client that surfaces that hint can present them as read-only rather than prompting for write approval on every call.
 
 ## Tools and resource
 
