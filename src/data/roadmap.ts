@@ -142,10 +142,12 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'On the table, not yet decided.',
     items: [
       {
-        title: 'Semantic relationship labels',
+        title: 'Eloquent relations as a schema source',
         status: 'exploring',
+        tag: 'community requested',
+        issueUrl: `${REPO}/issues/38`,
         blurb:
-          'Read Eloquent model relationships to label edges (hasMany, belongsToMany) beyond what raw foreign keys reveal.',
+          'Read Eloquent model relationships as a second source of edges, so relations your app declares but the database never enforces still appear on the diagram, including polymorphic ones a foreign key cannot express. Inferred edges would be drawn distinctly from enforced ones, and the relation kind (hasMany, belongsToMany) would label what the database does enforce. Opt in from config, read from model definitions, structure only.',
       },
       {
         title: 'Large-schema navigation',
