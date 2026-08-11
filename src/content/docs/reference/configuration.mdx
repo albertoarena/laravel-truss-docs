@@ -37,7 +37,7 @@ Every key has a sensible default and, where relevant, an `env()` override.
 | `focus.default_depth` | `TRUSS_FOCUS_DEPTH` | `1` | Foreign-key neighbour depth when focusing a table |
 | `large_schema.warn_above` | `TRUSS_LARGE_SCHEMA_WARN_ABOVE` | `60` | Table count above which a "large schema" hint is shown |
 | `diff.enabled` | `TRUSS_DIFF_ENABLED` | `true` | Schema diff master switch. Off writes nothing to disk and hides the feature |
-| `diff.disk` | `TRUSS_DIFF_DISK` | `null` | Disk the diff baseline file is written to. Null uses the default disk |
+| `diff.disk` | `TRUSS_DIFF_DISK` | `local` | Disk the diff baseline file is written to. Deliberately not your application's default disk |
 | `doctor.preset` | `TRUSS_DOCTOR_PRESET` | `recommended` | Which rules run: `recommended` (high-confidence), `strict` (all), `none` |
 | `doctor.rules` | | `[]` | Per-rule overrides by code: `false` disables, `true` enables, `['severity' => '...']` re-severities |
 | `doctor.ignore` | | `[]` | Per-rule fnmatch patterns (table or table.column) to silence |
@@ -99,7 +99,7 @@ Master switch for the optional [MCP server](/guides/mcp-server/). It has no effe
 
 ### `diff.enabled` and `diff.disk`
 
-Control the schema diff feature. `diff.enabled` (default `true`) is the master switch: when `false`, no baseline is captured, nothing is written to disk, the dashboard "Changes" button is hidden, and `truss:diff` reports the feature is off. The check runs before any filesystem access, so it is a hard guarantee that Truss will not touch your disk. `diff.disk` chooses the filesystem disk the baseline is written to (`null` uses the default disk); the path is always `truss/baselines/{connection}.json`. See the [Schema diff guide](/guides/schema-diff/).
+Control the schema diff feature. `diff.enabled` (default `true`) is the master switch: when `false`, no baseline is captured, nothing is written to disk, the dashboard "Changes" button is hidden, and `truss:diff` reports the feature is off. The check runs before any filesystem access, so it is a hard guarantee that Truss will not touch your disk. `diff.disk` chooses the filesystem disk the baseline is written to, `local` by default; the path is always `truss/baselines/{connection}.json`. It does not follow your application's default disk on purpose: the baseline is derived tooling state, not application data, so it should not land in a production bucket. If the disk cannot be read, the diff is unavailable and says so, and nothing else about Truss is affected. See the [Schema diff guide](/guides/schema-diff/).
 
 ### `doctor.*`
 

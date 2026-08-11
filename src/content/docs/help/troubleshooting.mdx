@@ -24,6 +24,37 @@ Truss could not reach the target database connection, so it replayed your migrat
 
 If you set `truss.connections`, only the connections you listed are visualizable. A request for any other connection returns 404. Add the connection to the list, or leave `connections` empty to use the application's default.
 
+## "Could not load schema (HTTP 500)"
+
+The dashboard shell renders, but the diagram area shows this over an empty canvas.
+
+The usual cause is the **schema-diff baseline landing on a remote disk**. Before Truss v1.8.2, `diff.disk` followed your application's default disk, so an app with `FILESYSTEM_DISK=s3` (or any remote default) tried to read `truss/baselines/{connection}.json` through that adapter. A failure there returned a 500 for the whole endpoint, even though the diagram itself needs no filesystem access. The exception in your log looks like:
+
+```
+League\Flysystem\UnableToCheckDirectoryExistence
+Unable to check existence for: truss/baselines/mysql.json
+```
+
+Fix it with one line, then clear the config cache:
+
+```bash
+TRUSS_DIFF_DISK=local
+```
+
+```bash
+php artisan config:clear
+```
+
+**On v1.8.2 and later this cannot take the dashboard down.** The disk defaults to `local`, and a baseline that cannot be read costs you the "Changes" panel and nothing else: you get a notice saying so, and the diagram, doctor and exports are unaffected. Upgrading is the better fix.
+
+If you would rather not have Truss write to disk at all, set `TRUSS_DIFF_ENABLED=false`. See the [Schema diff guide](/guides/schema-diff/).
+
+## `php artisan migrate` fails and the trace mentions Truss
+
+Same cause as above, on a different path. Truss captures the diff baseline on the `MigrationsEnded` event, and before v1.8.2 a storage failure there escaped into the migration command, so an unreachable or misconfigured disk could fail the migration itself.
+
+Set `TRUSS_DIFF_DISK=local`, or upgrade to v1.8.2 or later, where a baseline failure can no longer interrupt a migration.
+
 ## Changes to the schema are not showing
 
 The snapshot is cached (`cache.ttl`, default one hour) and rebuilt automatically after migrations. If you changed the schema another way, force a refresh:
