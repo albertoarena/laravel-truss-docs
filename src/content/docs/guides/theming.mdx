@@ -53,6 +53,14 @@ You set semantic roles, not raw internal variables. Each knob drives the tokens 
 | `muted` | Secondary text, and the relationship lines and labels |
 | `border` | Table, panel, and field lines |
 
+Two tokens are **derived** rather than painted with a knob value directly, so a
+themed diagram keeps its visual hierarchy instead of going flat: the hairlines
+between table rows are a translucent tint of `border`, and the faint background
+grid is a tint of `accent`. That way a strong `border` still gives you a strong
+table outline with quieter row separators, the same relationship the shipped
+palette has. Both derivations need colour channels, so they apply when the knob
+is a hex value; an `rgb()`, `hsl()` or keyword value is used as-is.
+
 Set a knob under both `light` and `dark` to theme both modes, or omit `dark` to theme light only. Anything you do not set keeps the shipped default, so a brand match is usually five to eight values, not a full repaint. The light and dark toggle keeps working across a custom palette.
 
 Colours accept hex (`#3730a3`), `rgb()` / `rgba()` / `hsl()` / `hsla()`, or a CSS colour keyword (`rebeccapurple`, `transparent`).

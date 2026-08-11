@@ -168,6 +168,11 @@
             if (!toks) continue;
             for (var i = 0; i < toks.length; i++) css += '--bp-' + toks[i] + ':' + vals[knob] + ';';
           }
+          // Row hairlines are a translucent tint of the border, so the table
+          // outline stays stronger than the row separators (mirrors
+          // ThemeStylesheet). Emitted after the loop so it wins.
+          var borderRgb = hexToRgb(vals.border);
+          if (borderRgb) css += '--bp-hair:rgba(' + borderRgb + ',0.35);';
           // Grid follows the accent, as a faint tint (mirrors ThemeStylesheet).
           var rgb = hexToRgb(vals.accent);
           if (rgb) css += '--bp-grid:rgba(' + rgb + ',0.07);--bp-grid-strong:rgba(' + rgb + ',0.12);';
