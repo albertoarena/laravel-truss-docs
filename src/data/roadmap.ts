@@ -114,6 +114,12 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Decided. This is what comes next.',
     items: [
       {
+        title: 'Accessibility: keyboard and screen reader support',
+        status: 'approved',
+        blurb:
+          'Operate the whole dashboard from the keyboard, with proper roles and names on the diagram and its controls, a visible focus indicator everywhere, and automated accessibility checks in CI so it stays that way. Groundwork for a full WCAG conformance statement, with an accessible table view of the same structure to follow.',
+      },
+      {
         title: 'Laravel Boost support',
         status: 'approved',
         tag: 'community requested',
