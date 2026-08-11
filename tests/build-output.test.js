@@ -6,6 +6,7 @@ const dist = (p) => fileURLToPath(new URL(`../dist/${p}`, import.meta.url))
 
 let landing = ''
 let roadmap = ''
+let docsPage = ''
 // Whitespace-collapsed copies for prose checks (Astro keeps source line breaks
 // inside text, so raw substring matches on multi-word phrases are brittle).
 let landingText = ''
@@ -15,11 +16,14 @@ const collapse = (s) => s.replace(/\s+/g, ' ')
 beforeAll(() => {
   const landingPath = dist('index.html')
   const roadmapPath = dist('roadmap/index.html')
-  if (!existsSync(landingPath) || !existsSync(roadmapPath)) {
+  // A Starlight docs page: it uses the Footer override, not the SiteLayout footer.
+  const docsPath = dist('getting-started/installation/index.html')
+  if (!existsSync(landingPath) || !existsSync(roadmapPath) || !existsSync(docsPath)) {
     throw new Error('dist not built. Run `npm run build` (or astro build) before the page tests.')
   }
   landing = readFileSync(landingPath, 'utf8')
   roadmap = readFileSync(roadmapPath, 'utf8')
+  docsPage = readFileSync(docsPath, 'utf8')
   landingText = collapse(landing)
   roadmapText = collapse(roadmap)
 })
@@ -71,6 +75,28 @@ describe('roadmap page output', () => {
   it('carries the non-binding disclaimer and the soft sponsor tie-in', () => {
     expect(roadmapText).toMatch(/not a promise/i)
     expect(roadmap).toContain('ko-fi.com/albertoarena')
+  })
+})
+
+describe('site footer', () => {
+  // The site has two footers that must stay in step: SiteLayout (hand-authored
+  // pages) and the Starlight Footer override (docs pages).
+  const playlist = 'youtube.com/playlist?list=PLdadt28gT2Qc'
+
+  it('links the "Truss in the Wild" playlist from every footer', () => {
+    for (const [label, html] of [
+      ['landing', landing],
+      ['roadmap', roadmap],
+      ['docs page', docsPage],
+    ]) {
+      expect(html, label).toContain(playlist)
+      expect(html, label).toContain('>Videos<')
+    }
+  })
+
+  it('points at the playlist rather than the channel root', () => {
+    expect(landing).not.toContain('youtube.com/@AlbertoArenaDev')
+    expect(docsPage).not.toContain('youtube.com/@AlbertoArenaDev')
   })
 })
 
