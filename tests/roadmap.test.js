@@ -65,6 +65,27 @@ describe('roadmap data', () => {
     expect(manual.issueUrl).toBe('https://github.com/albertoarena/laravel-truss/issues/2')
   })
 
+  it('commits Laravel Boost support under approved next', () => {
+    const boost = ALL.find((i) => /boost/i.test(i.title))
+    expect(boost, 'Laravel Boost item exists').toBeTruthy()
+    expect(boost.status).toBe('approved')
+    // The point of the item is that Boost users get Truss context without
+    // wiring our MCP server up by hand, so the blurb has to say so.
+    expect(boost.blurb).toMatch(/boost/i)
+  })
+
+  it('promotes the remaining schema doctor work to approved next', () => {
+    const doctor = ALL.find((i) => /doctor/i.test(i.title) && i.status !== 'shipped')
+    expect(doctor, 'follow-up doctor item exists').toBeTruthy()
+    expect(doctor.status).toBe('approved')
+  })
+
+  it('moves the Filament plugin from wishlist to exploring', () => {
+    const filament = ALL.find((i) => /filament/i.test(i.title))
+    expect(filament, 'Filament item exists').toBeTruthy()
+    expect(filament.status).toBe('exploring')
+  })
+
   it('keeps private strategy items out of the public roadmap', () => {
     const haystack = JSON.stringify(ALL).toLowerCase()
     for (const secret of ['ko-fi mechanics', 'fiscal', 'commercialista', 'pest v5', 'depth-autofocus', 'wordmark']) {

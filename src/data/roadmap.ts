@@ -114,6 +114,19 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Decided. This is what comes next.',
     items: [
       {
+        title: 'Laravel Boost support',
+        status: 'approved',
+        tag: 'community requested',
+        blurb:
+          'Ship Boost guidelines and skills inside the package so an agent set up with Laravel Boost knows Truss is installed and reaches for your real schema, with no MCP server to wire up by hand. The standalone MCP server and truss:export stay exactly as they are, for people not using Boost. Read-only and structure only, as always.',
+      },
+      {
+        title: 'Schema doctor: more rules and CI formats',
+        status: 'approved',
+        blurb:
+          'A second pass on truss:doctor: the rest of the rule catalogue, a laravel preset, GitHub and JUnit output for inline CI annotations, a suppression workflow to baseline known findings, and a since-baseline mode that only reports problems a migration newly introduced.',
+      },
+      {
         title: 'Lighthouse CI',
         status: 'approved',
         tag: 'docs-site',
@@ -129,12 +142,6 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'On the table, not yet decided.',
     items: [
       {
-        title: 'Schema doctor: more rules and CI formats',
-        status: 'exploring',
-        blurb:
-          'A second pass on truss:doctor: the rest of the rule catalogue, a laravel preset, GitHub and JUnit output for inline CI annotations, a suppression workflow to baseline known findings, and a since-baseline mode that only reports problems a migration newly introduced.',
-      },
-      {
         title: 'Semantic relationship labels',
         status: 'exploring',
         blurb:
@@ -145,6 +152,12 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'exploring',
         blurb:
           'Saved views, domain grouping, and a Cmd-K jump so a hundred-table schema stays navigable.',
+      },
+      {
+        title: 'Filament plugin',
+        status: 'exploring',
+        blurb:
+          'Surface the diagram inside a Filament admin panel as a first-class page, so teams already living in Filament get the schema view where they work.',
       },
       {
         title: 'Live DBML playground',
@@ -181,12 +194,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'wishlist',
         blurb:
           'An iframe embed of a focused diagram, to drop a live schema view into a wiki or an internal portal.',
-      },
-      {
-        title: 'Filament plugin',
-        status: 'wishlist',
-        blurb:
-          'Surface the diagram inside a Filament admin panel as a first-class page.',
       },
       {
         title: 'Structural lint hints',
