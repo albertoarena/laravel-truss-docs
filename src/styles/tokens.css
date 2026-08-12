@@ -19,26 +19,35 @@
    so a nudge by eye that breaks AA fails the build rather than shipping. */
 
 /* IBM Plex Mono, self-hosted (served from /fonts, no CDN). The docs previously
-   named this font but never loaded it, so mono text fell back silently. */
+   named this font but never loaded it, so mono text fell back silently.
+
+   font-display is `optional`, not `swap`. With `swap` the browser paints the
+   fallback, then re-paints in Plex once it arrives, and because the metrics
+   differ the text re-measures and everything below it moves: that was the
+   source of the site's CLS (3% Poor in the field, worst on /roadmap). With
+   `optional` the font gets a short window, and if it misses, the fallback is
+   kept for that page view instead of swapping mid-render, so a shift cannot
+   happen at all. The preloads in SiteLayout.astro and in the Starlight head
+   array mean it makes that window on almost every visit. */
 @font-face {
   font-family: 'IBM Plex Mono';
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
+  font-display: optional;
   src: url('/fonts/ibm-plex-mono-400.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IBM Plex Mono';
   font-style: normal;
   font-weight: 500;
-  font-display: swap;
+  font-display: optional;
   src: url('/fonts/ibm-plex-mono-500.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IBM Plex Mono';
   font-style: normal;
   font-weight: 600;
-  font-display: swap;
+  font-display: optional;
   src: url('/fonts/ibm-plex-mono-600.woff2') format('woff2');
 }
 
