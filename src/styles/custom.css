@@ -163,8 +163,13 @@ starlight-toc a {
   border-color: var(--truss-line) !important;
 }
 
-/* Search field harmonized with the blueprint frame. */
-.sidebar-pane,
-site-search button[data-open-modal] {
+/* Search field harmonized with the blueprint frame. The search button is a
+   control whose only visual boundary is this border, so it takes the strong
+   line (1.4.11 wants 3:1); the sidebar edge is structural chrome, not a
+   control, so the hairline is right for it. */
+.sidebar-pane {
   border-color: var(--truss-line);
+}
+site-search button[data-open-modal] {
+  border-color: var(--truss-line-strong);
 }

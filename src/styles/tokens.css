@@ -1,7 +1,22 @@
 /* Shared design tokens for the custom pages (landing, roadmap) and Starlight.
    The palette is the same "blueprint" system the package ships (resources/css/
    truss.css), so the site, the app, and the brand all agree. Imported by both
-   SiteLayout.astro and Starlight's customCss. */
+   SiteLayout.astro and Starlight's customCss.
+
+   Two deliberate divergences from the package, both for WCAG AA, both to be
+   reconciled when the package does its own contrast pass:
+
+   - --truss-muted is #56698a here against the package's #5f7396 (--bp-muted).
+     The package value measures 4.24:1 on the page background, under the 4.5:1
+     the AA text rule asks for, and the docs nav sat at 4.47:1 on the nav
+     surface. Failing by three hundredths is still failing.
+   - --truss-line-strong has no package equivalent yet. --truss-line is a pale
+     hairline (about 1.4:1) which is fine for decoration but not for the visible
+     boundary of a control, where 1.4.11 wants 3:1. Interactive borders use the
+     strong token; table rules, aside frames and code frames keep the hairline.
+
+   Contrast for every pair below is asserted in tests/palette-contrast.test.js,
+   so a nudge by eye that breaks AA fails the build rather than shipping. */
 
 /* IBM Plex Mono, self-hosted (served from /fonts, no CDN). The docs previously
    named this font but never loaded it, so mono text fell back silently. */
@@ -43,10 +58,11 @@
   --truss-grid-strong: rgba(18, 53, 107, .12);
   --truss-panel: #fbfcfe;
   --truss-line: #c9d4e6;
+  --truss-line-strong: #6f8ab0;
   --truss-ink: #12356b;
   --truss-cyan: #0e7c9b;
   --truss-fg: #132741;
-  --truss-muted: #5f7396;
+  --truss-muted: #56698a;
   --truss-field: #ffffff;
   --truss-hair: #c4d5ec;
   --truss-entity-even: #e9f0f9;
@@ -64,6 +80,7 @@
     --truss-grid-strong: rgba(120, 200, 230, .11);
     --truss-panel: #0f2338;
     --truss-line: #22496b;
+    --truss-line-strong: #4681b2;
     --truss-ink: #5fd0e6;
     --truss-cyan: #7fe0f2;
     --truss-fg: #d7e7f4;
@@ -85,10 +102,11 @@
   --truss-grid-strong: rgba(18, 53, 107, .12);
   --truss-panel: #fbfcfe;
   --truss-line: #c9d4e6;
+  --truss-line-strong: #6f8ab0;
   --truss-ink: #12356b;
   --truss-cyan: #0e7c9b;
   --truss-fg: #132741;
-  --truss-muted: #5f7396;
+  --truss-muted: #56698a;
   --truss-field: #ffffff;
   --truss-hair: #c4d5ec;
   --truss-entity-even: #e9f0f9;
@@ -102,6 +120,7 @@
   --truss-grid-strong: rgba(120, 200, 230, .11);
   --truss-panel: #0f2338;
   --truss-line: #22496b;
+  --truss-line-strong: #4681b2;
   --truss-ink: #5fd0e6;
   --truss-cyan: #7fe0f2;
   --truss-fg: #d7e7f4;

@@ -191,12 +191,16 @@ const features = [
     margin: 18px 0 0;
   }
 
+  /* The install box and its copy button are controls: their border is the only
+     thing that marks them out, so they take the strong line for 1.4.11's 3:1.
+     The pill and the section rules below stay on the hairline, which the
+     criterion does not reach. */
   .install {
     margin-top: 28px;
     display: flex;
     align-items: stretch;
     max-width: 460px;
-    border: 1px solid var(--truss-line);
+    border: 1px solid var(--truss-line-strong);
     border-radius: var(--truss-radius);
     overflow: hidden;
     background: var(--truss-field);
@@ -214,7 +218,7 @@ const features = [
   .install .prompt { color: var(--truss-muted); }
   .install .copy {
     border: 0;
-    border-left: 1px solid var(--truss-line);
+    border-left: 1px solid var(--truss-line-strong);
     background: transparent;
     color: var(--truss-muted);
     padding: 0 15px;
@@ -239,7 +243,7 @@ const features = [
   }
   .btn.primary { background: var(--truss-ink); color: var(--truss-on-ink); }
   .btn.primary:hover { opacity: 0.92; }
-  .btn.ghost { border: 1px solid var(--truss-line); color: var(--truss-fg); background: var(--truss-field); }
+  .btn.ghost { border: 1px solid var(--truss-line-strong); color: var(--truss-fg); background: var(--truss-field); }
   .btn.ghost:hover { border-color: var(--truss-muted); }
 
   /* Social proof: a small "as featured in" pill below the hero, kept out of the
