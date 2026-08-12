@@ -41,12 +41,37 @@
   border-radius: 0.5rem;
 }
 
+/* Each table sits in a scroll region (see rehypeScrollableTables in
+   astro.config.mjs). Wrapping alone gets the widest reference tables down to a
+   tablet column but not to a phone one, where about 39px of the last column used
+   to be cut off with nothing able to scroll to it. The wrapper is focusable, so
+   it needs a visible focus ring like any other tab stop. */
+.sl-markdown-content .table-scroll {
+  overflow-x: auto;
+  /* Room for the ring, which would otherwise be clipped by the scroll box. */
+  padding: 2px;
+  margin: 0 -2px;
+}
+.sl-markdown-content .table-scroll:focus-visible {
+  outline: 2px solid var(--truss-cyan);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
 /* Reference tables fit the column and wrap, rather than forcing themselves wide
    and scrolling (which hid the last column on smaller screens). A slightly
    smaller font and auto layout let all columns stay visible; long identifiers
    in code cells break instead of pushing the table past the column. */
 .sl-markdown-content table {
+  /* `width: 100%` fills the column on wide screens, which is what we want, but
+     on a narrow one it squeezes the table below the width its columns actually
+     need: the cells then overflow a table box that the wrapper sees as fitting,
+     so the wrapper has nothing to scroll and the last column is unreachable.
+     `min-width: min-content` is the floor that stops the squeeze, and it is
+     what gives the scroll region something to scroll. It does nothing on wide
+     screens, where 100% is already the larger of the two. */
   width: 100%;
+  min-width: min-content;
   table-layout: auto;
   border-collapse: collapse;
   font-size: 0.875rem;

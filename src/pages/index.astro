@@ -48,6 +48,13 @@ const features = [
       <code><span class="prompt">$</span> {installCmd}</code>
       <button class="copy" type="button" data-copy={installCmd} aria-label="Copy install command">copy</button>
     </div>
+    {/* The button's visible text flips to "copied", but its aria-label wins over
+        text content, so the accessible name never changes and a screen reader
+        user gets no confirmation at all. Keeping the label (a bare "copy" is a
+        poor name) and announcing the result here instead: a status message,
+        which is what 4.1.3 asks for, rather than a name that mutates under the
+        user. */}
+    <p class="sr-only" id="copy-status" role="status" aria-live="polite"></p>
 
     <div class="actions">
       <a class="btn primary" href="/demo/">Live demo <span aria-hidden="true">→</span></a>
@@ -328,16 +335,46 @@ const features = [
 
 <script is:inline>
   document.querySelectorAll('.copy[data-copy]').forEach(function (btn) {
+    var status = document.getElementById('copy-status')
+    function announce(message) {
+      if (status) status.textContent = message
+    }
+    // The command stays selectable on the page, so "copy it manually" is real
+    // advice rather than an apology.
+    var fallback = 'Could not copy. Select the command and copy it manually'
+
     btn.addEventListener('click', function () {
-      navigator.clipboard?.writeText(btn.dataset.copy).then(function () {
-        var prev = btn.textContent
-        btn.textContent = 'copied'
-        btn.classList.add('copied')
-        setTimeout(function () {
-          btn.textContent = prev
-          btn.classList.remove('copied')
-        }, 1600)
-      })
+      // Not `navigator.clipboard?.writeText(x).then(...)`: when the API is
+      // missing entirely that yields undefined and calling .then on it throws,
+      // so the one case the optional chaining was meant to cover was the one it
+      // broke. Resolve the promise first, then branch.
+      var write = navigator.clipboard && navigator.clipboard.writeText(btn.dataset.copy)
+      if (!write) {
+        announce(fallback)
+        return
+      }
+
+      write
+        .then(function () {
+          var prev = btn.textContent
+          btn.textContent = 'copied'
+          btn.classList.add('copied')
+          // Announced rather than only shown: the button's aria-label wins over
+          // its text, so the visible flip to "copied" is invisible to a screen
+          // reader. Cleared when the button reverts, so a second copy is
+          // announced again rather than read as unchanged.
+          announce('Install command copied')
+          setTimeout(function () {
+            btn.textContent = prev
+            btn.classList.remove('copied')
+            announce('')
+          }, 1600)
+        })
+        .catch(function () {
+          // A refused write (permission, insecure context) used to do nothing
+          // at all: no confirmation, no error, a button that looked broken.
+          announce(fallback)
+        })
     })
   })
 </script>

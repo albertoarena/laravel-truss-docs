@@ -102,6 +102,53 @@ describe('bypass blocks', () => {
   })
 })
 
+describe('wide tables', () => {
+  // WCAG 1.4.10 Reflow. At a 320px viewport the reference tables measure about
+  // 327px inside a 288px column, and their parent is `overflow-x: visible` with
+  // nothing to scroll, so roughly 39px of the last column is unreachable: the
+  // content is lost, not merely awkward. A scrollable wrapper fixes that, but a
+  // scrollable region that only a mouse can reach trades 1.4.10 for 2.1.1, so
+  // it has to be focusable and named too.
+  it('wraps every content table in a keyboard-reachable scroll region', () => {
+    const offenders = []
+    for (const { name, html } of pages) {
+      for (const match of html.matchAll(/<table[\s>]/g)) {
+        const before = html.slice(Math.max(0, match.index - 300), match.index)
+        const wrapper = before.lastIndexOf('<div')
+        const opens = wrapper === -1 ? '' : before.slice(wrapper)
+        if (!/class="[^"]*table-scroll/.test(opens)) offenders.push(`${name}: unwrapped table`)
+        else if (!/tabindex="0"/.test(opens)) offenders.push(`${name}: wrapper not focusable`)
+        else if (!/aria-label="/.test(opens)) offenders.push(`${name}: wrapper unnamed`)
+      }
+    }
+    expect([...new Set(offenders)]).toEqual([])
+  })
+})
+
+describe('the copy button', () => {
+  it('announces the result instead of only showing it', () => {
+    // WCAG 4.1.3 Status Messages. The button swaps its visible text to
+    // "copied", but it carries an aria-label, and a label wins over text
+    // content, so the accessible name never changes and a screen reader user
+    // gets no confirmation that anything happened at all.
+    const landing = pages.find((p) => p.name === 'index.html').html
+    expect(landing, 'a polite live region exists').toMatch(/aria-live="polite"/)
+    expect(landing, 'the copy script writes to it').toMatch(/copy-status/)
+  })
+
+  it('says so when copying fails instead of going silent', () => {
+    // The clipboard write can be refused (permission, an insecure context, or
+    // no Clipboard API at all). The original had no rejection path and called
+    // .then on a possibly-undefined value, so a refusal produced nothing: no
+    // "copied", no error, a button that visibly did nothing. Silence is the
+    // worst answer for a status message, and worse still for anyone who cannot
+    // see that the label failed to change.
+    const landing = pages.find((p) => p.name === 'index.html').html
+    expect(landing, 'a rejection path exists').toMatch(/catch\(/)
+    expect(landing, 'it tells the user what to do instead').toMatch(/copy it manually/)
+  })
+})
+
 describe('the version pill', () => {
   it('separates its items without low-contrast text characters', () => {
     // The separators were `<span class="dot">.</span>` painted in the hairline

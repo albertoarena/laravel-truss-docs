@@ -55,6 +55,47 @@ function demoAssetVersioning() {
   }
 }
 
+// Wrap every Markdown table in a scrollable, keyboard-reachable region.
+//
+// The reference tables are wider than a phone column. Left alone they overflow
+// a parent that cannot scroll, so at 320px roughly 39px of the last column is
+// cut off and unreachable: a 1.4.10 Reflow failure that loses content rather
+// than merely looking cramped. A wrapper with `overflow-x: auto` restores it.
+//
+// The wrapper is focusable and named on purpose. A region that scrolls only
+// under a mouse would trade a Reflow failure for a Keyboard one, so it takes
+// `tabindex="0"` (Tab reaches it, arrow keys scroll it) plus a role and a label,
+// so it is announced as something navigable rather than an unexplained stop.
+//
+// A rehype plugin rather than CSS, because there is no CSS-only way to add a
+// wrapper element, and the obvious alternative (`display: block` on the table
+// itself) drops the CSS table layout, which some assistive technology uses to
+// decide whether it is a real table. Fixing reflow by breaking table semantics
+// would be a poor trade.
+function rehypeScrollableTables() {
+  return (tree) => {
+    const visit = (node) => {
+      if (!node.children) return
+      node.children = node.children.map((child) => {
+        visit(child)
+        if (child.type !== 'element' || child.tagName !== 'table') return child
+        return {
+          type: 'element',
+          tagName: 'div',
+          properties: {
+            className: ['table-scroll'],
+            tabIndex: 0,
+            role: 'region',
+            'aria-label': 'Table, scrollable',
+          },
+          children: [child],
+        }
+      })
+    }
+    visit(tree)
+  }
+}
+
 // Build target is env-driven. The default is the production root domain
 // (trussphp.com); SITE_URL / SITE_BASE let CI or a preview build target
 // elsewhere. SITE_BASE uses ?? so an explicit '' still means "root, no subpath".
@@ -90,6 +131,32 @@ export default defineConfig({
             src: 'https://static.cloudflareinsights.com/beacon.min.js',
             'data-cf-beacon': '{"token": "7f6eaa0832eb43cc838db8d337590f11"}',
           },
+        },
+        // Only the table wrappers that actually scroll should be tab stops.
+        // The markup ships focusable (see rehypeScrollableTables): that is the
+        // safe default, because a scrolling region no keyboard can reach is a
+        // real barrier, while a spare tab stop is only noise. But most tables
+        // fit at desktop width, and announcing a region and consuming a Tab for
+        // each of them is noise a screen reader user does not need, so drop it
+        // where there is nothing to scroll, and re-check when the width changes.
+        {
+          tag: 'script',
+          content: `(function(){
+  function sync(){
+    document.querySelectorAll('.table-scroll').forEach(function(el){
+      if (el.scrollWidth > el.clientWidth) {
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'region');
+      } else {
+        el.removeAttribute('tabindex');
+        el.removeAttribute('role');
+      }
+    });
+  }
+  if (document.readyState !== 'loading') sync();
+  else document.addEventListener('DOMContentLoaded', sync);
+  addEventListener('resize', sync);
+})();`,
         },
       ],
       social: {
@@ -150,4 +217,7 @@ export default defineConfig({
     }),
     demoAssetVersioning(),
   ],
+  markdown: {
+    rehypePlugins: [rehypeScrollableTables],
+  },
 })

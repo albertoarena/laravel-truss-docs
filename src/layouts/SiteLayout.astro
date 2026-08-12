@@ -332,6 +332,22 @@ const nav = [
     border-radius: 3px;
   }
 
+  /* Visible to assistive technology only. Starlight ships its own .sr-only, but
+     these hand-authored pages do not load it, so the class is defined here.
+     Clipped rather than display:none or visibility:hidden, both of which remove
+     the element from the accessibility tree and would silence a live region. */
+  :global(.sr-only) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   /* Off-screen until focused, then a normal-looking control at the top left.
      Positioned rather than display:none or visibility:hidden, both of which
      take it out of the tab order and defeat the point. */
@@ -361,5 +377,17 @@ const nav = [
 
   @media (max-width: 640px) {
     .site-header, .site-footer { padding-left: 22px; padding-right: 22px; }
+  }
+
+  /* 1.4.10 Reflow. At the 320px the criterion tests, the header ran 8px wider
+     than the viewport and the whole page scrolled sideways: the nav's text
+     links are already hidden by then, but the wordmark, the CTA, the GitHub
+     link and the theme toggle plus their gaps still did not fit. Tightening the
+     gutters and the gaps buys about 32px, which clears it without dropping any
+     control. */
+  @media (max-width: 420px) {
+    .site-header, .site-footer { padding-left: 16px; padding-right: 16px; }
+    .site-header { gap: 12px; }
+    .site-nav { gap: 14px; }
   }
 </style>
