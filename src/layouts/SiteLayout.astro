@@ -41,6 +41,16 @@ const nav = [
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
+    {/* Preload the mono family so it is in place before first paint. Paired with
+        font-display: optional in tokens.css, this is what keeps the text from
+        re-measuring and shifting the layout (CLS). All three weights, 44KB total,
+        because leaving 500 and 600 to load late just moves the shift to the
+        headings. Starlight pages do not use this layout, so the same preloads
+        are repeated in the head array in astro.config.mjs. */}
+    <link rel="preload" href="/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-mono-500.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-mono-600.woff2" as="font" type="font/woff2" crossorigin />
+
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

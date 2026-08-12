@@ -116,6 +116,26 @@ export default defineConfig({
       },
       favicon: '/favicon.svg',
       head: [
+        // Preload the mono family so it is in place before first paint. Paired
+        // with font-display: optional in tokens.css, this is what keeps the text
+        // from re-measuring and shifting the layout (CLS). These pages render
+        // through Starlight's own layout, not SiteLayout, so they need their own
+        // copy of the preloads that SiteLayout's head already carries.
+        ...['400', '500', '600'].map((weight) => ({
+          tag: 'link',
+          attrs: {
+            rel: 'preload',
+            href: `/fonts/ibm-plex-mono-${weight}.woff2`,
+            as: 'font',
+            type: 'font/woff2',
+            // Explicitly 'anonymous': fonts are always fetched in CORS mode, and
+            // a preload whose crossorigin does not match the real fetch is
+            // downloaded twice. (crossorigin: true would render the invalid
+            // value "true", which browsers coerce to anonymous anyway, but the
+            // keyword says what is meant.)
+            crossorigin: 'anonymous',
+          },
+        })),
         { tag: 'meta', attrs: { property: 'og:image', content: COVER } },
         { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
         { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
