@@ -312,6 +312,12 @@
                 if (!val) continue;
                 for (var j = 0; j < toks.length; j++) css += '--bp-' + toks[j] + ':' + val + ';';
             }
+            // Row hairlines sit below the entity outline: the package derives
+            // --bp-hair as a translucent tint of `border` rather than painting it
+            // flat, so a themed table keeps its hierarchy instead of reading as a
+            // uniform grid. Emitted after the loop so it wins, like the package.
+            var borderRgb = hexToRgb(vals.border);
+            if (borderRgb) css += '--bp-hair:rgba(' + borderRgb + ',0.35);';
             var rgb = hexToRgb(vals.accent);
             if (rgb) css += '--bp-grid:rgba(' + rgb + ',0.07);--bp-grid-strong:rgba(' + rgb + ',0.12);';
             return css;
