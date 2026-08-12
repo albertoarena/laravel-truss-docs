@@ -1,9 +1,14 @@
 ---
 /**
  * Starlight Header override. Keeps Starlight's responsive grid and its search,
- * theme, and social controls, but adds the site nav links (Home, Roadmap) so
+ * theme, and social controls, but adds the site nav links (Demo, Roadmap) so
  * the docs header matches the custom pages. Structure mirrors Starlight's own
  * Header so the layout math stays intact.
+ *
+ * There is deliberately no "Home" link: the wordmark beside it already goes to
+ * "/", and two links to one destination with nothing between them is a
+ * redundant link (WAVE flagged it on every docs page). The custom pages have
+ * always worked this way, so dropping it also makes the two headers agree.
  */
 import config from 'virtual:starlight/user-config'
 
@@ -26,7 +31,6 @@ const shouldRenderSearch =
   </div>
   <div class="sl-hidden md:sl-flex print:hidden right-group">
     <nav class="top-nav sl-flex" aria-label="Site">
-      <a href="/">Home</a>
       <a href="/demo/">Demo</a>
       <a href="/roadmap/">Roadmap</a>
     </nav>

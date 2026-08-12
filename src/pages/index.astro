@@ -36,7 +36,7 @@ const features = [
   <!-- Hero -->
   <section class="hero">
     <span class="badge">
-      <b>{version}</b><span class="dot">·</span>MIT<span class="dot">·</span>Laravel 12+
+      <b>{version}</b><span>MIT</span><span>Laravel 12+</span>
     </span>
     <h1>See your database<br /><span class="accent">structure</span>, live.</h1>
     <p class="lede">
@@ -154,7 +154,24 @@ const features = [
     background: var(--truss-field);
   }
   .badge b { color: var(--truss-ink); font-weight: 600; }
-  .badge .dot { color: var(--truss-line); }
+
+  /* The separators used to be `<span class="dot">.</span>` in the hairline
+     colour, which measured 1.5:1 against the pill in light and 1.73:1 in dark,
+     failing 1.4.3 twice over, and a screen reader read them out between every
+     item. Drawn as CSS they are decoration: outside the scope of the contrast
+     rule, and silent. */
+  .badge > span + span::before,
+  .badge b + span::before {
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    width: 1px;
+    height: 9px;
+    /* Right side only: the pill is a flex row with `gap: 8px`, which already
+       provides the space on the left. Margins on both sides would double it. */
+    margin: 0 8px 0 0;
+    background: var(--truss-line);
+  }
 
   h1 {
     font-family: var(--truss-font-mono);

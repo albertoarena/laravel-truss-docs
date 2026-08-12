@@ -78,6 +78,11 @@ const nav = [
   </head>
 
   <body>
+    {/* WCAG 2.4.1 Bypass Blocks. Starlight emits one of these on the docs
+        pages; these hand-authored pages own their own shell, so nothing
+        generated one and every visit began by tabbing the whole header.
+        Hidden until it takes focus. */}
+    <a class="skip-link" href="#main">Skip to content</a>
     <div class="frame">
       <header class="site-header">
         <a class="home-link" href="/" aria-label="Laravel Truss home">
@@ -116,7 +121,10 @@ const nav = [
         </nav>
       </header>
 
-      <main class="site-main">
+      {/* tabindex="-1" so the skip link actually moves focus here: without it
+          the browser scrolls but focus stays on the link, and the next Tab
+          returns to the header the user just skipped. */}
+      <main class="site-main" id="main" tabindex="-1">
         <slot />
       </main>
 
@@ -322,6 +330,33 @@ const nav = [
     outline: 2px solid var(--truss-cyan);
     outline-offset: 2px;
     border-radius: 3px;
+  }
+
+  /* Off-screen until focused, then a normal-looking control at the top left.
+     Positioned rather than display:none or visibility:hidden, both of which
+     take it out of the tab order and defeat the point. */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    padding: 10px 16px;
+    font-family: var(--truss-font-mono);
+    font-size: 13px;
+    color: var(--truss-fg);
+    background: var(--truss-field);
+    border: 1px solid var(--truss-line);
+    border-radius: 0 0 var(--truss-radius) 0;
+    text-decoration: none;
+  }
+  .skip-link:focus {
+    left: 0;
+  }
+
+  /* The skip target must not draw a ring of its own: focus lands on <main>
+     programmatically, and outlining the whole page column looks like a bug. */
+  .site-main:focus {
+    outline: none;
   }
 
   @media (max-width: 640px) {
