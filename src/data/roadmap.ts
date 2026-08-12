@@ -209,6 +209,14 @@ export const SECTIONS: RoadmapSection[] = [
         blurb:
           'Gentle, opt-in flags for a missing primary key or an unindexed foreign key, spotted straight from the structure.',
       },
+      {
+        title: 'Fewer dependencies',
+        status: 'wishlist',
+        tag: 'community requested',
+        issueUrl: `${REPO}/issues/45`,
+        blurb:
+          'Truss installs one small helper package alongside itself, for a handful of one-line conveniences it could do without. Standing on its own would mean one less thing in your vendor directory, and one less package sitting between a new Laravel release and Truss running on it.',
+      },
     ],
   },
 ]

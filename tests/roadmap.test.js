@@ -65,6 +65,18 @@ describe('roadmap data', () => {
     expect(manual.issueUrl).toBe('https://github.com/albertoarena/laravel-truss/issues/2')
   })
 
+  it('files the community-requested dependency slimming under wishlist, linked to issue #45', () => {
+    const deps = ALL.find((i) => /dependenc/i.test(i.title))
+    expect(deps, 'dependency item exists').toBeTruthy()
+    expect(deps.status).toBe('wishlist')
+    expect(deps.tag).toBe('community requested')
+    expect(deps.issueUrl).toBe('https://github.com/albertoarena/laravel-truss/issues/45')
+    // A roadmap card shares the concept, not the plan. It should describe what
+    // a user would notice and name no vendor package, since which dependency
+    // goes and how is an implementation decision that is not committed to.
+    expect(deps.blurb).not.toMatch(/spatie|package-tools/i)
+  })
+
   it('commits Laravel Boost support under approved next', () => {
     const boost = ALL.find((i) => /boost/i.test(i.title))
     expect(boost, 'Laravel Boost item exists').toBeTruthy()
