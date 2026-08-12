@@ -41,9 +41,19 @@ demo picks up the newly released frontend.
 
 ## Working in this repo
 
-Commit and push straight to `main`. This is a docs site, not the package, so it
-does not need a branch + PR flow, unless there is a very good reason (for
-example a risky or large change worth reviewing first).
+**Which flow applies depends on what the change touches, not on the fact that
+this is the docs repo.**
+
+- **Straight to `main`:** prose and content. `.mdx` pages under
+  `src/content/docs/`, `README.md`, and Claude-facing files like this one.
+- **Branch + PR:** anything else. `.astro` components and layouts, `.css`,
+  `astro.config.mjs`, `package.json`, lockfiles, scripts, CI workflows. A mixed
+  change follows the code side and gets a PR.
+
+A push to `main` here **is** the deploy, so the PR is what keeps a code change
+off the live site until it has been looked at. Do not treat "it is only the docs
+site" as a reason to skip it: a CSS or layout change is a code change wherever
+it lives.
 
 ## Conventions
 
