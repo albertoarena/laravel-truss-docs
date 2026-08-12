@@ -16,6 +16,14 @@ Two things can cause this, and both return 404 on purpose:
 - Under a strict Content-Security-Policy, allow `script-src 'self'`, `style-src 'self' 'unsafe-inline'`, and `font-src 'self'`. Mermaid needs `'unsafe-inline'` in `style-src`. See [Configuration](/reference/configuration/#content-security-policy).
 - If you set `TRUSS_MERMAID_URL` to a CDN, make sure your CSP allows that host in `script-src`.
 
+## Every table renders as an empty box
+
+The diagram draws and every table is there, but each one is empty: no columns, no types, no keys, and no relationship lines between them. `php artisan truss:export --format=json` shows the same thing, with `"columns": []`, `"primary_key": []` and `"foreign_keys": []` on every table.
+
+The cause is a **table prefix on the connection**, set as `'prefix' => 'portal_'` in `config/database.php` or through `DB_PREFIX`. Before Truss v1.8.3, introspection passed the table names the database reports, which already carry the prefix, back into Laravel's schema methods, and those prepend the prefix a second time. Truss was asking for `portal_portal_users`, which exists nowhere, so every lookup came back empty and nothing in the output explained why.
+
+Upgrade to v1.8.3 or later. There is nothing to configure: prefixed connections are introspected in real database names, and table names render with the prefix, exactly as the database stores them. A schema shared between applications works too, including tables that do not carry the prefix at all.
+
 ## A banner says the SQLite fallback was used
 
 Truss could not reach the target database connection, so it replayed your migrations on an in-memory SQLite database and drew that instead. Column types may be approximate, and any migration that fails on SQLite is skipped and listed. Fix the connection to see the real schema.
