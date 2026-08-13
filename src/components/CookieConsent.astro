@@ -45,7 +45,16 @@ import { analyticsEnabled } from '../config/analytics.js'
 )}
 
 <script>
-  import { ACCEPTED, DECLINED, readConsent, shouldShowBanner, storeConsent } from '../scripts/consent.js'
+  import {
+    ACCEPTED,
+    DECLINED,
+    analyticsAllowed,
+    readConsent,
+    shouldShowBanner,
+    storeConsent,
+  } from '../scripts/consent.js'
+  import { loadAnalytics } from '../scripts/analytics.js'
+  import { GA_MEASUREMENT_ID } from '../config/analytics.js'
 
   const banner = document.getElementById('cookie-consent')
   if (banner) {
@@ -57,7 +66,15 @@ import { analyticsEnabled } from '../config/analytics.js'
       }
     })()
 
-    if (shouldShowBanner(readConsent(storage))) {
+    const stored = readConsent(storage)
+
+    // A returning visitor who accepted earlier: load on this page view too.
+    // Every other visitor reaches nothing, so Google is never contacted.
+    if (analyticsAllowed(stored)) {
+      loadAnalytics({ id: GA_MEASUREMENT_ID })
+    }
+
+    if (shouldShowBanner(stored)) {
       // Rendered hidden and revealed here, so a visitor who has already chosen
       // never sees it flash on the way to being removed.
       banner.hidden = false
@@ -69,6 +86,9 @@ import { analyticsEnabled } from '../config/analytics.js'
       button.addEventListener('click', () => {
         const choice = button.dataset.consent === ACCEPTED ? ACCEPTED : DECLINED
         storeConsent(storage, choice)
+        if (analyticsAllowed(choice)) {
+          loadAnalytics({ id: GA_MEASUREMENT_ID })
+        }
         banner.remove()
       })
     }

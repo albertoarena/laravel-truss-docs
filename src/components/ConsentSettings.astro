@@ -1,0 +1,64 @@
+---
+/**
+ * Footer control for withdrawing (or revisiting) the analytics choice.
+ *
+ * Consent that cannot be taken back is not consent, and the privacy page says
+ * this exists, so the two have to ship together. Rendered only when analytics
+ * are configured, matching the banner: with no measurement ID there is nothing
+ * to withdraw from.
+ *
+ * Mounted in both footers, because the custom pages and the Starlight docs
+ * pages render different ones.
+ */
+import { analyticsEnabled } from '../config/analytics.js'
+---
+
+{analyticsEnabled() && (
+  <button type="button" class="consent-settings" data-consent-reset>Cookie settings</button>
+)}
+
+<script>
+  import { clearConsent } from '../scripts/consent.js'
+
+  for (const button of document.querySelectorAll('[data-consent-reset]')) {
+    button.addEventListener('click', () => {
+      const storage = (() => {
+        try {
+          return window.localStorage
+        } catch {
+          return undefined
+        }
+      })()
+
+      clearConsent(storage)
+      // Reload rather than just re-showing the banner. gtag is already running
+      // on this page for someone who had accepted, and clearing the stored
+      // choice would not unload it, so withdrawal would look honoured while
+      // collection continued. A fresh page load starts from no consent and
+      // therefore loads nothing.
+      window.location.reload()
+    })
+  }
+</script>
+
+<style>
+  /* Sits in the footer nav alongside the links, so it has to read as one of
+     them rather than as a button. */
+  .consent-settings {
+    font-family: var(--truss-font-mono);
+    font-size: 0.8125rem;
+    line-height: inherit;
+    color: var(--truss-muted);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .consent-settings:hover {
+    color: var(--truss-fg);
+  }
+  .consent-settings:focus-visible {
+    outline: 2px solid var(--truss-cyan);
+    outline-offset: 2px;
+  }
+</style>

@@ -39,6 +39,13 @@ jobs:
           # Resolves the latest package release for the demo frontend and raises
           # the GitHub API rate limit (see scripts/copy-demo-assets.mjs).
           GITHUB_TOKEN: ${{ github.token }}
+          # GA4 measurement ID. A repository variable rather than a secret,
+          # because it is public by definition: it ships in the page source of
+          # every site that uses it. It lives here rather than in the code so
+          # that only the deployed build carries the tag, which keeps local
+          # builds and previews out of the analytics property. Unset means no
+          # banner and no tag at all.
+          PUBLIC_GA_MEASUREMENT_ID: ${{ vars.PUBLIC_GA_MEASUREMENT_ID }}
         run: npm run build
 
       - name: Publish dist to the deploy branch
