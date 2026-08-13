@@ -31,6 +31,23 @@ and operating system, screen size, and page performance timings. This is used
 for one thing: knowing which documentation is actually read, so it can be
 improved.
 
+**Google Analytics, only if you accept it.** Nothing belonging to Google is
+loaded until you press Accept. Not the script, not a cookieless ping, nothing.
+If you decline, or simply ignore the banner, no request is ever made to Google
+and no cookie is set.
+
+This is stricter than the usual arrangement. Most sites load the Google tag
+immediately in a "denied" mode that still contacts Google with your IP address
+before you have agreed to anything. This site does not do that, which is why
+the sentence above can be written without a caveat.
+
+If you do accept, Google Analytics records the pages you visit, the referring
+page, approximate location, device and browser, and clicks on links leading away
+from this site (for example to GitHub). It is configured with every advertising
+feature switched off: no ad personalisation, no ad storage, no Google Signals,
+no cross-site profiling. Data is retained for 14 months. Google acts as a
+processor and its own privacy policy applies.
+
 **Server logs.** Like any web server, the host records standard access log
 entries, which include IP addresses, for security and troubleshooting. These are
 handled by the hosting provider under its own retention schedule and are not
@@ -42,38 +59,52 @@ do here is sold or shared for marketing.
 
 ## Cookies and browser storage
 
-**This site sets no cookies at all.**
+**Unless you accept analytics, this site sets no cookies at all.**
 
-It does use your browser's local storage for two preferences. Local storage is
-not a cookie: it is never sent to the server, and it never leaves your device.
+It uses your browser's local storage for three things. Local storage is not a
+cookie: it is never sent to the server, and it never leaves your device.
 
 | Key | Purpose |
 |---|---|
 | `starlight-theme` | Remembers whether you chose the light or dark theme |
 | `truss-theme` | On the live demo and theme builder, remembers the palette you were previewing |
+| `truss-consent` | Remembers whether you accepted or declined analytics, so you are not asked again |
 
-Both exist only to stop the site forgetting your choice on the next page. You
-can clear them at any time through your browser's site data settings, with no
-effect beyond the preference being forgotten.
+Note that declining is remembered here rather than in a cookie, so refusing
+leaves nothing on your device that any server can read.
+
+If, and only if, you accept analytics, Google sets its own cookies (`_ga` and
+`_ga_<id>`) to tell repeat visits apart. Declining means they are never created.
+
+You can clear any of this at any time through your browser's site data
+settings. Clearing `truss-consent` simply means you will be asked again.
+
+## Changing your mind
+
+Use **Cookie settings** in the footer of any page. It clears your stored choice
+and shows the banner again, and the page reloads so that anything previously
+loaded stops immediately.
 
 ## Legal basis
 
-For the cookieless, aggregate analytics described above, the basis is
-**legitimate interest** under Article 6(1)(f) GDPR: understanding which pages are
-useful, using data that does not identify you and is not stored in your browser.
+For the cookieless, aggregate Cloudflare analytics, the basis is **legitimate
+interest** under Article 6(1)(f) GDPR: understanding which pages are useful,
+using data that does not identify you and is not stored in your browser. No
+consent is required for it, which is why it runs whatever you choose.
 
-For server logs, the basis is also legitimate interest, specifically keeping the
-site available and secure.
+For Google Analytics, the basis is **consent** under Article 6(1)(a), given by
+pressing Accept and withdrawable at any time from the footer.
 
-Because no cookies or similar identifiers are stored on your device for
-analytics, no consent banner is required for it.
+For server logs, the basis is legitimate interest, specifically keeping the site
+available and secure.
 
 ## Third parties
 
 | Who | What for | Where |
 |---|---|---|
-| Cloudflare | Cookieless web analytics, and DNS | [Privacy policy](https://www.cloudflare.com/privacypolicy/) |
-| The hosting provider | Serving the site, standard access logs | Italy |
+| Cloudflare | DNS, and serving the site as a reverse proxy, so it handles every request. Also the cookieless web analytics | [Privacy policy](https://www.cloudflare.com/privacypolicy/) |
+| Google | Analytics, **only after you accept**. Never contacted otherwise | [Privacy policy](https://policies.google.com/privacy) |
+| The hosting provider | The origin server and its standard access logs | Italy |
 
 The documentation links out to places like GitHub, Packagist, YouTube and Ko-fi.
 Those are ordinary links: nothing is requested from them until you click, and

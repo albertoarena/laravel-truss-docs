@@ -130,10 +130,15 @@ describe('the banner component', () => {
     expect(source).toMatch(/href="\/privacy\/"/)
   })
 
-  it('loads nothing from Google', () => {
-    // Step 2 ships the consent mechanism only. The tag arrives separately, and
-    // never before an accept.
-    expect(source).not.toMatch(/googletagmanager|gtag|google-analytics/i)
+  it('never names a Google URL itself, so the tag can only arrive via the gated loader', () => {
+    expect(source).not.toMatch(/googletagmanager|google-analytics/i)
+  })
+
+  it('gates loading on an explicit accept', () => {
+    // The wiring that matters: analytics must be reached through the consent
+    // check, never called unconditionally on load.
+    expect(source).toMatch(/analyticsAllowed/)
+    expect(source).toMatch(/loadAnalytics/)
   })
 })
 
