@@ -8,6 +8,7 @@
  */
 import '../styles/tokens.css'
 import Logo from '../components/Logo.astro'
+import CookieConsent from '../components/CookieConsent.astro'
 
 interface Props {
   title: string
@@ -154,6 +155,10 @@ const nav = [
         <p class="colophon">MIT licensed. Structure only, never row data.</p>
       </footer>
     </div>
+
+    {/* Also mounted in the Starlight Footer override: the docs pages do not use
+        this layout, so a banner added only here would cover half the site. */}
+    <CookieConsent />
 
     <script is:inline>
       (function () {

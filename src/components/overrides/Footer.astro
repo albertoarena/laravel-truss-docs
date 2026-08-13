@@ -6,6 +6,7 @@
  */
 import Default from '@astrojs/starlight/components/Footer.astro'
 import Logo from '../Logo.astro'
+import CookieConsent from '../CookieConsent.astro'
 ---
 <Default><slot /></Default>
 
@@ -24,6 +25,10 @@ import Logo from '../Logo.astro'
   </nav>
   <p class="colophon">MIT licensed. Structure only, never row data.</p>
 </div>
+
+{/* Also mounted in SiteLayout.astro: the custom pages do not render this
+    override, so a banner added only here would cover half the site. */}
+<CookieConsent />
 
 <style>
   .site-footer {

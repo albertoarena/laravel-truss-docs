@@ -1,0 +1,161 @@
+---
+/**
+ * Analytics consent banner.
+ *
+ * Renders only when a measurement ID is configured, so an unset ID means no
+ * banner and no tag: visitors are never asked to agree to something that is not
+ * running.
+ *
+ * This ships the consent mechanism only. No Google script is referenced here,
+ * and none is loaded anywhere until an explicit accept, which is what lets the
+ * privacy page say plainly that nothing is contacted before you choose.
+ *
+ * Mounted from both SiteLayout.astro and the Starlight Footer override, because
+ * the custom pages and the docs pages render through different layouts.
+ */
+import { analyticsEnabled } from '../config/analytics.js'
+---
+
+{analyticsEnabled() && (
+  <div
+    id="cookie-consent"
+    class="consent"
+    role="dialog"
+    aria-labelledby="cookie-consent-title"
+    aria-describedby="cookie-consent-description"
+    hidden
+  >
+    <div class="consent-inner">
+      <div class="consent-copy">
+        <p id="cookie-consent-title" class="consent-title">Analytics, only if you agree</p>
+        <p id="cookie-consent-description">
+          Nothing is loaded until you choose. Accept and Google Analytics helps show which
+          pages are actually useful. No advertising, no profiling, no cross-site tracking.
+          <a href="/privacy/">Privacy</a>
+        </p>
+      </div>
+      <div class="consent-actions">
+        <button type="button" class="consent-btn" data-consent="declined">Decline</button>
+        <button type="button" class="consent-btn consent-btn-accept" data-consent="accepted">
+          Accept analytics
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+<script>
+  import { ACCEPTED, DECLINED, readConsent, shouldShowBanner, storeConsent } from '../scripts/consent.js'
+
+  const banner = document.getElementById('cookie-consent')
+  if (banner) {
+    const storage = (() => {
+      try {
+        return window.localStorage
+      } catch {
+        return undefined
+      }
+    })()
+
+    if (shouldShowBanner(readConsent(storage))) {
+      // Rendered hidden and revealed here, so a visitor who has already chosen
+      // never sees it flash on the way to being removed.
+      banner.hidden = false
+    } else {
+      banner.remove()
+    }
+
+    for (const button of banner.querySelectorAll('[data-consent]')) {
+      button.addEventListener('click', () => {
+        const choice = button.dataset.consent === ACCEPTED ? ACCEPTED : DECLINED
+        storeConsent(storage, choice)
+        banner.remove()
+      })
+    }
+  }
+</script>
+
+<style>
+  /* Fixed, so the banner overlays the page instead of displacing it. In normal
+     flow it would push content down on every first visit, which is exactly the
+     layout shift the font work removed. */
+  .consent {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 100;
+    background: var(--truss-panel);
+    border-top: 1px solid var(--truss-line-strong);
+    padding: 1rem var(--truss-gutter, 40px);
+  }
+  .consent[hidden] {
+    display: none;
+  }
+  .consent-inner {
+    max-width: var(--truss-content-width, 940px);
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .consent-copy {
+    flex: 1 1 22rem;
+  }
+  .consent-title {
+    margin: 0 0 0.25rem;
+    font-family: var(--truss-font-mono);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--truss-fg);
+  }
+  #cookie-consent-description {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--truss-fg);
+  }
+  #cookie-consent-description a {
+    color: var(--truss-cyan);
+  }
+  .consent-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+  }
+  /* Both controls share this class, and that is deliberate. Consent is only
+     valid if refusing is as easy as agreeing, so the padding, font and hit area
+     are defined once for both. Accept may differ in colour, never in weight.
+     Pinned by a test. */
+  .consent-btn {
+    font-family: var(--truss-font-mono);
+    font-size: 0.8125rem;
+    line-height: 1;
+    padding: 0.7rem 1.1rem;
+    border: 1px solid var(--truss-line-strong);
+    border-radius: var(--truss-radius, 8px);
+    background: transparent;
+    color: var(--truss-fg);
+    cursor: pointer;
+  }
+  .consent-btn-accept {
+    background: var(--truss-ink);
+    border-color: var(--truss-ink);
+    color: var(--truss-on-ink);
+  }
+  .consent-btn:hover {
+    border-color: var(--truss-cyan);
+  }
+  .consent-btn:focus-visible {
+    outline: 2px solid var(--truss-cyan);
+    outline-offset: 2px;
+  }
+  @media (max-width: 560px) {
+    .consent-actions {
+      width: 100%;
+    }
+    .consent-btn {
+      flex: 1;
+    }
+  }
+</style>
