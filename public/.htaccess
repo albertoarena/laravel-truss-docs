@@ -1,0 +1,40 @@
+# Apache rules shipped with the built site.
+#
+# This file is copied into dist/ on every build, and the deploy publishes dist/
+# into releases/<timestamp>/ on the host, with a `current` symlink flipped at
+# the newest one. So these rules land inside every release and apply whether a
+# request arrives via the symlink or a release directory directly.
+#
+# It deliberately lives here rather than in the docroot .htaccess one level
+# above releases/. That file is hand-maintained on the host, is not deployed by
+# CI, and is managed by cPanel's own Redirects feature (its Force HTTPS block
+# belongs to that UI). Hand-added rewrite rules there have proven not to fire,
+# while the cPanel-owned ones do. Leave the docroot file to cPanel.
+
+RewriteEngine On
+
+# The deploy plumbing was reachable from the web: /current/ served the entire
+# site a second time, which split analytics by page path and offered search
+# engines a duplicate of every page. Redirect it to the canonical URL instead.
+#
+# Matching %{THE_REQUEST} (the client's original request line) rather than the
+# rewritten path is what makes this safe: any internal rewrite into current/
+# performed at the docroot leaves THE_REQUEST untouched, so ordinary page views
+# are unaffected and only requests that genuinely target current/ or
+# releases/<ts>/ are caught.
+#
+# ^(.*)$ keeps the remainder of the path, because per-directory rewriting has
+# already stripped the matched prefix: /current/guides/theming/ redirects to
+# /guides/theming/ rather than collapsing to the home page.
+#
+# %{HTTP_HOST} rather than a hardcoded domain, so a preview or staging host
+# redirects to itself instead of bouncing traffic to production.
+RewriteCond %{THE_REQUEST} \s/+(current|releases)(/|\?|\s) [NC]
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# ErrorDocument resolves its local path against the DOCROOT, not against the
+# directory this file sits in. The docroot has no 404.html of its own, since the
+# built page only exists inside each release, so a plain `/404.html` silently
+# fails and Apache serves its own generic error page. Point it through the
+# symlink instead.
+ErrorDocument 404 /current/404.html
