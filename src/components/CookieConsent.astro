@@ -58,6 +58,16 @@ import { analyticsEnabled } from '../config/analytics.js'
 
   const banner = document.getElementById('cookie-consent')
   if (banner) {
+    // Escape any ancestor stacking context before anything else. On the docs
+    // pages Starlight renders this inside .main-pane, which creates one, and a
+    // position:fixed element inside a stacking context is confined to it: the
+    // banner painted underneath the sidebar, clipping its text, and no z-index
+    // would have lifted it out. Moving it to <body> is the fix. On the custom
+    // pages it is already a body child, so this is a no-op there.
+    if (banner.parentElement !== document.body) {
+      document.body.appendChild(banner)
+    }
+
     const storage = (() => {
       try {
         return window.localStorage

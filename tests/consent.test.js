@@ -126,6 +126,14 @@ describe('the banner component', () => {
     expect(source).toMatch(/position:\s*fixed/)
   })
 
+  it('moves itself to the body, so an ancestor stacking context cannot trap it', () => {
+    // On the docs pages Starlight renders this inside .main-pane, which creates
+    // a stacking context. A fixed banner inside one is confined to it and paints
+    // under the sidebar however high its z-index goes, so escaping the context
+    // is the fix and raising the number is not.
+    expect(source).toMatch(/document\.body\.appendChild\(banner\)/)
+  })
+
   it('links to the privacy page', () => {
     expect(source).toMatch(/href="\/privacy\/"/)
   })
