@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
+import { consentSnippet } from './scripts/consent-snippet.mjs'
 
 // Cache-bust the live demo's frontend: at build, move the copied assets into a
 // version-stamped folder and repoint the demo HTML at it, so a new package
@@ -50,6 +51,55 @@ function demoAssetVersioning() {
         } catch (e) {
           logger.warn(`Skipped demo asset versioning: ${e.message}`)
         }
+      },
+    },
+  }
+}
+
+// Put the consent banner on the hand-authored static pages.
+//
+// The demo, its multi-connection variant and the theme builder live under
+// public/ and are copied verbatim, so they never render through SiteLayout or
+// the Starlight footer override and carried neither banner nor analytics. That
+// left the most engaged page on the site unmeasured, and made anyone who
+// accepted elsewhere look like they had bounced.
+//
+// Injected into the built output only, so the committed source stays clean and
+// local development keeps working without a measurement ID. With no ID the
+// snippet is empty: no tag, so nothing to consent to.
+function staticPageConsent() {
+  return {
+    name: 'static-page-consent',
+    hooks: {
+      'astro:build:done': async ({ dir, logger }) => {
+        const snippet = consentSnippet(process.env.PUBLIC_GA_MEASUREMENT_ID)
+        if (!snippet) {
+          logger.info('No measurement ID: static pages left without a consent banner')
+          return
+        }
+
+        const pages = [
+          join(fileURLToPath(dir), 'demo', 'index.html'),
+          join(fileURLToPath(dir), 'demo', 'multi-connection', 'index.html'),
+          join(fileURLToPath(dir), 'theme-builder', 'index.html'),
+        ]
+
+        let injected = 0
+        for (const page of pages) {
+          try {
+            const html = await readFile(page, 'utf8')
+            if (html.includes('id="cookie-consent"')) continue
+            if (!html.includes('</body>')) {
+              logger.warn(`No </body> in ${page}, consent banner not injected`)
+              continue
+            }
+            await writeFile(page, html.replace('</body>', `${snippet}</body>`))
+            injected++
+          } catch (e) {
+            logger.warn(`Skipped consent injection for ${page}: ${e.message}`)
+          }
+        }
+        logger.info(`Consent banner injected into ${injected} static page(s)`)
       },
     },
   }
@@ -236,6 +286,7 @@ export default defineConfig({
       ],
     }),
     demoAssetVersioning(),
+    staticPageConsent(),
   ],
   markdown: {
     rehypePlugins: [rehypeScrollableTables],
