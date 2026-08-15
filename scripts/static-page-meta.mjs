@@ -35,8 +35,11 @@ export const STATIC_PAGES = [
     file: 'theme-builder/index.html',
     path: '/theme-builder/',
     title: 'Laravel Truss: theme builder',
+    // The wording the page was hand-authored with, kept deliberately. It is
+    // shorter than the room a search result allows, but it is the author's
+    // sentence and it reads tighter than the padded version did.
     description:
-      'Build a Truss theme in the browser and copy the config it produces. Dial in colours and fonts against a live dashboard preview, with no installation needed.',
+      'Build a Truss theme in the browser and copy the config. Dial in colours and fonts against a live dashboard preview.',
   },
 ]
 
