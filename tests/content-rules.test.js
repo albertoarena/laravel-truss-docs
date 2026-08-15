@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { join, extname } from 'node:path'
+import { join, extname, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
@@ -31,7 +31,9 @@ const DEMO_WRAPPER = join(root, 'public/demo/index.html')
 // to crawlers. They are prose too, and until robots.txt arrived nothing under
 // public/ except the demo wrapper was scanned, so the style rules simply did not
 // apply to them.
-const PUBLIC_TEXT = ['public/robots.txt'].map((path) => join(root, path))
+const PUBLIC_TEXT = ['public/robots.txt', 'public/.well-known/ai.txt'].map((path) =>
+  join(root, path),
+)
 
 const files = [
   ...CONTENT_DIRS.flatMap((d) => walk(join(root, d))),
@@ -56,6 +58,24 @@ describe('writing style rules', () => {
       })
     }
     expect(offenders, `em/en dash found at:\n${offenders.join('\n')}`).toEqual([])
+  })
+
+  it('never publishes the private or the dismissed contact address', () => {
+    // Only hello@albertoarena.it belongs on a surface a reader or a scraper can
+    // see. The personal address is fine in machine metadata such as composer
+    // authorship and git commits, and the me@ alias is retired outright. Both
+    // have reached published surfaces by mistake before, which is why this is a
+    // test and not a note.
+    const offenders = []
+    for (const file of files) {
+      const lines = readFileSync(file, 'utf8').split('\n')
+      lines.forEach((line, index) => {
+        if (/arena\.alberto@gmail\.com|me@albertoarena\.it/.test(line)) {
+          offenders.push(`${relative(root, file)}:${index + 1}`)
+        }
+      })
+    }
+    expect(offenders).toEqual([])
   })
 
   it('never references the retired comparison tool', () => {
