@@ -11,13 +11,14 @@
  * between a reader and the sentence they came for, and these answers are short.
  */
 import { FAQ } from '../data/faq.ts'
+import { questionId } from '../scripts/faq.js'
 ---
 
 <div class="faq">
   {
     FAQ.map((item) => (
       <section class="faq-item">
-        <h2>{item.question}</h2>
+        <h2 id={questionId(item.question)}>{item.question}</h2>
         <p>{item.answer}</p>
         <p class="faq-source">
           More in <a href={item.source}>the documentation</a>.
