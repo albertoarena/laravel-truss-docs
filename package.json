@@ -14,6 +14,7 @@
     "pretest": "astro build",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:ci": "vitest run",
     "check:machine-access": "node scripts/check-machine-access.mjs",
     "sample:machine-access": "node scripts/sample-machine-access.mjs"
   },
