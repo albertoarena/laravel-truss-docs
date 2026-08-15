@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import { consentSnippet } from './scripts/consent-snippet.mjs'
+import { STATIC_PAGES, metaTags, injectMeta } from './scripts/static-page-meta.mjs'
 
 // Cache-bust the live demo's frontend: at build, move the copied assets into a
 // version-stamped folder and repoint the demo HTML at it, so a new package
@@ -100,6 +101,49 @@ function staticPageConsent() {
           }
         }
         logger.info(`Consent banner injected into ${injected} static page(s)`)
+      },
+    },
+  }
+}
+
+// Give the hand-authored static pages the head metadata every other page gets.
+//
+// The demo, its multi-connection variant and the theme builder live under
+// public/ and are copied verbatim, so they inherit nothing from SiteLayout or
+// Starlight. They shipped with a title and little else: no canonical, no
+// OpenGraph, no Twitter card, which is why sharing a link to the demo produced
+// a bare URL with no image or summary. They are the most shared pages on the
+// site.
+//
+// Injected into the built output rather than written into the three source
+// files, the same way the consent banner is, so the origin comes from this
+// config and a preview build cannot emit canonicals pointing at production.
+function staticPageMeta() {
+  return {
+    name: 'static-page-meta',
+    hooks: {
+      'astro:build:done': async ({ dir, logger }) => {
+        const root = fileURLToPath(dir)
+        let injected = 0
+
+        for (const page of STATIC_PAGES) {
+          const file = join(root, page.file)
+          try {
+            const html = await readFile(file, 'utf8')
+            const tags = metaTags({ site: `${SITE}${BASE}`, page, cover: COVER })
+            const updated = injectMeta(html, tags)
+            if (updated === html) {
+              logger.warn(`No </head> in ${page.file}, meta not injected`)
+              continue
+            }
+            await writeFile(file, updated)
+            injected++
+          } catch (e) {
+            logger.warn(`Skipped meta for ${page.file}: ${e.message}`)
+          }
+        }
+
+        logger.info(`Head metadata injected into ${injected} static page(s)`)
       },
     },
   }
@@ -300,6 +344,7 @@ export default defineConfig({
     }),
     demoAssetVersioning(),
     staticPageConsent(),
+    staticPageMeta(),
   ],
   markdown: {
     rehypePlugins: [rehypeScrollableTables],
