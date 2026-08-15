@@ -1,0 +1,51 @@
+---
+/**
+ * Adds schema.org structured data to every Starlight page.
+ *
+ * The docs pages do not render through SiteLayout, so the graph emitted there
+ * reaches only the landing and the roadmap. This is the other half. Both build
+ * their nodes from src/scripts/structured-data.js, so the two paths cannot
+ * describe the site differently.
+ *
+ * Wraps Starlight's own Head rather than replacing it: everything it emits
+ * (title, canonical, OpenGraph, the configured head array) still applies.
+ */
+import Default from '@astrojs/starlight/components/Head.astro'
+
+import {
+  graph,
+  personNode,
+  websiteNode,
+  softwareApplicationNode,
+  techArticleNode,
+  breadcrumbNode,
+} from '../../scripts/structured-data.js'
+
+const { entry } = Astro.locals.starlightRoute
+
+const site = (Astro.site ?? new URL('https://trussphp.com')).origin
+const pathname = Astro.url.pathname
+const url = new URL(pathname, `${site}/`).href
+
+const nodes = [
+  personNode(site),
+  websiteNode(site),
+  // Every docs page is about the package, and each article says so via
+  // about: { @id }. The node has to be present for that reference to resolve,
+  // and carrying it means each page describes the thing it documents in full
+  // rather than pointing at something defined only on the landing page.
+  softwareApplicationNode(site),
+  techArticleNode(site, {
+    title: entry.data.title,
+    description: entry.data.description,
+    url,
+    dateModified: entry.data.lastUpdated,
+  }),
+]
+
+const breadcrumb = breadcrumbNode(site, pathname, entry.data.title)
+if (breadcrumb) nodes.push(breadcrumb)
+---
+
+<Default><slot /></Default>
+<script type="application/ld+json" set:html={JSON.stringify(graph(nodes))} is:inline />

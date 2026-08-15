@@ -10,17 +10,25 @@ import '../styles/tokens.css'
 import Logo from '../components/Logo.astro'
 import CookieConsent from '../components/CookieConsent.astro'
 import ConsentSettings from '../components/ConsentSettings.astro'
+import { graph, personNode, websiteNode } from '../scripts/structured-data.js'
 
 interface Props {
   title: string
   description?: string
   /** Active top-nav item, for aria-current. */
   active?: 'home' | 'roadmap'
+  /**
+   * Extra schema.org nodes for this page, appended to the Person and WebSite
+   * every page carries. The landing adds the SoftwareApplication describing the
+   * package itself.
+   */
+  schema?: object[]
 }
 const {
   title,
   description = 'A live database structure viewer for Laravel. See your schema as a scrollable, zoomable ER diagram, right inside your app. Structure only, never data.',
   active,
+  schema = [],
 } = Astro.props
 
 const site = Astro.site ?? new URL('https://trussphp.com')
@@ -62,6 +70,15 @@ const nav = [
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={cover} />
+
+    {/* schema.org graph. The Starlight pages do not use this layout, so they
+        carry their own copy via the Head override; both build their nodes from
+        the same module so the two cannot describe the site differently. */}
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(graph([personNode(site.origin), websiteNode(site.origin), ...schema]))}
+    />
 
     {/* Apply the shared theme before paint to avoid a flash. Reads Starlight's
         key so a choice made in the docs carries over here, and vice versa. */}
