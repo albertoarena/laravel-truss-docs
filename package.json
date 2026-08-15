@@ -13,7 +13,9 @@
     "astro": "astro",
     "pretest": "astro build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "check:machine-access": "node scripts/check-machine-access.mjs",
+    "sample:machine-access": "node scripts/sample-machine-access.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.32.0",
