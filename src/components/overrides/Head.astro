@@ -19,7 +19,9 @@ import {
   softwareApplicationNode,
   techArticleNode,
   breadcrumbNode,
+  faqNode,
 } from '../../scripts/structured-data.js'
+import { FAQ } from '../../data/faq.ts'
 
 const { entry } = Astro.locals.starlightRoute
 
@@ -45,6 +47,10 @@ const nodes = [
 
 const breadcrumb = breadcrumbNode(site, pathname, entry.data.title)
 if (breadcrumb) nodes.push(breadcrumb)
+
+// Only the page that actually shows the questions may claim to be an FAQPage.
+const faq = entry.data.faq ? faqNode(site, FAQ) : null
+if (faq) nodes.push(faq)
 ---
 
 <Default><slot /></Default>
