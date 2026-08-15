@@ -235,6 +235,11 @@ export default defineConfig({
       editLink: {
         baseUrl: 'https://github.com/albertoarena/laravel-truss-docs/edit/main/',
       },
+      // Derived from git history, so the deploy checkout must be a full clone.
+      // A shallow one gives every file the same commit and every page the same
+      // date, which reads as a site-wide freshness claim that is simply untrue.
+      // See fetch-depth in .github/workflows.
+      lastUpdated: true,
       // Supplies the FAQ page's table of contents, which Starlight cannot
       // derive because those headings are rendered by a component.
       routeMiddleware: './src/starlightRouteData.ts',
