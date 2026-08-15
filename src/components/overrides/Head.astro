@@ -23,7 +23,7 @@ import {
 } from '../../scripts/structured-data.js'
 import { FAQ } from '../../data/faq.ts'
 
-const { entry } = Astro.locals.starlightRoute
+const { entry, lastUpdated } = Astro.locals.starlightRoute
 
 const site = (Astro.site ?? new URL('https://trussphp.com')).origin
 const pathname = Astro.url.pathname
@@ -41,7 +41,10 @@ const nodes = [
     title: entry.data.title,
     description: entry.data.description,
     url,
-    dateModified: entry.data.lastUpdated,
+    // starlightRoute.lastUpdated is the resolved date, from git history or a
+    // frontmatter override. entry.data.lastUpdated is only ever the override,
+    // so reading it left dateModified absent on every page.
+    dateModified: lastUpdated,
   }),
 ]
 
