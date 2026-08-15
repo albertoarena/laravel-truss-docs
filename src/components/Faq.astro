@@ -1,0 +1,48 @@
+---
+/**
+ * The FAQ list, rendered from src/data/faq.ts.
+ *
+ * The same strings feed the FAQPage structured data emitted by the Head
+ * override, so what a reader sees and what a crawler is told are the same text
+ * by construction rather than by discipline.
+ *
+ * Plain headings and paragraphs, not a disclosure widget. An answer hidden
+ * behind a collapsed <details> is still indexed, but it is one more thing
+ * between a reader and the sentence they came for, and these answers are short.
+ */
+import { FAQ } from '../data/faq.ts'
+---
+
+<div class="faq">
+  {
+    FAQ.map((item) => (
+      <section class="faq-item">
+        <h2>{item.question}</h2>
+        <p>{item.answer}</p>
+        <p class="faq-source">
+          More in <a href={item.source}>the documentation</a>.
+        </p>
+      </section>
+    ))
+  }
+</div>
+
+<style>
+  .faq-item + .faq-item {
+    margin-top: 2.5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--sl-color-hairline, currentColor);
+  }
+
+  /* Starlight sizes h2 for section breaks in prose. Here every heading is a
+     question in a list of equals, so they want to read a little quieter. */
+  .faq-item h2 {
+    font-size: var(--sl-text-xl);
+    margin-top: 0;
+  }
+
+  .faq-source {
+    font-size: var(--sl-text-sm);
+    opacity: 0.8;
+  }
+</style>

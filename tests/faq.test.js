@@ -1,0 +1,96 @@
+import { describe, it, expect } from 'vitest'
+
+import { FAQ } from '../src/data/faq.ts'
+import { faqNode } from '../src/scripts/structured-data.js'
+
+// The FAQ is the one piece of this work that is content rather than plumbing.
+// Answer engines reward a question heading followed by a short, self-contained
+// answer; the rest of this site is task-shaped ("Installation", "Configuration")
+// and answers nothing directly.
+//
+// Every answer here is drawn from the existing documentation. None of it may
+// introduce a claim the docs do not already make, which is why each entry
+// carries the page it came from and a test insists on it.
+
+const SITE = 'https://trussphp.com'
+
+describe('the FAQ content', () => {
+  it('asks real questions', () => {
+    for (const { question } of FAQ) {
+      expect(question.endsWith('?'), `not a question: ${question}`).toBe(true)
+    }
+  })
+
+  it('answers every question in a self-contained paragraph', () => {
+    for (const { question, answer } of FAQ) {
+      expect(answer.length, `empty answer: ${question}`).toBeGreaterThan(80)
+    }
+  })
+
+  it('keeps answers short enough to be quoted whole', () => {
+    // Roughly 80 words. An answer an engine has to truncate is one it will
+    // paraphrase instead, and a paraphrase is where the errors come from.
+    for (const { question, answer } of FAQ) {
+      const words = answer.split(/\s+/).length
+      expect(words, `too long (${words} words): ${question}`).toBeLessThanOrEqual(80)
+    }
+  })
+
+  it('cites the documentation each answer came from', () => {
+    // The rule for this page: no answer may introduce a claim the docs do not
+    // already make. A required source is what makes that checkable.
+    for (const { question, source } of FAQ) {
+      expect(source, `no source: ${question}`).toMatch(/^\/[a-z0-9/-]+\/$/)
+    }
+  })
+
+  it('asks nothing twice', () => {
+    const questions = FAQ.map((item) => item.question.toLowerCase())
+    expect(new Set(questions).size).toBe(questions.length)
+  })
+
+  it('leads with the question the package is judged on', () => {
+    // "Structure only, never data" is the core promise. If an engine reads one
+    // entry, it should be that one.
+    expect(FAQ[0].question.toLowerCase()).toMatch(/data/)
+    expect(FAQ[0].answer).toMatch(/structure only/i)
+  })
+
+  it('covers the ground someone evaluating the package asks about', () => {
+    const text = FAQ.map((item) => `${item.question} ${item.answer}`).join(' ').toLowerCase()
+    for (const topic of ['php 8.3', 'laravel 12', 'production', 'connection', 'demo']) {
+      expect(text, `nothing about ${topic}`).toContain(topic)
+    }
+  })
+})
+
+describe('faqNode', () => {
+  const node = faqNode(SITE, FAQ)
+
+  it('is a FAQPage of Questions', () => {
+    expect(node['@type']).toBe('FAQPage')
+    expect(node.mainEntity).toHaveLength(FAQ.length)
+    expect(node.mainEntity[0]['@type']).toBe('Question')
+  })
+
+  it('pairs each question with an accepted answer', () => {
+    for (const entity of node.mainEntity) {
+      expect(entity.name.length).toBeGreaterThan(0)
+      expect(entity.acceptedAnswer['@type']).toBe('Answer')
+      expect(entity.acceptedAnswer.text.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('carries the answer text verbatim, never a summary of it', () => {
+    // Marking up something other than what the page shows is what gets a
+    // FAQPage ignored, or penalised.
+    FAQ.forEach((item, index) => {
+      expect(node.mainEntity[index].acceptedAnswer.text).toBe(item.answer)
+      expect(node.mainEntity[index].name).toBe(item.question)
+    })
+  })
+
+  it('is null for an empty list rather than an empty FAQPage', () => {
+    expect(faqNode(SITE, [])).toBeNull()
+  })
+})

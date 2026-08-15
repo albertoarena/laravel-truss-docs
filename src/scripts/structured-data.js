@@ -94,6 +94,29 @@ export function techArticleNode(site, { title, description, url, dateModified })
   return node
 }
 
+/**
+ * A FAQPage, built from the same strings the page renders.
+ *
+ * The answer text is carried verbatim rather than summarised. Marking up
+ * something other than what a reader sees is what gets a FAQPage ignored, and
+ * generating both from one source is the only way to be sure they agree.
+ *
+ * Null for an empty list: an FAQPage with no questions is worse than none.
+ */
+export function faqNode(site, items) {
+  if (items.length === 0) return null
+
+  return {
+    '@type': 'FAQPage',
+    '@id': `${site}/help/faq/#faq`,
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+  }
+}
+
 const titleCase = (segment) =>
   segment
     .split('-')
