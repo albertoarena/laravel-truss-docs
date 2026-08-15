@@ -1,0 +1,41 @@
+<!--
+  Trimmed from a real capture of https://trussphp.com/ on 2026-08-15, taken with
+  plain curl. The full response is ~11.8KB; the spinner CSS, the inline SVG logo
+  and the obfuscated challenge script are cut, because none of them are what the
+  detection keys on and committing minified junk helps nobody.
+
+  Everything below is verbatim. The three markers that identify it are the title,
+  the "being verified" line, and the wsidchk parameter posted to the /z0f... path.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <script>
+      (function(){
+          setTimeout(function(){
+              window.location.reload();
+          }, 5000);
+      }())
+  </script>
+  <link rel="icon" href="data:,">
+  <title>One moment, please...</title>
+</head>
+<body>
+  <div id="outer-container">
+    <div id="container">
+      <div id="text">
+        Please wait while your request is being verified...
+      </div>
+    </div>
+  </div>
+  <div id="gc7oz9xf4ib5"></div>
+  <script>
+    // Obfuscated in the original. The parameter names and the endpoint are the
+    // stable part: it builds a hidden form posting wsidchk to the path below.
+    var endpoint = '/z0f76a1d14fd21a8fb5fd0d03e0fdc3d3cedae52f'
+    var check = 'wsidchk'
+  </script>
+</body>
+</html>
