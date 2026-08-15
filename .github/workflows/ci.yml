@@ -36,3 +36,10 @@ jobs:
           # release and raise the GitHub API rate limit.
           GITHUB_TOKEN: ${{ github.token }}
         run: npm run build
+
+      # The suite asserts against dist/, so it runs after the build above rather
+      # than through `npm test`, whose pretest hook builds again without the
+      # copy-demo-assets step. Before this, CI compiled the site and checked
+      # nothing: a green tick meant only that it built.
+      - name: Test
+        run: npm run test:ci
