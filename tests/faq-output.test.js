@@ -78,6 +78,72 @@ describe('the FAQ page', () => {
   })
 })
 
+describe('the FAQ is reachable', () => {
+  // It was reachable only from the Starlight sidebar, so 16 of 22 pages linked
+  // it and the landing page did not. That is the wrong way round: someone
+  // deciding whether to install is exactly the reader asking whether this
+  // exposes their data.
+  //
+  // The link therefore lives in both footers, and it has to, because this site
+  // renders through two layout paths that share nothing. The same trap took two
+  // attempts for the font preloads and again for the consent banner.
+  function layoutPages() {
+    const out = []
+    const walk = (dir) => {
+      for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry)
+        if (statSync(full).isDirectory()) {
+          // Hand-authored files copied out of public/. They carry their own
+          // minimal shell and never pass through either layout.
+          if (['demo', 'theme-builder'].includes(relative(distRoot, full))) continue
+          walk(full)
+        } else if (entry.endsWith('.html')) {
+          out.push(full)
+        }
+      }
+    }
+    walk(distRoot)
+    return out
+  }
+
+  it('is linked from every page rendered through either layout', () => {
+    const missing = layoutPages()
+      .filter((file) => !readFileSync(file, 'utf8').includes('href="/help/faq/"'))
+      .map((file) => relative(distRoot, file))
+
+    expect(missing).toEqual([])
+  })
+})
+
+describe('the on-this-page nav', () => {
+  // Starlight builds the contents from markdown headings and cannot see headings
+  // a component rendered, so this page first shipped with the nav switched off:
+  // the only page on the site without one, and every question unlinkable. A
+  // route middleware now supplies it from the same data the page renders.
+  const tocHtml = () => {
+    const match = faqHtml().match(/starlight__on-this-page[\s\S]*?<\/nav>/)
+    return match ? match[0] : ''
+  }
+
+  it('exists at all', () => {
+    expect(tocHtml()).not.toBe('')
+  })
+
+  it('lists every question, in page order', () => {
+    const labels = [...tocHtml().matchAll(/<span[^>]*>([^<]+)<\/span>/g)].map((m) => m[1].trim())
+    expect(labels).toEqual(['Overview', ...FAQ.map((item) => item.question)])
+  })
+
+  it('points at anchors the page actually renders', () => {
+    const html = faqHtml()
+    const ids = new Set([...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]))
+    const anchors = [...tocHtml().matchAll(/href="#([^"]+)"/g)].map((m) => m[1])
+
+    expect(anchors.length).toBeGreaterThan(FAQ.length)
+    expect(anchors.filter((anchor) => !ids.has(anchor))).toEqual([])
+  })
+})
+
 describe('no other page claims to be an FAQ', () => {
   function htmlPages(dir = distRoot, out = []) {
     for (const entry of readdirSync(dir)) {

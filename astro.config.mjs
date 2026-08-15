@@ -235,6 +235,9 @@ export default defineConfig({
       editLink: {
         baseUrl: 'https://github.com/albertoarena/laravel-truss-docs/edit/main/',
       },
+      // Supplies the FAQ page's table of contents, which Starlight cannot
+      // derive because those headings are rendered by a component.
+      routeMiddleware: './src/starlightRouteData.ts',
       components: {
         // Wraps Starlight's own Head to add the schema.org graph. Docs pages
         // never render through SiteLayout, so without this the structured data

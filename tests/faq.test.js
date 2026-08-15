@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 
 import { FAQ } from '../src/data/faq.ts'
 import { faqNode } from '../src/scripts/structured-data.js'
+import { questionId, faqToc } from '../src/scripts/faq.js'
 
 // The FAQ is the one piece of this work that is content rather than plumbing.
 // Answer engines reward a question heading followed by a short, self-contained
@@ -92,5 +93,59 @@ describe('faqNode', () => {
 
   it('is null for an empty list rather than an empty FAQPage', () => {
     expect(faqNode(SITE, [])).toBeNull()
+  })
+})
+
+describe('questionId', () => {
+  // The questions are h2s, so they deserve anchors and a contents list like
+  // every other page. Starlight builds both from markdown headings and cannot
+  // see headings a component rendered, so the ids and the contents are derived
+  // from the same data the page is.
+  it('slugifies a question into a usable anchor', () => {
+    expect(questionId('Does Laravel Truss expose my data?')).toBe('does-laravel-truss-expose-my-data')
+  })
+
+  it('drops punctuation rather than encoding it', () => {
+    expect(questionId('What PHP and Laravel versions does it require?')).toBe(
+      'what-php-and-laravel-versions-does-it-require',
+    )
+  })
+
+  it('collapses runs of separators instead of leaving empty segments', () => {
+    expect(questionId('A  question -- with   gaps?')).toBe('a-question-with-gaps')
+  })
+
+  it('gives every real question a distinct anchor', () => {
+    const ids = FAQ.map((item) => questionId(item.question))
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('produces nothing a URL fragment would have to escape', () => {
+    for (const item of FAQ) {
+      expect(questionId(item.question)).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/)
+    }
+  })
+})
+
+describe('faqToc', () => {
+  const toc = faqToc(FAQ)
+
+  it('opens with Overview, the way Starlight builds every other page', () => {
+    expect(toc[0]).toEqual({ depth: 2, slug: '_top', text: 'Overview', children: [] })
+  })
+
+  it('lists one entry per question, in page order', () => {
+    expect(toc.slice(1).map((item) => item.text)).toEqual(FAQ.map((item) => item.question))
+  })
+
+  it('points each entry at the anchor the page renders', () => {
+    expect(toc.slice(1).map((item) => item.slug)).toEqual(FAQ.map((item) => questionId(item.question)))
+  })
+
+  it('keeps every entry at h2 depth with no children', () => {
+    for (const item of toc) {
+      expect(item.depth).toBe(2)
+      expect(item.children).toEqual([])
+    }
   })
 })
