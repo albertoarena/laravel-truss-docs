@@ -27,9 +27,16 @@ function walk(dir) {
 // are third-party and gitignored, so they are not scanned).
 const DEMO_WRAPPER = join(root, 'public/demo/index.html')
 
+// Hand-authored plain-text files under public/ that are served to readers and
+// to crawlers. They are prose too, and until robots.txt arrived nothing under
+// public/ except the demo wrapper was scanned, so the style rules simply did not
+// apply to them.
+const PUBLIC_TEXT = ['public/robots.txt'].map((path) => join(root, path))
+
 const files = [
   ...CONTENT_DIRS.flatMap((d) => walk(join(root, d))),
   DEMO_WRAPPER,
+  ...PUBLIC_TEXT,
 ]
 
 describe('writing style rules', () => {
