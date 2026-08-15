@@ -1,8 +1,13 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro'
 import Wordmark from '../components/Wordmark.astro'
+import { PACKAGE_VERSION } from '../config/package.js'
+import { softwareApplicationNode } from '../scripts/structured-data.js'
 
-const version = 'v1.8.3'
+// Was a literal here, which meant one more place to remember at every release.
+// src/config/package.js is now the single source, and a test checks it against
+// the release tag the prebuild step actually resolved.
+const version = PACKAGE_VERSION
 const installCmd = 'composer require albertoarena/laravel-truss'
 
 const features = [
@@ -32,7 +37,11 @@ const features = [
   },
 ]
 ---
-<SiteLayout title="Laravel Truss: a live database structure viewer" active="home">
+<SiteLayout
+  title="Laravel Truss: a live database structure viewer"
+  active="home"
+  schema={[softwareApplicationNode(new URL(Astro.url.pathname, Astro.site ?? "https://trussphp.com").origin)]}
+>
   <!-- Hero -->
   <section class="hero">
     <span class="badge">

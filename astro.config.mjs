@@ -236,6 +236,10 @@ export default defineConfig({
         baseUrl: 'https://github.com/albertoarena/laravel-truss-docs/edit/main/',
       },
       components: {
+        // Wraps Starlight's own Head to add the schema.org graph. Docs pages
+        // never render through SiteLayout, so without this the structured data
+        // would cover only the landing and the roadmap.
+        Head: './src/components/overrides/Head.astro',
         SiteTitle: './src/components/overrides/SiteTitle.astro',
         Header: './src/components/overrides/Header.astro',
         Footer: './src/components/overrides/Footer.astro',
