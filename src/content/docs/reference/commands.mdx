@@ -37,6 +37,8 @@ php artisan truss:rebuild --connection=mysql
 
 The command always runs, regardless of `truss.enabled`.
 
+It is also the only command that fails when the cache store cannot be written: storing the snapshot is its whole job, so from v1.8.4 an unusable store means the store's own error message and a non-zero exit. Everywhere else an unreachable cache store degrades quietly to a live read, so this is the command to reach for when you want the cause confirmed.
+
 ## `truss:diff`
 
 Show what changed in the database structure since the last migration: the terminal counterpart to the dashboard "Changes" panel. It compares the recorded baseline against the current snapshot and lists added, removed, and changed tables, columns, indexes, and foreign keys. Structure only, so it is safe in CI and commit hooks.

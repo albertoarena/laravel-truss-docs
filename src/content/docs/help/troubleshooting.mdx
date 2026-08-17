@@ -53,15 +53,26 @@ TRUSS_DIFF_DISK=local
 php artisan config:clear
 ```
 
-**On v1.8.2 and later this cannot take the dashboard down.** The disk defaults to `local`, and a baseline that cannot be read costs you the "Changes" panel and nothing else: you get a notice saying so, and the diagram, doctor and exports are unaffected. Upgrading is the better fix.
+**On v1.8.2 and later a baseline problem cannot take the dashboard down.** The disk defaults to `local`, and a baseline that cannot be read costs you the "Changes" panel and nothing else: you get a notice saying so, and the diagram, doctor and exports are unaffected. Upgrading is the better fix.
 
 If you would rather not have Truss write to disk at all, set `TRUSS_DIFF_ENABLED=false`. See the [Schema diff guide](/guides/schema-diff/).
 
+The other cause is a **cache store Truss cannot reach**. `CACHE_STORE=database` is Laravel's own default and its `cache` table is not always there yet: a partial `migrate --path=` batch, a `migrate:rollback` past that table, or a secondary connection migrated first all leave it missing, and a Redis or Memcached server can simply be down. Before v1.8.4 the failure escaped the schema endpoint as a 500, with a trace that names the cache table and nothing about Truss:
+
+```
+SQLSTATE[HY000]: General error: 1 no such table: cache
+```
+
+**On v1.8.4 and later this cannot take the dashboard down either.** The structure is read live instead of from the cache, so the diagram is complete, and a notice says it will stay slow until the store is usable again. Run `php artisan truss:rebuild` to confirm the cause: it is the one command that reports a failed write, with the store's own error and a non-zero exit.
+
 ## `php artisan migrate` fails and the trace mentions Truss
 
-Same cause as above, on a different path. Truss captures the diff baseline on the `MigrationsEnded` event, and before v1.8.2 a storage failure there escaped into the migration command, so an unreachable or misconfigured disk could fail the migration itself.
+Truss refreshes its snapshot on the `MigrationsEnded` event, which fires **after** your migrations have already committed. Anything thrown there fails the Artisan command on work that succeeded, and Laravel does not swallow listener exceptions. Two dependencies could do that, and both are now fixed:
 
-Set `TRUSS_DIFF_DISK=local`, or upgrade to v1.8.2 or later, where a baseline failure can no longer interrupt a migration.
+- The **diff baseline on disk**, before v1.8.2. An unreachable or misconfigured disk (`FILESYSTEM_DISK=s3` with the old default) escaped into the migration. Set `TRUSS_DIFF_DISK=local`, or upgrade.
+- The **cache store**, before v1.8.4. An unusable store failed the migration on the rebuild, which matters most in a deploy step running `migrate --force`.
+
+From v1.8.4 the listener never throws, whichever dependency is down: it logs a warning and leaves the snapshot stale, which `php artisan truss:rebuild` fixes once the cause is sorted. If a migration still fails with Truss in the trace, please [open an issue](https://github.com/albertoarena/laravel-truss/issues/new/choose) with the trace, because that is a bug.
 
 ## Changes to the schema are not showing
 
