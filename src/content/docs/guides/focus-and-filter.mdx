@@ -16,6 +16,20 @@ Pick a table in **Focus** to reduce the diagram to that table plus its foreign-k
 - The focused table is **centred** in the viewport and **highlighted** with an accent border, so you can always find it.
 - **Depth** controls how many hops of neighbours are shown. Depth `1` (the default, configurable via `focus.default_depth`) shows immediate neighbours; increase it to pull in neighbours-of-neighbours.
 
+### Searching for a table
+
+From v1.9.0 the Focus control is a **searchable picker**: type part of a table name and the list narrows as you type.
+
+- It matches **anywhere in the name**, case-insensitively, so `item` finds `order_items` as well as `items`. This is the same substring rule the Filter box uses, so the two controls agree.
+- Matches are **ranked**: an exact name first, then names that start with what you typed, then names that contain it further in. Typing `item` still puts `items` at the top.
+- The part that matched is **marked in each row**, so it is clear why a table is in the list.
+- Leaving the box empty lists every table, with **Clear focus** as the first row.
+- The match is literal text, not a pattern: a `.` means a dot.
+
+The picker is fully operable from the keyboard. Arrow keys move through the list, **Home** and **End** jump to its ends, **Enter** commits the highlighted table, **Escape** closes the list and puts back the table you had focused, and **Tab** moves on without committing a half-typed name. Screen readers hear the number of matches as you type. See [Accessibility](/guides/accessibility/).
+
+Typing a name that does not exist focuses nothing: the box reverts when you leave it, rather than quietly focusing the wrong table.
+
 Focus and filter **compose**: focus operates on whatever the filter left in, so you can filter to a group of tables and then focus within it.
 
 You can also **click a table name** in the diagram to focus it directly, without using the Focus box. The same menu lets you export that table's structure; see [Exporting a table](/getting-started/quick-start/#exporting-a-table).

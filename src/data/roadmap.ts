@@ -42,6 +42,22 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Searchable Focus picker',
+        status: 'shipped',
+        version: 'v1.9.0',
+        tag: 'community requested',
+        blurb:
+          'Focus a table by typing part of its name. The picker matches anywhere in the name, not just the start, marks what it matched in each row, and ranks exact names first, so a couple of hundred tables is a search rather than a scroll. It agrees with the toolbar filter, which has always matched substrings.',
+        issueUrl: `${REPO}/issues/39`,
+      },
+      {
+        title: 'Accessibility: keyboard and screen reader support',
+        status: 'shipped',
+        version: 'v1.9.0',
+        blurb:
+          'The dashboard answers the keyboard. Table names, type labels and health markers behave like the buttons they announce themselves as, Escape closes a menu and hands focus back, every trigger has a visible focus ring, and the diagram names and describes the view it is showing for assistive technology. Verified by hand with a screen reader, and guarded by axe-core in CI so it stays that way.',
+      },
+      {
         title: 'Truss as AI context',
         status: 'shipped',
         version: 'v1.8.0',
@@ -114,10 +130,10 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Decided. This is what comes next.',
     items: [
       {
-        title: 'Accessibility: keyboard and screen reader support',
+        title: 'Accessible structure view and a conformance statement',
         status: 'approved',
         blurb:
-          'Operate the whole dashboard from the keyboard, with proper roles and names on the diagram and its controls, a visible focus indicator everywhere, and automated accessibility checks in CI so it stays that way. Groundwork for a full WCAG conformance statement, with an accessible table view of the same structure to follow.',
+          'The rest of the accessibility work now that the keyboard is done. A text view of the same structure the diagram draws, since a rendered diagram is not a text alternative, then an audit of the criteria v1.9.0 did not cover, including contrast on control boundaries and inside the diagram itself, and a published statement saying exactly what is supported and what is not.',
       },
       {
         title: 'Laravel Boost support',
