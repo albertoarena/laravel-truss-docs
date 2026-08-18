@@ -50,7 +50,7 @@ Boost writes only its own MCP server entries, so it cannot install or register t
 
 Truss has no config switch for this, and cannot have one: Boost discovers the files with a filesystem scan over your vendor directory, which never loads Truss's config. A `truss.boost.enabled` setting would silently do nothing.
 
-The opt-out that works is Boost's own, in your `config/boost.php`. Note the two lists take different kinds of key, a guideline by its full key and a skill by its name:
+The opt-out that works is Boost's own, in your `config/boost.php`. Boost does not publish that file, so create it if you have not already. Note the two lists take different kinds of key, a guideline by its full key and a skill by its name:
 
 ```php
 'guidelines' => [
