@@ -87,6 +87,44 @@ describe('the deployed .htaccess', () => {
     expect(rule).toBeTruthy()
   })
 
+  it('guards the header directives, so a host without mod_headers still serves', () => {
+    // An unguarded Header directive is a 500 on a server that lacks the
+    // module, which would take the whole site down rather than degrade.
+    expect(htaccess).toMatch(/<IfModule mod_headers\.c>/)
+  })
+
+  it('stops browsers guessing content types', () => {
+    expect(htaccess).toMatch(/Header always set X-Content-Type-Options "nosniff"/)
+  })
+
+  it('sends a referrer policy that survives cross-origin', () => {
+    expect(htaccess).toMatch(/Header always set Referrer-Policy "strict-origin-when-cross-origin"/)
+  })
+
+  it('starts HSTS at a short max-age, with no preload and no subdomains', () => {
+    // HSTS is close to irreversible: browsers honour it for the whole max-age
+    // whatever the site later says. https was only forced on 2026-08-18, so
+    // this begins at 5 minutes to prove nothing breaks. Raise it deliberately,
+    // in its own change, once that is established. includeSubDomains and
+    // preload are both absent on purpose; preload in particular is permanent.
+    // Assert on the directive's value, not on the file. The words appear in
+    // the comment above it explaining why they are absent, so a naive search
+    // of the whole file would fail on its own documentation.
+    const hsts = htaccess.match(/Header always set Strict-Transport-Security "([^"]*)"/)
+
+    expect(hsts).toBeTruthy()
+    expect(hsts[1]).toBe('max-age=300')
+  })
+
+  it('makes HTML revalidate rather than be cached on a guess', () => {
+    // With no Cache-Control at all, browsers fall back to heuristic caching
+    // derived from Last-Modified. On a site that redeploys on every merge,
+    // that is how someone reads yesterday's docs with no way to explain it.
+    // no-cache still allows a cheap 304, it just forbids serving blind.
+    expect(htaccess).toMatch(/<FilesMatch "\\\.html\$">/)
+    expect(htaccess).toMatch(/Header set Cache-Control "no-cache"/)
+  })
+
   it('points the 404 at a path that exists from the docroot', () => {
     // ErrorDocument resolves against the docroot, not the directory holding the
     // .htaccess. The docroot has no 404.html of its own: it only exists inside
