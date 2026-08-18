@@ -12,7 +12,7 @@
 export const PACKAGE_NAME = 'Laravel Truss'
 
 /** Git tag form. Strip the leading v where a bare semver is wanted. */
-export const PACKAGE_VERSION = 'v1.8.4'
+export const PACKAGE_VERSION = 'v1.9.0'
 
 export const REPO_URL = 'https://github.com/albertoarena/laravel-truss'
 export const PACKAGIST_URL = 'https://packagist.org/packages/albertoarena/laravel-truss'
