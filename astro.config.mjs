@@ -5,6 +5,7 @@ import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import { consentSnippet } from './scripts/consent-snippet.mjs'
 import { STATIC_PAGES, metaTags, injectMeta } from './scripts/static-page-meta.mjs'
+import { staticPageUrls, addUrls } from './scripts/static-page-sitemap.mjs'
 
 // Cache-bust the live demo's frontend: at build, move the copied assets into a
 // version-stamped folder and repoint the demo HTML at it, so a new package
@@ -144,6 +145,40 @@ function staticPageMeta() {
         }
 
         logger.info(`Head metadata injected into ${injected} static page(s)`)
+      },
+    },
+  }
+}
+
+// Add the same three pages to the sitemap, which Starlight builds from its own
+// content collections and therefore leaves them out of entirely.
+//
+// Runs after staticPageMeta in the integrations array purely for readability;
+// the two touch different files and do not depend on each other.
+function staticPageSitemap() {
+  return {
+    name: 'static-page-sitemap',
+    hooks: {
+      'astro:build:done': async ({ dir, logger }) => {
+        const file = join(fileURLToPath(dir), 'sitemap-0.xml')
+
+        try {
+          const xml = await readFile(file, 'utf8')
+          const updated = addUrls(xml, staticPageUrls(`${SITE}${BASE}`))
+
+          if (updated === xml) {
+            logger.warn('Sitemap unchanged: already complete, or no </urlset> to append to')
+            return
+          }
+
+          await writeFile(file, updated)
+          logger.info(`Static pages added to the sitemap (${STATIC_PAGES.length})`)
+        } catch (e) {
+          // A missing or unreadable sitemap must not fail the build: the site
+          // is still correct without three entries, and Starlight owns whether
+          // that file exists at all.
+          logger.warn(`Sitemap not updated: ${e.message}`)
+        }
       },
     },
   }
@@ -345,6 +380,7 @@ export default defineConfig({
     demoAssetVersioning(),
     staticPageConsent(),
     staticPageMeta(),
+    staticPageSitemap(),
   ],
   markdown: {
     rehypePlugins: [rehypeScrollableTables],

@@ -36,6 +36,22 @@ RewriteEngine On
 RewriteCond %{THE_REQUEST} \s/+(current|releases)(/|\?|\s) [NC]
 RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 
+# One page, one URL. /demo/index.html and /demo/ served identical bytes, and
+# Search Console listed both. The canonical tag already resolved which one wins,
+# so this is tidiness rather than a fix: it saves a crawler the fetch it would
+# otherwise spend being told the same thing.
+#
+# %{THE_REQUEST} again, for a sharper reason than above. /demo/ is served by
+# internally resolving index.html, so matching the rewritten path would redirect
+# /demo/ to /demo/ forever. The request line only says index.html when the
+# client actually asked for it.
+#
+# ^(.*/)?index\.html$ makes the directory optional, so /index.html folds to /
+# as well. Per-directory rewriting has already stripped the prefix, so $1 is the
+# directory below the site root.
+RewriteCond %{THE_REQUEST} \s/+[^?\s]*index\.html[\s?] [NC]
+RewriteRule ^(.*/)?index\.html$ https://%{HTTP_HOST}/$1 [R=301,L]
+
 # ErrorDocument resolves its local path against the DOCROOT, not against the
 # directory this file sits in. The docroot has no 404.html of its own, since the
 # built page only exists inside each release, so a plain `/404.html` silently

@@ -68,6 +68,25 @@ describe('the deployed .htaccess', () => {
     expect(htaccess).not.toMatch(/RewriteRule[^\n]*https:\/\/trussphp\.com/)
   })
 
+  it('redirects index.html to its directory', () => {
+    // /demo/index.html and /demo/ served identical bytes at two URLs. The
+    // canonical tag already resolved it, so this is tidiness rather than a
+    // fix: one URL per page, and no crawler spending a fetch to be told so.
+    expect(htaccess).toMatch(/RewriteRule\s+\^\(\.\*\/\)\?index\\\.html\$/)
+  })
+
+  it('matches the request line, so DirectoryIndex cannot loop it', () => {
+    // /demo/ is served by internally resolving index.html. Matching the
+    // rewritten path would therefore redirect /demo/ to /demo/ forever.
+    // %{THE_REQUEST} holds what the client actually asked for, so only a
+    // client that typed index.html is caught.
+    const rule = htaccess.slice(htaccess.indexOf('index\\.html'))
+    const guard = htaccess.lastIndexOf('%{THE_REQUEST}', htaccess.indexOf('index\\.html'))
+
+    expect(guard).toBeGreaterThan(-1)
+    expect(rule).toBeTruthy()
+  })
+
   it('points the 404 at a path that exists from the docroot', () => {
     // ErrorDocument resolves against the docroot, not the directory holding the
     // .htaccess. The docroot has no 404.html of its own: it only exists inside
