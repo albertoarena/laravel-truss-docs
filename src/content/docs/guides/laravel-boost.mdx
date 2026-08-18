@@ -1,0 +1,67 @@
+---
+title: Laravel Boost
+description: Ship Truss guidelines and a skill straight into a Boost-configured agent, with no MCP server to wire up by hand
+---
+
+[Laravel Boost](https://github.com/laravel/boost) sets up the AI agents on a Laravel project: it detects which ones you use and writes them a shared set of guidelines and skills. Truss ships its own, inside the package, so an agent configured through Boost knows Truss is installed and reaches for your real schema instead of guessing at columns.
+
+There is no MCP server to wire up by hand on this path, and nothing is added to your dependencies. The shipped files are inert Markdown: if Boost is not installed, nothing reads them and nothing changes.
+
+## Install
+
+Boost finds the content by itself, but it never installs third-party content without asking. Run:
+
+```bash
+php artisan boost:install
+```
+
+When Boost lists the third-party packages it found, tick **`albertoarena/laravel-truss (guidelines, skills)`**.
+
+:::note
+Nothing third-party is preselected, on a first install or with `--no-interaction`. That step is yours, which also means Truss never quietly spends your agent's context without your say-so. Boost remembers the choice, so later `boost:update` runs keep it, and pick up anything Truss adds later without asking twice.
+:::
+
+## What you get
+
+**A guideline**, short and always in the agent's context: what Truss is, the commands that ground a task in the real structure, and the boundary that Truss never returns row data. It is deliberately small, because standing context is spent on every request.
+
+**A skill**, longer and loaded only when a task is actually about the database. It teaches the workflow rather than the commands:
+
+1. Read the structure you are about to change, focused on the relevant table and its foreign-key neighbourhood.
+2. Check that ground with `truss:doctor` before building on it.
+3. Write the migration the way your codebase writes migrations.
+4. Confirm what the migration actually did with `truss:diff`, and pay attention when it shows more than you expected.
+
+## Three ways an agent reaches your schema
+
+Boost is a third path in, not a replacement. They are additive, and nobody has to choose only one:
+
+| Path | Best for | Setup |
+| --- | --- | --- |
+| [MCP server](/guides/mcp-server/) | The richest surface: five tools and a resource, queried on demand, always current | `composer require laravel/mcp`, then point your client at `php artisan mcp:start truss` |
+| Laravel Boost | The lowest friction if you already use Boost, across every agent it configures | `php artisan boost:install`, tick Truss |
+| [`truss:export`](/guides/schema-export/) | CI, scripts, and any CLI-capable agent; no optional dependency at all | None, it ships with Truss |
+
+:::caution[One thing Boost cannot do]
+Boost writes only its own MCP server entries, so it cannot install or register the Truss MCP server for you. Anything claiming otherwise is wrong. The two paths are independent, and the MCP server stays the richer of the two if you want tools queried on demand.
+:::
+
+## Turning it off
+
+Truss has no config switch for this, and cannot have one: Boost discovers the files with a filesystem scan over your vendor directory, which never loads Truss's config. A `truss.boost.enabled` setting would silently do nothing.
+
+The opt-out that works is Boost's own, in your `config/boost.php`. Note the two lists take different kinds of key, a guideline by its full key and a skill by its name:
+
+```php
+'guidelines' => [
+    'exclude' => ['albertoarena/laravel-truss/truss'],
+],
+
+'skills' => [
+    'exclude' => ['truss-schema'],
+],
+```
+
+## Structure only, as always
+
+Both files are agent-facing instruction, so they state the boundary explicitly and repeat it at the end: Truss exposes tables, columns, types, indexes, and foreign keys, never row contents. An agent reading them is told not to reach for Truss to inspect records. That boundary is covered by tests in the package, alongside a test that asserts Boost still discovers the content, so a change on either side fails the build rather than quietly ending the integration.
