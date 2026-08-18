@@ -55,6 +55,39 @@ off the live site until it has been looked at. Do not treat "it is only the docs
 site" as a reason to skip it: a CSS or layout change is a code change wherever
 it lives.
 
+## Quoting other people
+
+`src/data/in-the-wild.ts` holds coverage of Truss written by other people, for
+the `/in-the-wild/` page. It is the only place on this site that republishes
+somebody else's words, so it has rules of its own.
+
+**One test decides every row: was it written by somebody other than Alberto,
+without being asked?** Both halves are required. An issue opened by a user on
+the package repo is in, because authorship decides and not the domain. A
+Laravel News Links entry is out, because it was submitted rather than sought.
+Anything Alberto wrote is out wherever it was published. The rules are
+executable, not advisory: `tests/in-the-wild.test.js` fails the build on a row
+with no URL, no permission basis, a self-authored source, or a quote long enough
+to be a reprint.
+
+**No measurement of any kind appears on that page, including in a sort order.**
+The private planning notes rank people by how they behaved and hold a reach
+figure per row. None of that is published, and the page sorts by date so that
+the ordering cannot leak it either.
+
+**Quoted text is reproduced verbatim, including its em dashes.** This repo
+forbids em dashes and en dashes in its own prose and a test enforces it. Other
+people use them. If that test goes red on a quote, the carve-out is wrong or
+missing: **never edit somebody's words to fit our punctuation.** The exemption
+is by field, driven by `VERBATIM_FIELDS`, so adding a verbatim field to the type
+means adding it there too.
+
+**Never write a quote, a name, a role, a date or a URL from memory or from a
+plausible reconstruction.** Every field comes from the source the row links to.
+Candidate rows are assembled in the private planning notes and pasted in whole;
+until a row has a URL and a permission basis it is not a row. An invented
+testimonial on a public site is the one failure here that cannot be walked back.
+
 ## Conventions
 
 - Keep docs accurate to the shipped **release**, not unreleased work.
