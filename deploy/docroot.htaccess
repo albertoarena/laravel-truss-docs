@@ -1,0 +1,88 @@
+# Reference copy of the document-root .htaccess on the host.
+#
+# THIS FILE IS NOT DEPLOYED. It lives outside public/, so the build never copies
+# it into dist/ and no release ever contains it. The live file is applied by hand
+# at ~/<docroot>/.htaccess, one level above releases/ (see DEPLOYMENT.md for the
+# topology). Editing this copy changes nothing: apply it, then verify.
+#
+# It is tracked because the live file is invisible to CI, and that invisibility
+# already cost us. A 301 folding www into the apex was added through cPanel's
+# Redirects UI on 17/08/2026 and never fired once. Nothing reported an error.
+#
+# ---------------------------------------------------------------------------
+# The ordering constraint, which is the reason this file is worth reading
+# ---------------------------------------------------------------------------
+#
+# The rewrite into current/ matches every request and ends with [L]. Anything
+# written below it is unreachable. That is what killed the cPanel redirect: the
+# file was being read the whole time (/releases/ returned 403 and the site
+# served normally, both from rules in this file), yet http://www.trussphp.com/
+# kept returning 200 while matching every condition on the rule.
+#
+# So: redirects go ABOVE the current/ rewrite. Always.
+#
+# ---------------------------------------------------------------------------
+# Applying it
+# ---------------------------------------------------------------------------
+#
+#   cp ~/<docroot>/.htaccess ~/<docroot>/.htaccess.bak-<date>
+#   # copy the rules below into ~/<docroot>/.htaccess
+#
+# Then check, in this order, before walking away. The first two are the ones
+# that mean "roll back now":
+#
+#   curl -sSI https://trussphp.com/                  # must stay 200
+#   curl -sSI https://trussphp.com/releases/         # must stay 403
+#   curl -sSI https://www.trussphp.com/roadmap/      # 301 to the apex
+#   curl -sSI http://www.trussphp.com/theme-builder/ # 301 to the apex, one hop
+#   curl -sSI http://trussphp.com/                   # 301 to https
+#   curl -sSI https://trussphp.com/current/roadmap/  # must stay 301
+#
+# Rolling back is restoring the .bak copy.
+
+Options +FollowSymLinks -Indexes
+RewriteEngine On
+
+# Deny direct access to the release directories. Without this, every release
+# ever deployed stays browsable at a stable URL.
+RewriteRule ^releases(/.*)?$ - [F,L]
+
+# ---- host and scheme normalisation ----------------------------------------
+#
+# Four hostnames used to serve the whole site with a 200: the apex and www, each
+# over http and https. Nothing redirected between them, so every page had three
+# duplicates and Google had to reconcile them from the canonical tag alone.
+# Pages sat in Search Console as "duplicate without user-selected canonical".
+#
+# MUST stay above the current/ rewrite below. See the ordering note at the top.
+
+# Force https. The proxy guards matter: if a TLS-terminating proxy is ever put
+# in front and speaks plain http to the origin, without them every request looks
+# insecure and this redirects forever. Dropping www in the same rule means
+# http://www reaches the apex in one hop instead of chaining via https://www.
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-SSL} !on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteCond %{HTTP_HOST} ^(www\.)?trussphp\.com$ [NC]
+RewriteRule ^(.*)$ https://trussphp.com/$1 [R=301,L]
+
+# Fold www into the apex for requests that already arrived over https. This is
+# a second rule rather than an [OR] branch of the one above because mod_rewrite
+# has no parentheses, so an AND-group cannot be nested inside an OR.
+#
+# The rule this replaces required http AND www together, which left
+# https://www.trussphp.com, the commonest duplicate of the lot, untouched.
+RewriteCond %{HTTP_HOST} ^www\.trussphp\.com$ [NC]
+RewriteRule ^(.*)$ https://trussphp.com/$1 [R=301,L]
+
+# ---- serve the current release --------------------------------------------
+#
+# Everything below here is unreachable from the rules above, by design: this
+# matches every remaining request and ends the pass. The guard stops it
+# rewriting current/ into itself.
+#
+# The release that this lands in carries its own .htaccess, tracked at
+# public/.htaccess in this repo, which owns the current/ and releases/ redirects
+# and the 404 page.
+RewriteCond %{REQUEST_URI} !^/current/
+RewriteRule ^(.*)$ current/$1 [L]

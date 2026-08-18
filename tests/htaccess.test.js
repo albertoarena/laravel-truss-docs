@@ -60,6 +60,14 @@ describe('the deployed .htaccess', () => {
     expect(htaccess).toMatch(/RewriteRule\s+\^\(\.\*\)\$/)
   })
 
+  it('leaves host and scheme normalisation to the docroot file', () => {
+    // Folding www and http into https://trussphp.com has to happen before the
+    // docroot rewrites into current/, which this file cannot do from inside
+    // current/. Putting a copy here as well would give one behaviour two
+    // owners, and the docroot rule would always win anyway.
+    expect(htaccess).not.toMatch(/RewriteRule[^\n]*https:\/\/trussphp\.com/)
+  })
+
   it('points the 404 at a path that exists from the docroot', () => {
     // ErrorDocument resolves against the docroot, not the directory holding the
     // .htaccess. The docroot has no 404.html of its own: it only exists inside
