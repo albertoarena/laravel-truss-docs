@@ -86,6 +86,39 @@ describe('roadmap data', () => {
     expect(boost.blurb).toMatch(/boost/i)
   })
 
+  it('ships the keyboard and screen reader work in v1.9.0', () => {
+    const a11y = ALL.find((i) => /accessib/i.test(i.title) && i.tag !== 'docs-site')
+    expect(a11y, 'accessibility item exists').toBeTruthy()
+    expect(a11y.status).toBe('shipped')
+    expect(a11y.version).toBe('v1.9.0')
+  })
+
+  it('claims no WCAG conformance anywhere on the roadmap', () => {
+    // v1.9.0 closed the Level A keyboard failures it found; it did not audit
+    // every criterion, and a custom theme can fail contrast whatever the
+    // package ships. A roadmap card is a published claim, so it must not read
+    // as a conformance statement.
+    for (const item of ALL) {
+      expect(item.blurb, item.title).not.toMatch(/wcag[^.]*\b(conformant|compliant)\b/i)
+    }
+  })
+
+  it('keeps the accessible structure view and the conformance statement ahead', () => {
+    const ahead = ALL.find((i) => /structure view|conformance/i.test(i.title))
+    expect(ahead, 'remaining accessibility item exists').toBeTruthy()
+    expect(ahead.status).toBe('approved')
+    expect(ahead.version, 'unshipped items carry no version').toBeUndefined()
+  })
+
+  it('ships the searchable Focus picker in v1.9.0, credited to its issue', () => {
+    const picker = ALL.find((i) => /focus picker/i.test(i.title))
+    expect(picker, 'Focus picker item exists').toBeTruthy()
+    expect(picker.status).toBe('shipped')
+    expect(picker.version).toBe('v1.9.0')
+    expect(picker.tag).toBe('community requested')
+    expect(picker.issueUrl).toBe('https://github.com/albertoarena/laravel-truss/issues/39')
+  })
+
   it('promotes the remaining schema doctor work to approved next', () => {
     const doctor = ALL.find((i) => /doctor/i.test(i.title) && i.status !== 'shipped')
     expect(doctor, 'follow-up doctor item exists').toBeTruthy()
