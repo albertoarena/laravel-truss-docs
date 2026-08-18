@@ -1,7 +1,7 @@
 ---
 /**
- * Shared layout for the custom (non-Starlight) pages: the landing and the
- * roadmap. Owns the blueprint frame, the slim header and footer, head/meta
+ * Shared layout for the custom (non-Starlight) pages: the landing, the roadmap
+ * and in the wild. Owns the blueprint frame, the slim header and footer, head/meta
  * (OG + Cloudflare beacon, matching astro.config), and theme handling that
  * shares Starlight's `starlight-theme` localStorage key so the light/dark
  * choice persists across the custom pages and the docs.
@@ -16,7 +16,7 @@ interface Props {
   title: string
   description?: string
   /** Active top-nav item, for aria-current. */
-  active?: 'home' | 'roadmap'
+  active?: 'home' | 'roadmap' | 'in-the-wild'
   /**
    * Extra schema.org nodes for this page, appended to the Person and WebSite
    * every page carries. The landing adds the SoftwareApplication describing the

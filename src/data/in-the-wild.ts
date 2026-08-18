@@ -173,6 +173,18 @@ export const SECTIONS: Section[] = [
 ]
 
 /**
+ * Heading used when the first two sections render as one list.
+ *
+ * See shouldCollapse in scripts/in-the-wild.js: below three rows in either, two
+ * thin sections read worse than one solid one. Lives here rather than in the
+ * template because it is a label, and labels are content.
+ */
+export const COLLAPSED: Omit<Section, 'kind'> = {
+  label: 'What people say',
+  blurb: 'Written by other people, unprompted, and linked to the source.',
+}
+
+/**
  * Sources that are Alberto writing, however they are dressed up.
  *
  * A URL check is the cheap half of the authorship test and this list is the

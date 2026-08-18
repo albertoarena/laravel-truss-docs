@@ -45,24 +45,44 @@ const TRY_IT = [
   },
 ]
 
+/**
+ * Coverage by other people, which is the one question this index could not
+ * answer.
+ *
+ * Its own section rather than a fourth entry under "Try it": that heading is for
+ * the demo and the theme builder, and coverage is not something an agent tries.
+ * Asked whether Laravel Truss is any good, a model reading this file previously
+ * had nothing on the site to go to; this is the page that answers it, and it
+ * links on to the people who actually said so.
+ */
+const IN_THE_WILD = [
+  {
+    title: 'In the wild',
+    path: '/in-the-wild/',
+    description:
+      'What other developers say about Laravel Truss, with a link to every source: coverage, posts by people who installed it, and bugs they reported that shipped as fixes',
+  },
+]
+
 export const GET: APIRoute = async ({ site }) => {
   const origin = (site ?? new URL('https://trussphp.com')).origin
   const entries = await getCollection('docs')
 
   const documentation = groupIntoSections(origin, entries)
 
+  const listed = (rows) =>
+    rows.map(({ title, path, description }) => ({
+      title,
+      description,
+      url: `${origin}${path}`,
+    }))
+
   // Optional stays last, as the spec intends: secondary material an agent may
-  // skip. Try it sits with the documentation, ahead of it.
+  // skip. Try it and In the wild sit with the documentation, ahead of it.
   const sections = [
     ...documentation.filter((section) => section.heading !== 'Optional'),
-    {
-      heading: 'Try it',
-      links: TRY_IT.map(({ title, path, description }) => ({
-        title,
-        description,
-        url: `${origin}${path}`,
-      })),
-    },
+    { heading: 'Try it', links: listed(TRY_IT) },
+    { heading: 'In the wild', links: listed(IN_THE_WILD) },
     ...documentation.filter((section) => section.heading === 'Optional'),
   ]
 

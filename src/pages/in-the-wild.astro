@@ -1,0 +1,220 @@
+---
+/**
+ * What other people have said about Truss.
+ *
+ * On the SiteLayout marketing surface rather than in the docs shell: a reader
+ * arriving here is deciding whether to install, not looking something up, and
+ * the docs shell would frame it as reference material. Same reasoning as the
+ * roadmap, and the same shape: a curated data module, this layout, its own tests.
+ *
+ * Everything rendered here comes from src/data/in-the-wild.ts, which takes only
+ * rows with a source that can be opened and checked.
+ */
+import SiteLayout from '../layouts/SiteLayout.astro'
+import { MENTIONS, SECTIONS } from '../data/in-the-wild.ts'
+import { sectionsFor, formatDate, initialsOf } from '../scripts/in-the-wild.js'
+import { mentionsNode, softwareApplicationNode } from '../scripts/structured-data.js'
+
+const site = Astro.site ?? new URL('https://trussphp.com')
+
+const sections = sectionsFor(MENTIONS, SECTIONS)
+const mentions = mentionsNode(site.origin, Astro.url.pathname, MENTIONS)
+
+// Every mention points at the package as the thing it is about, so the package
+// node has to be on this page for that reference to resolve. The landing and
+// every docs page carry it for the same reason. An @id pointing at nothing is
+// worse than no reference at all: it is a claim a parser cannot follow.
+const schema = mentions ? [softwareApplicationNode(site.origin), mentions] : []
+
+const title = 'Who uses Laravel Truss: reviews and coverage'
+const description =
+  'What other developers say about Laravel Truss, with a link to every source: editorial coverage, posts by people who installed it, and bugs they reported that shipped as fixes.'
+---
+<SiteLayout title={title} description={description} active="in-the-wild" schema={schema}>
+  <section class="intro">
+    <p class="eyebrow">In the wild</p>
+    <h1>What other people say about Truss</h1>
+    <p class="lede">
+      Coverage written by other people, not by us. Every row links to the source
+      it came from, so you can read the whole thing rather than the part that
+      flatters us. Nothing here is measured or ranked: it is ordered by date.
+      Structure only, never data.
+    </p>
+  </section>
+
+  {sections.map((section) => (
+    <section class="group" aria-labelledby={`h-${section.kind}`}>
+      <header class="group-head">
+        <h2 id={`h-${section.kind}`}>{section.label}</h2>
+        <p>{section.blurb}</p>
+      </header>
+
+      <ul class="mentions">
+        {section.items.map((mention) => (
+          <li class="mention">
+            {mention.quote && (
+              <blockquote lang={mention.quoteLang}>
+                <p>{mention.quote}</p>
+              </blockquote>
+            )}
+
+            {/* The original keeps its language; the translation is ours and
+                says so, rather than being passed off as what they wrote. */}
+            {mention.translation && (
+              <p class="translation">
+                <span class="translation-label">Translation:</span> {mention.translation}
+              </p>
+            )}
+
+            <footer class="who">
+              <span class="initials" aria-hidden="true">{initialsOf(mention.author)}</span>
+              <span class="named">
+                <cite>{mention.author}</cite>
+                {mention.role && <span class="role">{mention.role}</span>}
+              </span>
+              <span class="where">
+                <a href={mention.url} target="_blank" rel="noopener">
+                  {mention.source}<span aria-hidden="true"> ↗</span>
+                </a>
+                <time datetime={mention.date}>{formatDate(mention.date)}</time>
+              </span>
+            </footer>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  <section class="note">
+    <p>
+      Quoted here and would rather not be? Mail
+      <a href="mailto:hello@albertoarena.it">hello@albertoarena.it</a> and the
+      row comes down.
+    </p>
+  </section>
+</SiteLayout>
+
+<style>
+  section { padding: 0 var(--truss-gutter); }
+  @media (max-width: 640px) { section { padding: 0 22px; } }
+
+  .intro { padding-top: 52px; padding-bottom: 8px; }
+  .eyebrow {
+    font-family: var(--truss-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--truss-cyan);
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before { content: ''; width: 22px; height: 1px; background: var(--truss-cyan); }
+  .intro h1 {
+    font-family: var(--truss-font-mono);
+    font-weight: 600;
+    font-size: clamp(28px, 4.6vw, 42px);
+    letter-spacing: -0.03em;
+    color: var(--truss-fg);
+    margin: 0;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: clamp(15px, 2.2vw, 17px);
+    color: var(--truss-muted);
+    max-width: 60ch;
+    margin: 16px 0 0;
+  }
+
+  .group { margin-top: 44px; }
+  .group-head { border-top: 1px solid var(--truss-line); padding-top: 18px; }
+  .group-head h2 {
+    font-family: var(--truss-font-mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--truss-ink);
+    margin: 0 0 4px;
+  }
+  .group-head p { margin: 0; color: var(--truss-muted); font-size: 13px; }
+
+  .mentions {
+    list-style: none;
+    margin: 20px 0 0;
+    padding: 0;
+    display: grid;
+    /* Two up where there is room, one up below. A quote that has to be scanned
+       across a full-width line is a quote nobody reads. */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1px;
+    background: var(--truss-line);
+    border: 1px solid var(--truss-line);
+  }
+  .mention {
+    background: var(--truss-panel);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  blockquote { margin: 0; }
+  blockquote p {
+    margin: 0;
+    color: var(--truss-fg);
+    font-size: 15px;
+    line-height: 1.55;
+    text-wrap: pretty;
+  }
+  blockquote p::before { content: '\201C'; }
+  blockquote p::after { content: '\201D'; }
+
+  .translation { margin: 0; color: var(--truss-muted); font-size: 13px; line-height: 1.5; }
+  .translation-label {
+    font-family: var(--truss-font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 4px;
+    flex-wrap: wrap;
+  }
+  /* Initials, never an avatar: hotlinking somebody's profile picture from a
+     third-party CDN rots and leaks the visitor to that CDN on every view. */
+  .initials {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--truss-line);
+    border-radius: 50%;
+    font-family: var(--truss-font-mono);
+    font-size: 11px;
+    color: var(--truss-muted);
+  }
+  .named { display: flex; flex-direction: column; min-width: 0; }
+  .named cite { font-style: normal; font-size: 13px; color: var(--truss-ink); }
+  .role { font-size: 12px; color: var(--truss-muted); }
+  .where {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 12px;
+  }
+  .where a { color: var(--truss-cyan); text-decoration: none; }
+  .where a:hover { text-decoration: underline; }
+  .where time { color: var(--truss-muted); font-variant-numeric: tabular-nums; }
+
+  .note { margin: 40px 0 8px; }
+  .note p { margin: 0; font-size: 13px; color: var(--truss-muted); }
+  .note a { color: var(--truss-cyan); }
+</style>

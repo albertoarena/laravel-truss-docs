@@ -14,7 +14,7 @@
  */
 
 import { AUTHOR_NAME } from '../config/package.js'
-import { QUOTE_MAX, SELF_AUTHORED } from '../data/in-the-wild.ts'
+import { COLLAPSED, QUOTE_MAX, SELF_AUTHORED } from '../data/in-the-wild.ts'
 
 /** Trailing-dot and www differences should not decide an authorship question. */
 const normaliseHost = (host) => host.replace(/^www\./, '').replace(/\.$/, '')
@@ -140,6 +140,27 @@ export function shouldCollapse(mentions, threshold = 6) {
   ).length
 
   return together < threshold
+}
+
+/**
+ * What the page actually renders: three sections, or two once the first pair is
+ * collapsed.
+ *
+ * "Reported and fixed" is never merged into the others. It is different
+ * evidence: not what somebody thought of the package, but what they hit and
+ * what shipped because of it.
+ */
+export function sectionsFor(mentions, sections, collapsed = COLLAPSED) {
+  if (!shouldCollapse(mentions)) return bySection(mentions, sections)
+
+  const merged = mentions
+    .filter((m) => m.kind === 'press' || m.kind === 'community')
+    .sort(byDateDescending)
+
+  return [
+    ...(merged.length ? [{ kind: 'community', ...collapsed, items: merged }] : []),
+    ...bySection(mentions, sections.filter((s) => s.kind === 'report')),
+  ]
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

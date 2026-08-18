@@ -117,6 +117,50 @@ export function faqNode(site, items) {
   }
 }
 
+/**
+ * Coverage by other people, as an ItemList of CreativeWork.
+ *
+ * No Review and no AggregateRating, ever. Self-serving review markup on your
+ * own product page is against Google's own guidance, and a score synthesised out
+ * of LinkedIn comments would be a number this project cannot source, which is
+ * the same failure mode as claiming a conformance level nobody audited. An
+ * ItemList pointing at the real URLs is honest, and it is all an answer engine
+ * needs to follow the trail to the people who actually said these things.
+ *
+ * Ordering is declared descending because the page sorts by date and by nothing
+ * else. How well somebody's post performed is in the private notes and never
+ * reaches this file, including as a sort order.
+ *
+ * Null for an empty list, like faqNode: an ItemList with no items says nothing.
+ */
+export function mentionsNode(site, pathname, mentions) {
+  if (mentions.length === 0) return null
+
+  return {
+    '@type': 'ItemList',
+    '@id': `${site}${pathname}#mentions`,
+    name: `Coverage of ${PACKAGE_NAME} by other people`,
+    itemListOrder: 'https://schema.org/ItemListOrderDescending',
+    numberOfItems: mentions.length,
+    itemListElement: mentions.map((mention, i) => {
+      const work = {
+        '@type': 'CreativeWork',
+        url: mention.url,
+        datePublished: mention.date,
+        author: { '@type': 'Person', name: mention.author },
+        publisher: { '@type': 'Organization', name: mention.source },
+        about: { '@id': ids(site).software },
+      }
+
+      // Only what the source shows, and only in the language it was written in.
+      if (mention.quote) work.text = mention.quote
+      if (mention.quoteLang) work.inLanguage = mention.quoteLang
+
+      return { '@type': 'ListItem', position: i + 1, item: work }
+    }),
+  }
+}
+
 const titleCase = (segment) =>
   segment
     .split('-')
