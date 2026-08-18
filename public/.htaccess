@@ -6,10 +6,14 @@
 # request arrives via the symlink or a release directory directly.
 #
 # It deliberately lives here rather than in the docroot .htaccess one level
-# above releases/. That file is hand-maintained on the host, is not deployed by
-# CI, and is managed by cPanel's own Redirects feature (its Force HTTPS block
-# belongs to that UI). Hand-added rewrite rules there have proven not to fire,
-# while the cPanel-owned ones do. Leave the docroot file to cPanel.
+# above releases/, which is hand-maintained on the host and not deployed by CI.
+# Rules do work there, so anything this repo should be able to change on its own
+# belongs in this file instead.
+#
+# One thing cannot live here: folding www and http into https://trussphp.com.
+# That has to run before the docroot's own rewrite into current/, so the docroot
+# file owns it. A tracked, reference-only copy is in deploy/docroot.htaccess,
+# which explains the ordering trap that kept a redirect dead there for days.
 
 RewriteEngine On
 

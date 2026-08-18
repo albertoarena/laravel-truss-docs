@@ -38,7 +38,7 @@ manual step.
 | Server pull script | `scripts/server-deploy.sh` (source of truth in this repo) |
 | Running copy on host | `~/bin/server-deploy.sh` (fetched from this repo) |
 | Cron (host) | `*/5 * * * * /bin/bash $HOME/bin/server-deploy.sh >> $HOME/server-deploy.log 2>&1` |
-| Docroot | `~/<docroot>/` with an `.htaccess` that rewrites all traffic to `current/` |
+| Docroot | `~/<docroot>/` with an `.htaccess` that normalises the host, then rewrites all traffic to `current/`. Applied by hand; tracked copy in `deploy/docroot.htaccess` |
 | Releases + symlink | `~/<docroot>/releases/<ts>/`, `~/<docroot>/current` |
 
 The `<docroot>` folder name is the deploy target (an addon-domain docroot).
