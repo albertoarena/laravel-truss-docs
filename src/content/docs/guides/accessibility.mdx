@@ -1,0 +1,57 @@
+---
+title: Accessibility
+description: What of the Truss dashboard is operable without a mouse, how it is tested, and what is not covered yet
+---
+
+Truss draws a diagram, and a diagram is the part of an interface most easily left mouse-only. From **v1.9.0** the dashboard answers the keyboard, names its controls, and describes the view it is showing to assistive technology.
+
+This page says what is supported, how it is checked, and, just as importantly, what is not covered yet.
+
+:::caution[This is not a conformance claim]
+v1.9.0 closes the specific WCAG Level A keyboard failures found in the dashboard. It is not an audit of every success criterion in every state of the page, so Truss does **not** claim WCAG conformance. See [What is not covered yet](#what-is-not-covered-yet).
+:::
+
+## Keyboard
+
+Everything in the toolbar is a native control and has always been reachable by **Tab**. What changed in v1.9.0 is the diagram itself.
+
+Three things inside the rendered diagram announce themselves as buttons: a **table name**, an **enum type label**, and a **health marker**. They now behave like buttons.
+
+- **Enter** or **Space** activates any of the three, opening the same menu a click opens. Space no longer scrolls the page out from under you.
+- Opening a menu from the keyboard **moves focus into it**, so its actions are reachable without a mouse.
+- **Escape** closes the open menu and **returns focus to whatever opened it**, so you are never dropped at the top of the document. Focus is handed back the same way after you run an action from the menu.
+- Each trigger has a **visible focus ring**. It is an outline rather than a change of colour, since hover already uses colour and telling two colours apart is exactly what some users cannot do.
+
+The Focus picker is a combobox with its own keyboard model, described in [Focus and filter](/guides/focus-and-filter/#searching-for-a-table).
+
+## Screen readers
+
+- The rendered diagram **names and describes itself**. Truss emits Mermaid's `accTitle` and `accDescr`, which become the SVG's `<title>` and `<desc>`, and the description tracks the view you are actually on: how many tables and relationships are drawn, the active filter, and the focused table with its depth.
+- The Focus picker follows the **ARIA combobox with listbox** pattern: focus stays in the text box, the active option is tracked with `aria-activedescendant`, and a polite live region announces how many tables match as you type.
+- The **zoom slider** has a real accessible name. It previously carried only a tooltip, which assistive technology is not required to expose, so it announced as an unlabelled slider.
+
+## How it is tested
+
+Automated and manual, because neither alone is enough.
+
+- **axe-core** scans the dashboard and its overlays against the WCAG 2.2 AA rule tags in the browser suite, as its own CI step on every push. A failure names the offending element, not just the rule.
+- **Keyboard specs** cover activating each trigger by key, focus returning on Escape and after a menu action, and the whole state machine of the Focus picker.
+- **Contrast ratios are computed in a unit test** from the shipped theme tokens, with no browser involved.
+- A **manual pass** with VoiceOver in Safari, axe DevTools in light and dark, 200 percent browser zoom, the narrow layout where the toolbar folds behind the `⋯` button, and a real phone. It found four defects the automated checks could not, including a match highlight that failed contrast at 4.10:1 and focus being dropped after a menu action.
+
+## What is not covered yet
+
+Named because a vague claim is worse than an honest gap.
+
+- **The diagram has no text alternative.** The SVG carries a name and a summary of the view, but the structure it draws is not available as text on the page. An accessible structure view is on the [roadmap](/roadmap/).
+- **Non-text contrast (1.4.11) is unaudited.** The hairline tokens used on control boundaries sit under 3:1.
+- **Contrast inside the SVG** is not evaluated by axe at all, and has not been measured criterion by criterion.
+- **Criteria never audited here**, including dragging movements for pan, target size outside the Focus picker, and whether focus is obscured when it lands on a table scrolled out of view.
+
+## Custom themes
+
+Anything said here is scoped to the **shipped defaults**. [`truss.theme`](/guides/theming/) lets you set arbitrary colours, so a custom palette can fail contrast no matter what the package ships. If you re-theme the dashboard, check your own values.
+
+## Reporting a problem
+
+Accessibility bugs are bugs. [Open an issue](https://github.com/albertoarena/laravel-truss/issues/new/choose) and say what you were using (screen reader and browser, keyboard only, zoom level), what you expected, and what happened instead.

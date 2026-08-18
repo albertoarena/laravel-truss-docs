@@ -350,6 +350,7 @@ export default defineConfig({
         {
           label: 'Guides',
           items: [
+            { label: 'Accessibility', link: '/guides/accessibility/', badge: 'New' },
             { label: 'Authorization', link: '/guides/authorization/' },
             { label: 'Focus & filter', link: '/guides/focus-and-filter/' },
             { label: 'Schema diff', link: '/guides/schema-diff/' },
