@@ -97,14 +97,23 @@ describe('the published set', () => {
     }
   })
 
-  it('quotes only published editorial and public bug reports', () => {
-    // The template renders a quote as a pull-quote above the attribution, which
-    // presents it as an endorsement, and that is the case the rules say to ask
-    // permission for first. Anything else ships as an attributed link, which
-    // needs nobody's agreement. A community row acquiring a quote here means
-    // somebody skipped the ask.
+  it('gives every row a quote, because a bare name says nothing', () => {
+    // Replaces a rule that allowed quotes only on press and report rows. That
+    // was right while the template rendered a quote as a pull-quote looming
+    // above the attribution, which presents an excerpt as an endorsement and is
+    // the thing worth asking permission for. The template cites now, so the
+    // restriction blocked exactly the case citation exists to enable, and five
+    // quoteless rows had already been taken off for saying nothing.
+    //
+    // What replaced it is the stronger rule: no row ships without words.
+    for (const row of MENTIONS) {
+      expect(row.quote, `${row.author} has nothing to say`).toBeTruthy()
+    }
+  })
+
+  it('links a source for every quote, which is what makes it a citation', () => {
     for (const row of MENTIONS.filter((m) => m.quote)) {
-      expect(['press', 'report'], `${row.author} carries a quote`).toContain(row.kind)
+      expect(row.url, row.author).toMatch(/^https:\/\//)
     }
   })
 
@@ -114,9 +123,12 @@ describe('the published set', () => {
     }
   })
 
-  it('asserts a role for nobody, since no source showed one', () => {
-    // Absent because nothing displayed one, not because nobody looked. The rule
-    // is never to state anything about a person the visible source does not.
+  it('states a role for nobody', () => {
+    // The rule is never to say anything about a person their visible source does
+    // not show. This asserts the current state and nothing about why: an earlier
+    // version of this comment claimed roles were absent because no source
+    // displayed one, which was never checked and is false. LinkedIn posts do
+    // show headlines. If roles are ever captured, this test changes with them.
     expect(MENTIONS.filter((m) => m.role)).toEqual([])
   })
 

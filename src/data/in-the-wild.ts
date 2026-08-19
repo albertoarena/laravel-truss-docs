@@ -106,13 +106,34 @@ export interface Mention {
    */
   fixedIn?: string
   /**
+   * How long the report waited, opened to the release that answered it.
+   *
+   * Coarse text from the exporter, e.g. "1h 44m". Opened-to-release rather than
+   * opened-to-closed because it is the only interval consistent with `fixedIn`
+   * sitting beside it: publishing the shorter one next to a version number
+   * implies a release that did not exist yet, which is two true facts making a
+   * false one.
+   *
+   * This measures Alberto's own responsiveness, not the person who reported the
+   * bug, which is why it does not touch the rule against publishing anything
+   * measured. Not required: a report may legitimately have no release yet.
+   */
+  fixedAfter?: string
+  /**
    * Why this may be shown. Required, and never rendered.
    *
-   * Linking a public post and quoting a line from it with attribution is
-   * ordinary practice. Lifting a sentence into a pull-quote presented as an
-   * endorsement is a different thing, and the standard here is to ask first.
-   * Requiring the field means a testimonial cannot be added without somebody
-   * deciding which of the two it is.
+   * **Revised 19/08/2026, when the page moved from testimonials to citation.**
+   * A short attributed excerpt of something somebody published publicly, linked
+   * to its source, is ordinary practice and needs no permission: that is what
+   * quoting is. The earlier standard here was to ask first, which was the right
+   * answer while the template rendered every quote as a pull-quote looming above
+   * the attribution, because that presents an excerpt as an endorsement. The
+   * template cites now, so `public-post` carries the whole public set.
+   *
+   * **`permission-given` is therefore reserved for sources that are not public**,
+   * where a link cannot stand on its own: a direct message, a Discord post, a
+   * private report. If a row carries it, there should be no public URL that would
+   * have done instead.
    *
    * Be clear about what a passing test proves: that somebody typed a value, not
    * that permission exists. It is a speed bump that forces a decision, and that
