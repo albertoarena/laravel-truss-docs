@@ -6,6 +6,7 @@ import starlight from '@astrojs/starlight'
 import { consentSnippet } from './scripts/consent-snippet.mjs'
 import { STATIC_PAGES, metaTags, injectMeta } from './scripts/static-page-meta.mjs'
 import { staticPageUrls, addUrls } from './scripts/static-page-sitemap.mjs'
+import { IMMUTABLE_HTACCESS } from './scripts/asset-cache-headers.mjs'
 
 // Cache-bust the live demo's frontend: at build, move the copied assets into a
 // version-stamped folder and repoint the demo HTML at it, so a new package
@@ -178,6 +179,31 @@ function staticPageSitemap() {
           // is still correct without three entries, and Starlight owns whether
           // that file exists at all.
           logger.warn(`Sitemap not updated: ${e.message}`)
+        }
+      },
+    },
+  }
+}
+
+// Give the fingerprinted assets a cache policy that matches how they are named.
+//
+// Written into the generated _astro/ directory rather than pattern-matched from
+// the site-wide .htaccess, so the rule is "this directory" instead of a guess
+// at Astro's hashed filenames. See scripts/asset-cache-headers.mjs.
+function assetCacheHeaders() {
+  return {
+    name: 'asset-cache-headers',
+    hooks: {
+      'astro:build:done': async ({ dir, logger }) => {
+        const file = join(fileURLToPath(dir), '_astro', '.htaccess')
+
+        try {
+          await writeFile(file, IMMUTABLE_HTACCESS)
+          logger.info('Immutable cache policy written into _astro/')
+        } catch (e) {
+          // No _astro directory means no fingerprinted assets to protect, which
+          // is odd but not a reason to fail a build that is otherwise correct.
+          logger.warn(`Asset cache policy not written: ${e.message}`)
         }
       },
     },
@@ -382,6 +408,7 @@ export default defineConfig({
     staticPageConsent(),
     staticPageMeta(),
     staticPageSitemap(),
+    assetCacheHeaders(),
   ],
   markdown: {
     rehypePlugins: [rehypeScrollableTables],
