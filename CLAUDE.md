@@ -57,9 +57,18 @@ it lives.
 
 ## Quoting other people
 
-`src/data/in-the-wild.ts` holds coverage of Truss written by other people, for
-the `/in-the-wild/` page. It is the only place on this site that republishes
-somebody else's words, so it has rules of its own.
+The `/in-the-wild/` page republishes coverage of Truss written by other people.
+It is the only place on this site carrying somebody else's words, so it has rules
+of its own.
+
+**The rows are generated, not written here.** `markstone:in-the-wild:export`
+writes `src/data/in-the-wild.generated.json` from the private tracker, where each
+row already carries the decision to publish it and the reason.
+`src/data/in-the-wild.ts` imports that file and holds the type, the sections and
+the exclusion rules. **Do not hand-edit the JSON and do not append rows to
+`MENTIONS`**: hand transcription is what this replaced, after one coverage row
+was found carrying three different dates across three files. To change what the
+page publishes, change the decision in Markstone and re-run the export.
 
 **One test decides every row: was it written by somebody other than Alberto,
 without being asked?** Both halves are required. An issue opened by a user on
@@ -93,5 +102,9 @@ testimonial on a public site is the one failure here that cannot be walked back.
 - Keep docs accurate to the shipped **release**, not unreleased work.
 - Never commit generated or fetched directories (`dist/`, `.astro/`, `_pkg/`,
   `public/demo/assets/`).
+- **One generated file is tracked on purpose:
+  `src/data/in-the-wild.generated.json`.** Nothing in this repo can produce it,
+  the page imports it, and the build fails without it. **Do not gitignore it by
+  applying the rule above**, which is about output this repo can rebuild.
 - Personal, uncommitted preferences and planning notes live in `.docs/` and
   `CLAUDE.local.md` (both gitignored).

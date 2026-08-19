@@ -44,14 +44,20 @@ const files = [
   ...PUBLIC_TEXT,
 ]
 
-// The one file that quotes other people.
+// The file that may quote other people.
 //
-// House style forbids em dashes and en dashes in what we write. src/data/
-// in-the-wild.ts holds text written by strangers and reproduced word for word,
-// and strangers use em dashes: a real headline in the candidate set reads
-// "ship production AI — LLMs, RAG, workflow automation". Without a carve-out the
-// two rules collide the first time a genuine row lands, and the obvious wrong
+// House style forbids em dashes and en dashes in what we write, and strangers
+// use them: a real headline in the coverage set reads "ship production AI —
+// LLMs, RAG, workflow automation". Without a carve-out the two rules collide the
+// first time such a row lands in src/data/in-the-wild.ts, and the obvious wrong
 // fix is to edit somebody's quote to fit our punctuation.
+//
+// **Inert as things stand, and kept deliberately.** Every row now arrives
+// through in-the-wild.generated.json, which this scan does not walk, so no line
+// here currently needs blanking. The carve-out is the net for the path that is
+// still open: appending a row by hand. Deleting it would leave that path
+// arriving as a red build on somebody's sentence, which is the one situation
+// where the tempting fix is the unrecoverable one.
 //
 // So the exemption is by field, not by file: only the values named in
 // VERBATIM_FIELDS are skipped, and the doc comments, the section prose and the

@@ -240,17 +240,37 @@ describe('the shape of the data module', () => {
     expect([...VERBATIM_FIELDS]).toEqual(['quote', 'translation', 'role'])
   })
 
-  it('keeps every verbatim field on one line', () => {
-    // What makes the house-style carve-out in content-rules.test.js reliable
-    // without parsing TypeScript. A template literal spanning lines would slip
-    // a quote past the scan in one direction and past the reader in the other.
+  it('takes its rows from the export and holds none by hand', () => {
+    // The invariant that replaced hand transcription, and until now the only one
+    // here without a test. Hand-written rows are what produced a coverage row
+    // carrying three different dates across three files.
+    expect(source).toContain("import generated from './in-the-wild.generated.json'")
+    expect(source).toMatch(/export const MENTIONS: Mention\[\] = generated as Mention\[\]/)
+
+    const start = verbatimFieldStart(VERBATIM_FIELDS)
+    const handWritten = source
+      .split('\n')
+      .map((text, i) => ({ text, n: i + 1 }))
+      // The interface declares these fields; a row would assign them.
+      .filter(({ text }) => start.test(text) && !/\?:|:\s*string/.test(text))
+      .map(({ n }) => `src/data/in-the-wild.ts:${n}`)
+
+    expect(handWritten).toEqual([])
+  })
+
+  it('still keeps any hand-written verbatim field on one line', () => {
+    // Vacuous while every row comes from the export, and deliberately kept: the
+    // carve-out in content-rules.test.js only blanks single-line assignments, so
+    // if somebody ever does append a row here, a multi-line quote would slip its
+    // punctuation past the scan in one direction and past the reader in the
+    // other. The assertion above is what stops this one passing for free
+    // unnoticed: hand-written rows fail there first, and loudly.
     const line = verbatimFieldLine(VERBATIM_FIELDS)
     const start = verbatimFieldStart(VERBATIM_FIELDS)
     const offenders = source
       .split('\n')
       .map((text, i) => ({ text, n: i + 1 }))
       .filter(({ text }) => start.test(text) && !line.test(text))
-      // The interface declares these fields; only the rows assign them.
       .filter(({ text }) => !/\?:|:\s*string/.test(text))
       .map(({ n }) => `src/data/in-the-wild.ts:${n}`)
 
