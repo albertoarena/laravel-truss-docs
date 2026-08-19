@@ -17,10 +17,12 @@ import {
   websiteNode,
   softwareApplicationNode,
   techArticleNode,
+  mentionsNode,
   breadcrumbCrumbs,
   breadcrumbNode,
   graph,
 } from '../src/scripts/structured-data.js'
+import { VALID as MENTION_FIXTURES } from './fixtures/in-the-wild.js'
 
 // The site emitted no structured data at all: zero application/ld+json in the
 // whole built output. For a package whose documentation wants to be quoted by
@@ -159,6 +161,68 @@ describe('techArticleNode', () => {
       dateModified: new Date('2026-08-15T00:00:00Z'),
     })
     expect(dated.dateModified).toBe('2026-08-15T00:00:00.000Z')
+  })
+})
+
+describe('mentionsNode', () => {
+  const node = mentionsNode(SITE, '/in-the-wild/', MENTION_FIXTURES)
+
+  it('is null for an empty set, because an ItemList of nothing says nothing', () => {
+    expect(mentionsNode(SITE, '/in-the-wild/', [])).toBeNull()
+  })
+
+  it('describes each mention as a CreativeWork at the URL it really lives at', () => {
+    expect(node['@type']).toBe('ItemList')
+    expect(node.numberOfItems).toBe(MENTION_FIXTURES.length)
+
+    const [first] = node.itemListElement
+    expect(first['@type']).toBe('ListItem')
+    expect(first.position).toBe(1)
+    expect(first.item['@type']).toBe('CreativeWork')
+    expect(first.item.url).toBe(MENTION_FIXTURES[0].url)
+    expect(first.item.author).toEqual({ '@type': 'Person', name: MENTION_FIXTURES[0].author })
+  })
+
+  it('carries no Review and no AggregateRating, ever', () => {
+    // Self-serving review markup on your own product page is against Google's
+    // own guidance, and a score synthesised out of LinkedIn comments would be a
+    // number this project cannot source. That is the same failure mode as
+    // claiming a conformance level nobody audited.
+    const json = JSON.stringify(node)
+    expect(json).not.toMatch(/Review|AggregateRating|ratingValue|reviewRating/)
+  })
+
+  it('declares the order it actually renders in, which is by date and nothing else', () => {
+    expect(node.itemListOrder).toBe('https://schema.org/ItemListOrderDescending')
+  })
+
+  it('states the language of a quote that has one, and invents one for nobody', () => {
+    const translated = node.itemListElement.find((el) => el.item.inLanguage)
+    expect(translated.item.inLanguage).toBe('pt-BR')
+
+    const english = node.itemListElement.find((el) => el.item.url.endsWith('/editorial'))
+    expect(english.item.inLanguage).toBeUndefined()
+  })
+
+  it('marks up the quote and not our translation of it', () => {
+    // A reader sees both; the machine-readable copy carries what the person
+    // actually wrote, because that is the part attributable to them.
+    const translated = node.itemListElement.find((el) => el.item.inLanguage)
+    const source = MENTION_FIXTURES.find((m) => m.quoteLang)
+
+    expect(translated.item.text).toBe(source.quote)
+    expect(JSON.stringify(node)).not.toContain(source.translation)
+  })
+
+  it('omits text entirely for a row with no quote', () => {
+    const quoteless = node.itemListElement.find((el) => el.item.url.endsWith('/quoteless'))
+    expect(quoteless.item.text).toBeUndefined()
+  })
+
+  it('points every mention at the same package entity as the rest of the graph', () => {
+    for (const el of node.itemListElement) {
+      expect(el.item.about).toEqual({ '@id': ids(SITE).software })
+    }
   })
 })
 

@@ -14,7 +14,7 @@
  */
 
 import { AUTHOR_NAME } from '../config/package.js'
-import { QUOTE_MAX, SELF_AUTHORED } from '../data/in-the-wild.ts'
+import { COLLAPSED, QUOTE_MAX, SELF_AUTHORED } from '../data/in-the-wild.ts'
 
 /** Trailing-dot and www differences should not decide an authorship question. */
 const normaliseHost = (host) => host.replace(/^www\./, '').replace(/\.$/, '')
@@ -142,6 +142,27 @@ export function shouldCollapse(mentions, threshold = 6) {
   return together < threshold
 }
 
+/**
+ * What the page actually renders: three sections, or two once the first pair is
+ * collapsed.
+ *
+ * "Reported and fixed" is never merged into the others. It is different
+ * evidence: not what somebody thought of the package, but what they hit and
+ * what shipped because of it.
+ */
+export function sectionsFor(mentions, sections, collapsed = COLLAPSED) {
+  if (!shouldCollapse(mentions)) return bySection(mentions, sections)
+
+  const merged = mentions
+    .filter((m) => m.kind === 'press' || m.kind === 'community')
+    .sort(byDateDescending)
+
+  return [
+    ...(merged.length ? [{ kind: 'community', ...collapsed, items: merged }] : []),
+    ...bySection(mentions, sections.filter((s) => s.kind === 'report')),
+  ]
+}
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 /**
@@ -172,6 +193,50 @@ export function initialsOf(author) {
     .slice(0, 2)
     .map((part) => [...part][0].toUpperCase())
     .join('')
+}
+
+/** Scripts written right to left, for `dir` on a quote in one of them. */
+const RTL = new Set(['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi'])
+
+/** Whether a BCP-47 tag needs dir="rtl". Matches on the language subtag. */
+export const isRtl = (tag) => RTL.has(String(tag || '').split('-')[0].toLowerCase())
+
+/**
+ * "Arabic", from "ar".
+ *
+ * Used to label a translation as ours, which is the part that must never be
+ * ambiguous: the English on this page is not what the person wrote. Falls back
+ * to the tag itself rather than throwing, since a label is not worth a build.
+ */
+export function languageName(tag, locale = 'en') {
+  if (!tag) return ''
+  try {
+    return new Intl.DisplayNames([locale], { type: 'language' }).of(tag) || tag
+  } catch {
+    return tag
+  }
+}
+
+/**
+ * Whether a source URL points at a video, so the link can say so.
+ *
+ * All this drives is a small triangle before the source name. An earlier version
+ * built a click-to-load facade with a self-hosted poster, which was correct on
+ * privacy and wrong on everything else: the embed rendered badly, the poster
+ * made one card twice the height of its neighbour, and the whole apparatus
+ * existed to give a reader something they get by clicking the link.
+ *
+ * Dropping it removes the privacy question rather than solving it. A link
+ * requests nothing until it is followed, which is what /privacy/ has always
+ * said about YouTube.
+ */
+export function isVideo(url) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '')
+    return host === 'youtube.com' || host === 'youtu.be'
+  } catch {
+    return false
+  }
 }
 
 /**
