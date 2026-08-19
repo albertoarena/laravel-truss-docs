@@ -20,6 +20,31 @@
  */
 
 /**
+ * The rows themselves are generated, not written here.
+ *
+ * `markstone:in-the-wild:export` writes this file from the private tracker,
+ * where every row already carries the decision to publish it and the reason.
+ * Transcribing them by hand is what this replaces: on 19/08/2026 the same
+ * coverage row carried three different dates across three files, and the one a
+ * person typed was the wrong one.
+ *
+ * **Nothing measured can arrive through here.** The exporter names the fields
+ * it emits rather than serialising a row, so a metric added to the tracker
+ * cannot reach this page by inheritance, and the order is by date because any
+ * other order publishes a ranking without printing a number.
+ *
+ * The type below is still the contract, and the tests still run over the real
+ * array. A generated file that does not satisfy `problemsWith()` fails the
+ * build the same way a hand-written one would.
+ *
+ * One consequence worth naming: verbatim quotes now live in JSON, which the
+ * house-style scan does not walk. That is the safer side of the line. The scan
+ * exists to keep our own prose free of em dashes, and it must never be in a
+ * position to correct somebody else's sentence.
+ */
+import generated from './in-the-wild.generated.json'
+
+/**
  * Sources seen so far. Open by design: the next one is somebody's blog.
  *
  * Written as a const array rather than a union in the interface because
@@ -192,158 +217,4 @@ export const SELF_AUTHORED: SelfAuthored[] = [
  * Sorted by date within each section and by nothing else. How a post performed
  * stays in the private notes, including as an ordering.
  */
-export const MENTIONS: Mention[] = [
-  {
-    kind: 'press',
-    // Double quotes because the sentence contains an apostrophe. The apostrophe
-    // is the ASCII one, checked against the page source rather than assumed:
-    // verbatim covers which character it is.
-    // Long line, left long: a verbatim field has to stay on one line or the
-    // style scan's carve-out cannot blank it, and the punctuation in somebody
-    // else's sentence starts failing the build.
-    // prettier-ignore
-    quote: "It reads structure only, meaning tables, columns, keys, and indexes, and never queries row data, so you don't need to point an external GUI client at the database or regenerate a static diagram every time you run a migration.",
-    author: 'Yannick Lyn Fatt',
-    source: 'Laravel News',
-    url: 'https://laravel-news.com/laravel-truss-database-er-diagrams',
-    date: '2026-08-10',
-    basis: 'public-post',
-  },
-  {
-    // Povilas is the author and Laravel Daily is the source, not the reverse:
-    // his own public copy reads "My new video on Laravel Daily channel", which
-    // is the visible basis for attributing it to the person.
-    //
-    // youtube.com is on the deny list above, but only under /@AlbertoArenaDev,
-    // so a /watch URL passes. That narrowing is deliberate, not an oversight.
-    kind: 'press',
-    author: 'Povilas Korop',
-    source: 'Laravel Daily',
-    url: 'https://www.youtube.com/watch?v=zogsFocamlU',
-    date: '2026-08-10',
-    basis: 'public-post',
-  },
-
-  // Community rows: all LinkedIn, all public posts, all quoteless by the rule
-  // above. Dates are decoded from the LinkedIn snowflake ID in each URL
-  // (id >> 22 is a Unix millisecond timestamp), a method checked against a post
-  // whose time had been recorded independently before it was relied on here.
-  {
-    kind: 'community',
-    author: 'Mohamed Said',
-    source: 'LinkedIn',
-    url: 'https://www.linkedin.com/feed/update/urn:li:activity:7492777380558852097/',
-    date: '2026-08-11',
-    basis: 'public-post',
-  },
-  {
-    kind: 'community',
-    author: 'Haydar Ali Awan',
-    source: 'LinkedIn',
-    url: 'https://www.linkedin.com/feed/update/urn:li:activity:7492848896029732864/',
-    date: '2026-08-11',
-    basis: 'public-post',
-  },
-  {
-    kind: 'community',
-    author: 'Haseeb Mirza',
-    source: 'LinkedIn',
-    url: 'https://www.linkedin.com/feed/update/urn:li:activity:7492942932958892033/',
-    date: '2026-08-11',
-    basis: 'public-post',
-  },
-  {
-    kind: 'community',
-    author: 'Danial Qamar',
-    source: 'LinkedIn',
-    url: 'https://www.linkedin.com/feed/update/urn:li:activity:7493252446715211776/',
-    date: '2026-08-12',
-    basis: 'public-post',
-  },
-  {
-    kind: 'community',
-    author: 'Mohammad Shuvo Talukder',
-    source: 'LinkedIn',
-    url: 'https://www.linkedin.com/feed/update/urn:li:activity:7493316602453544960/',
-    date: '2026-08-12',
-    basis: 'public-post',
-  },
-  {
-    kind: 'community',
-    author: 'Amr Lotfy Saleh',
-    source: 'LinkedIn',
-    url: 'https://www.linkedin.com/feed/update/urn:li:activity:7493611779424423936/',
-    date: '2026-08-13',
-    basis: 'public-post',
-  },
-  // Waleed Ahmad is held back, and it is the only row that is. The URN decodes
-  // to 13/08 and the private notes logged the post as "~1d old" when read on
-  // 17/08. Both cannot be true, and the page prints the date, so shipping
-  // either would be publishing a fact about somebody's post that nobody has
-  // checked. Open the post, read the date off it, then uncomment.
-  // {
-  //   kind: 'community',
-  //   author: 'Waleed Ahmad',
-  //   source: 'LinkedIn',
-  //   url: 'https://www.linkedin.com/feed/update/urn:li:share:7493752588404916225/',
-  //   date: 'CONFIRM AGAINST THE POST',
-  //   basis: 'public-post',
-  // },
-  {
-    kind: 'community',
-    author: 'Bhavin Vaghadiya',
-    source: 'LinkedIn',
-    url: 'https://www.linkedin.com/feed/update/urn:li:activity:7493977387634892800/',
-    date: '2026-08-14',
-    basis: 'public-post',
-  },
-  {
-    kind: 'community',
-    author: 'Mohammad Ghanem',
-    source: 'LinkedIn',
-    url: 'https://www.linkedin.com/posts/mohammad-ghanem-901108186_laravel-php-laraveltips-share-7494400677201424385--oas/',
-    date: '2026-08-15',
-    basis: 'public-post',
-  },
-  {
-    kind: 'community',
-    author: 'Ahmed Fawzy',
-    source: 'LinkedIn',
-    url: 'https://www.linkedin.com/posts/ahmed-fawzy10_laravel-truss-is-a-very-useful-package-you-share-7494813912908079104-oM7H/',
-    date: '2026-08-16',
-    basis: 'public-post',
-  },
-
-  // Reported and fixed. Names are the GitHub profile display names, from the
-  // API rather than guessed off the handle. Each release is sourced from its own
-  // release notes naming the fix, not from the dates lining up, which would be a
-  // correlation dressed as a fact. All three were opened and shipped the same
-  // day, which is the argument this section makes.
-  {
-    kind: 'report',
-    author: 'Santos Sabanari',
-    source: 'GitHub',
-    url: 'https://github.com/albertoarena/laravel-truss/issues/3',
-    date: '2026-07-28',
-    fixedIn: 'v1.3.1',
-    basis: 'public-post',
-  },
-  {
-    kind: 'report',
-    author: 'Nguyễn Tiến Lộc',
-    source: 'GitHub',
-    url: 'https://github.com/albertoarena/laravel-truss/issues/46',
-    date: '2026-08-12',
-    fixedIn: 'v1.8.3',
-    basis: 'public-post',
-  },
-  {
-    kind: 'report',
-    author: 'Hafiz Muhammad Moaz',
-    source: 'GitHub',
-    url: 'https://github.com/albertoarena/laravel-truss/issues/51',
-    date: '2026-08-17',
-    fixedIn: 'v1.8.4',
-    basis: 'public-post',
-  },
-]
+export const MENTIONS: Mention[] = generated as Mention[]

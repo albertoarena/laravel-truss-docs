@@ -26,9 +26,10 @@ import { VALID, INVALID, USER_ISSUE } from './fixtures/in-the-wild.js'
 // This page publishes what real, named people said. The failure mode is not a
 // broken layout, it is an invented testimonial on a public site, which cannot
 // be walked back. So the rules are executable rather than written down, and
-// they are exercised against fixtures rather than against the published set:
-// MENTIONS is empty until the candidate list is assembled privately, and a rule
-// that has never rejected anything is not known to work.
+// they are exercised against fixtures rather than against the published set: a
+// rule that has never rejected anything is not known to work, and every real
+// row is expected to pass. The published set is checked too, separately, since
+// it is generated now and a bad export would otherwise be invisible.
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const KINDS = SECTIONS.map((section) => section.kind)
@@ -52,6 +53,29 @@ describe('the curation rules, against fixtures', () => {
     // domain, and getting this backwards would drop the strongest section on
     // the page: a stranger reporting a bug and the fix shipping the same day.
     expect(problemsWith(USER_ISSUE, KINDS)).toEqual([])
+  })
+})
+
+describe('the generated set', () => {
+  // Every rule in the block below is a loop, and a loop over an empty array
+  // passes. That was tolerable while the rows were written in this file, where
+  // emptiness showed up in a diff. They are generated now, so a broken export
+  // would leave the whole suite green and the page blank.
+  it('is not empty, because every rule below passes on nothing', () => {
+    expect(MENTIONS.length).toBeGreaterThan(0)
+  })
+
+  // The exporter sorts by date and the page relies on it. Asserting it here
+  // means a change at either end has to break this test first.
+  it('is sorted oldest first, since any other order publishes a ranking', () => {
+    const dates = MENTIONS.map((m) => m.date)
+    expect(dates).toEqual([...dates].sort())
+  })
+
+  it('carries a basis on every row, so nothing ships without somebody deciding', () => {
+    for (const row of MENTIONS) {
+      expect(['public-post', 'permission-given'], row.url).toContain(row.basis)
+    }
   })
 })
 
