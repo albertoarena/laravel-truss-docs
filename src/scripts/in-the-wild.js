@@ -218,29 +218,26 @@ export function languageName(tag, locale = 'en') {
 }
 
 /**
- * The video id in a YouTube watch URL, or null.
+ * Whether a source URL points at a video, so the link can say so.
  *
- * Drives the click-to-load facade. Nothing is requested from Google until the
- * reader presses play, which is what keeps /privacy/ true: it already promises
- * that nothing is requested from YouTube until you click, and a facade makes
- * that literal rather than a technicality. The poster is served from this site,
- * because hotlinking i.ytimg.com would be a request to Google on page load and
- * would break the same promise an iframe does.
+ * All this drives is a small triangle before the source name. An earlier version
+ * built a click-to-load facade with a self-hosted poster, which was correct on
+ * privacy and wrong on everything else: the embed rendered badly, the poster
+ * made one card twice the height of its neighbour, and the whole apparatus
+ * existed to give a reader something they get by clicking the link.
+ *
+ * Dropping it removes the privacy question rather than solving it. A link
+ * requests nothing until it is followed, which is what /privacy/ has always
+ * said about YouTube.
  */
-export function youtubeId(url) {
+export function isVideo(url) {
   try {
-    const parsed = new URL(url)
-    const host = parsed.hostname.replace(/^www\./, '')
-    if (host === 'youtube.com') return parsed.searchParams.get('v')
-    if (host === 'youtu.be') return parsed.pathname.slice(1) || null
-    return null
+    const host = new URL(url).hostname.replace(/^www\./, '')
+    return host === 'youtube.com' || host === 'youtu.be'
   } catch {
-    return null
+    return false
   }
 }
-
-/** Where the self-hosted poster for a video lives. */
-export const posterFor = (id) => `/video/${id}.jpg`
 
 /**
  * Matches one verbatim field assigned a single-line string literal.

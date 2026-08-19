@@ -18,8 +18,7 @@ import {
   initialsOf,
   isRtl,
   languageName,
-  youtubeId,
-  posterFor,
+  isVideo,
 } from '../scripts/in-the-wild.js'
 import { mentionsNode, softwareApplicationNode } from '../scripts/structured-data.js'
 
@@ -59,25 +58,9 @@ const description =
 
       <ul class="mentions">
         {section.items.map((mention) => {
-          const video = youtubeId(mention.url)
+          const video = isVideo(mention.url)
           return (
-          <li class:list={['mention', video && 'has-video']}>
-            {/* Click to load, never on arrival. /privacy/ promises that nothing
-                is requested from Google until you press Accept, and separately
-                that nothing is requested from YouTube until you click. An iframe
-                on load would make both false; a facade makes the second one
-                literal. The poster is served from this site for the same reason:
-                hotlinking i.ytimg.com is a request to Google on page load. */}
-            {video && (
-              <div class="video" data-video={video}>
-                <img src={posterFor(video)} alt="" width="1280" height="720" loading="lazy" />
-                <button type="button" class="play">
-                  <span class="play-icon" aria-hidden="true">▶</span>
-                  Play on YouTube <span class="play-note">(loads Google content)</span>
-                </button>
-              </div>
-            )}
-
+          <li class="mention">
             {/* Cited, not pulled out. The excerpt sits with its attribution and
                 keeps body size: a quote floated above the name in larger type
                 reads as a chosen slogan, which is the thing worth asking
@@ -110,7 +93,13 @@ const description =
                 {mention.role && <span class="role">{mention.role}</span>}
               </span>
               <span class="where">
+                {/* A plain triangle, not YouTube's mark. This page already
+                    decided against publisher logos, because reproducing one is a
+                    permission question nobody needs to open, and that reasoning
+                    does not stop applying because the publisher is large. It
+                    says "this link is a video" and nothing else. */}
                 <a href={mention.url} target="_blank" rel="noopener">
+                  {video && <span class="is-video" aria-hidden="true">▶</span>}
                   {mention.source}<span aria-hidden="true"> ↗</span>
                 </a>
                 <time datetime={mention.date}>{formatDate(mention.date)}</time>
@@ -143,26 +132,6 @@ const description =
     </p>
   </section>
 
-  {/* The only place this page can reach Google, and only after a click. Nothing
-      here runs on load beyond binding the listener: no preconnect, no prefetch,
-      no iframe. Adding any of those would put the request back on page load and
-      make /privacy/ false again, which is the whole reason the poster is
-      served from this site. */}
-  <script is:inline>
-    document.querySelectorAll('.video').forEach(function (box) {
-      var button = box.querySelector('.play')
-      if (!button) return
-      button.addEventListener('click', function () {
-        var frame = document.createElement('iframe')
-        frame.src =
-          'https://www.youtube-nocookie.com/embed/' + box.dataset.video + '?autoplay=1'
-        frame.title = 'Video player'
-        frame.allow = 'accelerometer; autoplay; encrypted-media; picture-in-picture'
-        frame.allowFullscreen = true
-        box.replaceChildren(frame)
-      })
-    })
-  </script>
 </SiteLayout>
 
 <style>
@@ -261,36 +230,21 @@ const description =
   .original::before { content: '\201C'; }
   .original::after { content: '\201D'; }
 
-  .video { position: relative; margin: -20px -20px 4px; background: var(--truss-line); }
-  .video img { display: block; width: 100%; height: auto; }
-  .play {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    border: 0;
-    background: color-mix(in srgb, var(--truss-bg) 55%, transparent);
-    color: var(--truss-fg);
-    font-family: var(--truss-font-mono);
-    font-size: 13px;
-    cursor: pointer;
-  }
-  .play:hover { background: color-mix(in srgb, var(--truss-bg) 35%, transparent); }
-  .play-icon { color: var(--truss-cyan); }
-  .play-note { color: var(--truss-muted); font-size: 11px; }
-  .video iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; }
+  .is-video { margin-right: 5px; font-size: 10px; }
 
-  /* No margin-top: auto. Pushing the attribution to the foot of the card left
-     the quote floating alone at the top, which is the pull-quote look this page
-     is trying not to have. The name sits under the words. */
+  /* Pinned to the foot of the card, so attributions line up across a row
+     however long the quotes above them run. Two names sitting at different
+     heights in adjacent columns reads as a layout mistake.
+
+     This was removed at one point on the theory that it caused the pull-quote
+     look. It did not: the weight of the quote did, and that is fixed in the
+     type above. Alignment and citation were never in tension. */
   .who {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-top: auto;
+    padding-top: 12px;
     flex-wrap: wrap;
   }
   /* Initials, never an avatar: hotlinking somebody's profile picture from a

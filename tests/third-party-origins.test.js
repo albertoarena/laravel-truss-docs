@@ -16,11 +16,12 @@ import { join, relative } from 'node:path'
 // stylesheet is a privacy change. Adding one means the privacy page is now
 // wrong until it is updated, and nothing in the build would have said so. A
 // YouTube embed on /in-the-wild/ was proposed and would have shipped exactly
-// that: an editorial decision wearing an editorial disguise, with a privacy
-// consequence nobody was looking for.
+// that: an editorial decision with a privacy consequence nobody was looking for.
 //
-// This is the check that would have caught it, and it is why the video on that
-// page is a click-to-load facade with a poster served from here.
+// This is the check that would have caught it. The video ended up as a plain
+// link for unrelated reasons, which is the cheapest possible answer, but the
+// test stays: the next embed will be proposed by somebody who has not read any
+// of this.
 
 const distRoot = fileURLToPath(new URL('../dist', import.meta.url))
 
