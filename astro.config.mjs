@@ -375,6 +375,12 @@ export default defineConfig({
             { label: 'Troubleshooting', link: '/help/troubleshooting/' },
           ],
         },
+        // Leaves the docs shell for the marketing surface, the way the roadmap
+        // does from the header. The badge buys attention, not warning: there is
+        // no affordance in this sidebar that says "this link changes the shell",
+        // and the reader who came from the docs is one click from being back via
+        // the header. Drop the badge once the page is no longer new.
+        { label: 'In the wild', link: '/in-the-wild/', badge: 'New' },
         { label: 'Credits', link: '/credits/' },
       ],
     }),
