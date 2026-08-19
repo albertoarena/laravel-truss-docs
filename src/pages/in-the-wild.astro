@@ -93,14 +93,16 @@ const description =
                 {mention.role && <span class="role">{mention.role}</span>}
               </span>
               <span class="where">
-                {/* A plain triangle, not YouTube's mark. This page already
-                    decided against publisher logos, because reproducing one is a
-                    permission question nobody needs to open, and that reasoning
-                    does not stop applying because the publisher is large. It
-                    says "this link is a video" and nothing else. */}
+                {/* A plain triangle and the platform in words, not YouTube's
+                    mark. Their published guidance permits the icon as a link
+                    only when the destination is a channel, and this points at a
+                    watch page. The name in plain text is ordinary nominative use
+                    and carries the same information: it tells a reader where the
+                    link goes before they follow it, which is the whole benefit
+                    an icon was going to buy. */}
                 <a href={mention.url} target="_blank" rel="noopener">
                   {video && <span class="is-video" aria-hidden="true">▶</span>}
-                  {mention.source}<span aria-hidden="true"> ↗</span>
+                  {mention.source}{video && ' on YouTube'}<span aria-hidden="true"> ↗</span>
                 </a>
                 <time datetime={mention.date}>{formatDate(mention.date)}</time>
               </span>
