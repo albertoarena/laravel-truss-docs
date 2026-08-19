@@ -83,6 +83,44 @@ describe('roadmap page output', () => {
   })
 })
 
+describe('site header', () => {
+  // The site has two headers: SiteLayout for the hand-authored pages and the
+  // Starlight Header override for the docs. Keeping them in step is the whole
+  // reason that override exists, and a nav entry added to one is invisible from
+  // the other half of the site. That is how /in-the-wild/ could ship linked
+  // from the landing page and unreachable from every guide.
+  const DESTINATIONS = ['/roadmap/', '/in-the-wild/', '/demo/']
+
+  /**
+   * Just the site nav, not the whole page.
+   *
+   * Scoping matters more than it looks. Asserting against the full HTML passed
+   * with the link deleted from the Starlight header, because the docs sidebar
+   * links the same page and the substring was still there. The test would have
+   * reported a header that agreed while the two disagreed.
+   */
+  const siteNav = (html) => {
+    const match = html.match(/<nav[^>]*class="[^"]*(?:top-nav|site-nav)[^"]*"[\s\S]*?<\/nav>/)
+    return match ? match[0] : ''
+  }
+
+  it('offers the same destinations from both headers', () => {
+    for (const [label, html] of [
+      ['landing (SiteLayout)', landing],
+      ['roadmap (SiteLayout)', roadmap],
+      ['in the wild (SiteLayout)', inTheWild],
+      ['docs page (Starlight override)', docsPage],
+    ]) {
+      const nav = siteNav(html)
+      expect(nav, `${label} has a site nav`).toBeTruthy()
+
+      for (const href of DESTINATIONS) {
+        expect(nav, `${label} nav links ${href}`).toContain(`href="${href}"`)
+      }
+    }
+  })
+})
+
 describe('site footer', () => {
   // The site has two footers that must stay in step: SiteLayout (hand-authored
   // pages) and the Starlight Footer override (docs pages).

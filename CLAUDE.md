@@ -108,3 +108,9 @@ testimonial on a public site is the one failure here that cannot be walked back.
   applying the rule above**, which is about output this repo can rebuild.
 - Personal, uncommitted preferences and planning notes live in `.docs/` and
   `CLAUDE.local.md` (both gitignored).
+- **Git commits:** `type: short subject` (max 50 chars, no em dash), then a body
+  explaining what and why rather than how. Use a heredoc for multi-line messages.
+  **Never add AI-attribution trailers**: no `Co-Authored-By: Claude`, no
+  `Claude-Session:`, no "Generated with Claude Code". The package repo and the
+  private notes repo both state this; it was missing here, and the gap produced
+  a pull request full of them.
