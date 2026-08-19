@@ -33,6 +33,7 @@ import { VALID, INVALID, USER_ISSUE } from './fixtures/in-the-wild.js'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const KINDS = SECTIONS.map((section) => section.kind)
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 describe('the curation rules, against fixtures', () => {
   it('accepts every shape the page supports', () => {
@@ -307,16 +308,38 @@ describe('the shape of the data module', () => {
 describe('the template', () => {
   const page = readFileSync(join(root, 'src/pages/in-the-wild.astro'), 'utf8')
 
-  it('binds the blockquote language to the quote it renders', () => {
-    // WCAG 2.2 3.1.2, Language of Parts. Nothing else in this repo checks it:
-    // there is no axe-core here and no Lighthouse CI, whatever the accessibility
-    // suite's comments imply about where contrast belongs.
+  it('marks the language and direction of a quote that is not English', () => {
+    // WCAG 2.2 3.1.2, Language of Parts, plus direction, which Arabic needs and
+    // which a lang attribute alone does not supply. Nothing else in this repo
+    // checks either: there is no axe-core here and no Lighthouse CI, whatever
+    // the accessibility suite's comments imply about where contrast belongs.
     //
-    // Asserted against the template rather than the built HTML because every row
-    // in the set is currently English, so an output check would pass while
-    // testing nothing. Promote this to an assertion over dist/ the first time a
-    // translated row ships.
-    expect(page).toMatch(/<blockquote[^>]*lang=\{mention\.quoteLang\}/)
+    // This was a template assertion while every row was English, since an output
+    // check would have passed by having nothing to look at. A translated row
+    // ships now, so it is promoted to the built HTML as promised.
+    const translated = MENTIONS.filter((m) => m.quoteLang)
+    expect(translated.length, 'a non-English row exists to check').toBeGreaterThan(0)
+
+    const html = readFileSync(join(root, 'dist/in-the-wild/index.html'), 'utf8')
+    for (const row of translated) {
+      const marked = new RegExp(
+        `<p[^>]*lang="${row.quoteLang}"[^>]*dir="rtl"[^>]*>[^<]*${escapeRe(row.quote.slice(0, 24))}`,
+      )
+      expect(html, `${row.author}'s original carries lang and dir`).toMatch(marked)
+    }
+  })
+
+  it('never presents our translation as the words of the person quoted', () => {
+    // The one thing that must not happen on the Arabic row. The English leads
+    // because most readers can use it, so the label carrying "translated" has to
+    // be present and has to name the language it came from.
+    const html = readFileSync(join(root, 'dist/in-the-wild/index.html'), 'utf8')
+    for (const row of MENTIONS.filter((m) => m.translation)) {
+      expect(html, `${row.author}'s translation is labelled`).toMatch(
+        /Translated from Arabic/,
+      )
+      expect(html, `${row.author}'s original is present too`).toContain(row.quote)
+    }
   })
 
   it('shows the release that answered a report', () => {

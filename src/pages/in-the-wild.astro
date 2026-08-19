@@ -12,7 +12,15 @@
  */
 import SiteLayout from '../layouts/SiteLayout.astro'
 import { MENTIONS, SECTIONS } from '../data/in-the-wild.ts'
-import { sectionsFor, formatDate, initialsOf } from '../scripts/in-the-wild.js'
+import {
+  sectionsFor,
+  formatDate,
+  initialsOf,
+  isRtl,
+  languageName,
+  youtubeId,
+  posterFor,
+} from '../scripts/in-the-wild.js'
 import { mentionsNode, softwareApplicationNode } from '../scripts/structured-data.js'
 
 const site = Astro.site ?? new URL('https://trussphp.com')
@@ -50,20 +58,49 @@ const description =
       </header>
 
       <ul class="mentions">
-        {section.items.map((mention) => (
-          <li class="mention">
-            {mention.quote && (
-              <blockquote lang={mention.quoteLang}>
-                <p>{mention.quote}</p>
-              </blockquote>
+        {section.items.map((mention) => {
+          const video = youtubeId(mention.url)
+          return (
+          <li class:list={['mention', video && 'has-video']}>
+            {/* Click to load, never on arrival. /privacy/ promises that nothing
+                is requested from Google until you press Accept, and separately
+                that nothing is requested from YouTube until you click. An iframe
+                on load would make both false; a facade makes the second one
+                literal. The poster is served from this site for the same reason:
+                hotlinking i.ytimg.com is a request to Google on page load. */}
+            {video && (
+              <div class="video" data-video={video}>
+                <img src={posterFor(video)} alt="" width="1280" height="720" loading="lazy" />
+                <button type="button" class="play">
+                  <span class="play-icon" aria-hidden="true">▶</span>
+                  Play on YouTube <span class="play-note">(loads Google content)</span>
+                </button>
+              </div>
             )}
 
-            {/* The original keeps its language; the translation is ours and
-                says so, rather than being passed off as what they wrote. */}
-            {mention.translation && (
-              <p class="translation">
-                <span class="translation-label">Translation:</span> {mention.translation}
-              </p>
+            {/* Cited, not pulled out. The excerpt sits with its attribution and
+                keeps body size: a quote floated above the name in larger type
+                reads as a chosen slogan, which is the thing worth asking
+                permission for. This is an excerpt of something published, with
+                a link to the rest. */}
+            {mention.translation ? (
+              <blockquote cite={mention.url}>
+                {/* The English leads because it is what most readers can use,
+                    and it is labelled as ours in the same breath. The original
+                    is present, in its own language and direction. What must
+                    never happen is the English reading as though he wrote it. */}
+                <p class="excerpt">{mention.translation}</p>
+                <p class="original-label">
+                  Translated from {languageName(mention.quoteLang)}. His words:
+                </p>
+                <p class="original" lang={mention.quoteLang} dir={isRtl(mention.quoteLang) ? 'rtl' : undefined}>
+                  {mention.quote}
+                </p>
+              </blockquote>
+            ) : (
+              <blockquote cite={mention.url} lang={mention.quoteLang} dir={isRtl(mention.quoteLang) ? 'rtl' : undefined}>
+                <p class="excerpt">{mention.quote}</p>
+              </blockquote>
             )}
 
             <footer class="who">
@@ -77,14 +114,23 @@ const description =
                   {mention.source}<span aria-hidden="true"> ↗</span>
                 </a>
                 <time datetime={mention.date}>{formatDate(mention.date)}</time>
-                {/* Without this the section is a list of bugs in Truss with no
-                    visible resolution, on Truss's own site. The blurb promises
-                    the releases that answered them; this is where it is kept. */}
-                {mention.fixedIn && <span class="fixed">Fixed in {mention.fixedIn}</span>}
               </span>
             </footer>
+
+            {/* Without this the section is a list of bugs in Truss with no
+                visible resolution, on Truss's own site. The blurb promises the
+                releases that answered them; this is where it is kept. The
+                interval is opened to release, so it agrees with the version
+                beside it, and it measures Alberto rather than the reporter. */}
+            {mention.fixedIn && (
+              <p class="fixed">
+                {mention.fixedAfter ? `Answered in ${mention.fixedAfter}` : 'Answered'}
+                <span class="fixed-rel">Released in {mention.fixedIn}</span>
+              </p>
+            )}
           </li>
-        ))}
+          )
+        })}
       </ul>
     </section>
   ))}
@@ -96,6 +142,27 @@ const description =
       row comes down.
     </p>
   </section>
+
+  {/* The only place this page can reach Google, and only after a click. Nothing
+      here runs on load beyond binding the listener: no preconnect, no prefetch,
+      no iframe. Adding any of those would put the request back on page load and
+      make /privacy/ false again, which is the whole reason the poster is
+      served from this site. */}
+  <script is:inline>
+    document.querySelectorAll('.video').forEach(function (box) {
+      var button = box.querySelector('.play')
+      if (!button) return
+      button.addEventListener('click', function () {
+        var frame = document.createElement('iframe')
+        frame.src =
+          'https://www.youtube-nocookie.com/embed/' + box.dataset.video + '?autoplay=1'
+        frame.title = 'Video player'
+        frame.allow = 'accelerometer; autoplay; encrypted-media; picture-in-picture'
+        frame.allowFullscreen = true
+        box.replaceChildren(frame)
+      })
+    })
+  </script>
 </SiteLayout>
 
 <style>
@@ -162,31 +229,68 @@ const description =
     gap: 12px;
   }
 
+  /* Citation, not pull-quote: body size, no rule down the side, no oversized
+     glyphs. The quotation marks are what say "these are somebody else's words",
+     and the size is what stops it reading as a slogan we chose. */
   blockquote { margin: 0; }
   blockquote p {
     margin: 0;
     color: var(--truss-fg);
-    font-size: 15px;
-    line-height: 1.55;
+    font-size: 14px;
+    line-height: 1.5;
     text-wrap: pretty;
   }
-  blockquote p::before { content: '\201C'; }
-  blockquote p::after { content: '\201D'; }
+  .excerpt::before { content: '\201C'; }
+  .excerpt::after { content: '\201D'; }
 
-  .translation { margin: 0; color: var(--truss-muted); font-size: 13px; line-height: 1.5; }
-  .translation-label {
+  /* The label is ours and stays outside the quoted element, so the quotation
+     marks wrap his words and not our sentence about them. */
+  .original-label {
+    margin-top: 10px !important;
     font-family: var(--truss-font-mono);
-    font-size: 10px;
+    font-size: 10px !important;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+    color: var(--truss-muted);
   }
+  .original {
+    margin-top: 4px !important;
+    color: var(--truss-muted);
+    font-size: 13px !important;
+  }
+  .original::before { content: '\201C'; }
+  .original::after { content: '\201D'; }
 
+  .video { position: relative; margin: -20px -20px 4px; background: var(--truss-line); }
+  .video img { display: block; width: 100%; height: auto; }
+  .play {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    border: 0;
+    background: color-mix(in srgb, var(--truss-bg) 55%, transparent);
+    color: var(--truss-fg);
+    font-family: var(--truss-font-mono);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .play:hover { background: color-mix(in srgb, var(--truss-bg) 35%, transparent); }
+  .play-icon { color: var(--truss-cyan); }
+  .play-note { color: var(--truss-muted); font-size: 11px; }
+  .video iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; }
+
+  /* No margin-top: auto. Pushing the attribution to the foot of the card left
+     the quote floating alone at the top, which is the pull-quote look this page
+     is trying not to have. The name sits under the words. */
   .who {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: auto;
-    padding-top: 4px;
     flex-wrap: wrap;
   }
   /* Initials, never an avatar: hotlinking somebody's profile picture from a
@@ -218,11 +322,18 @@ const description =
   .where a:hover { text-decoration: underline; }
   .where time { color: var(--truss-muted); font-variant-numeric: tabular-nums; }
   .fixed {
+    margin: 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--truss-line);
     font-family: var(--truss-font-mono);
     font-size: 11px;
     color: var(--truss-cyan);
-    white-space: nowrap;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
   }
+  .fixed-rel { color: var(--truss-muted); }
 
   .note { margin: 40px 0 8px; }
   .note p { margin: 0; font-size: 13px; color: var(--truss-muted); }

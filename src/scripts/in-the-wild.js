@@ -195,6 +195,53 @@ export function initialsOf(author) {
     .join('')
 }
 
+/** Scripts written right to left, for `dir` on a quote in one of them. */
+const RTL = new Set(['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'yi'])
+
+/** Whether a BCP-47 tag needs dir="rtl". Matches on the language subtag. */
+export const isRtl = (tag) => RTL.has(String(tag || '').split('-')[0].toLowerCase())
+
+/**
+ * "Arabic", from "ar".
+ *
+ * Used to label a translation as ours, which is the part that must never be
+ * ambiguous: the English on this page is not what the person wrote. Falls back
+ * to the tag itself rather than throwing, since a label is not worth a build.
+ */
+export function languageName(tag, locale = 'en') {
+  if (!tag) return ''
+  try {
+    return new Intl.DisplayNames([locale], { type: 'language' }).of(tag) || tag
+  } catch {
+    return tag
+  }
+}
+
+/**
+ * The video id in a YouTube watch URL, or null.
+ *
+ * Drives the click-to-load facade. Nothing is requested from Google until the
+ * reader presses play, which is what keeps /privacy/ true: it already promises
+ * that nothing is requested from YouTube until you click, and a facade makes
+ * that literal rather than a technicality. The poster is served from this site,
+ * because hotlinking i.ytimg.com would be a request to Google on page load and
+ * would break the same promise an iframe does.
+ */
+export function youtubeId(url) {
+  try {
+    const parsed = new URL(url)
+    const host = parsed.hostname.replace(/^www\./, '')
+    if (host === 'youtube.com') return parsed.searchParams.get('v')
+    if (host === 'youtu.be') return parsed.pathname.slice(1) || null
+    return null
+  } catch {
+    return null
+  }
+}
+
+/** Where the self-hosted poster for a video lives. */
+export const posterFor = (id) => `/video/${id}.jpg`
+
 /**
  * Matches one verbatim field assigned a single-line string literal.
  *
