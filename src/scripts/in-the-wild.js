@@ -88,6 +88,12 @@ export function problemsWith(mention, kinds = ['press', 'community', 'report']) 
   }
   if (!mention.date) problems.push(`${label}: no date`)
 
+  if (mention.kind === 'report' && !mention.fixedIn) {
+    problems.push(
+      `${label}: no release, and a report with no fix has no business in a section called "Reported and fixed"`,
+    )
+  }
+
   return problems
 }
 
@@ -110,10 +116,25 @@ export function bySection(mentions, sections) {
  * Decided in advance rather than left to taste on the day: three sections with
  * two rows each reads worse than one section with six. "Reported and fixed"
  * stands alone regardless, because it is different evidence.
+ *
+ * **Measures the two sections together, not each one separately.** It counted
+ * them separately at first, which did not match the reason above: with two press
+ * rows and ten community ones the page is not thin, but a per-section rule sees
+ * `2 < 3`, merges anyway, and sorts the merged list by date. The editorial is
+ * the oldest row in the set, so the strongest thing on the page ended up at the
+ * bottom of it. Lowering the number would have fixed that one set and broken
+ * again at a single press row; counting the volume that actually decides whether
+ * the page looks thin does not.
+ *
+ * Keeping press separate is not a ranking leak. Sections are keyed on `kind`,
+ * which is a category, not a measure of how anything performed.
  */
-export function shouldCollapse(mentions, threshold = 3) {
-  const count = (kind) => mentions.filter((m) => m.kind === kind).length
-  return count('press') < threshold || count('community') < threshold
+export function shouldCollapse(mentions, threshold = 6) {
+  const together = mentions.filter(
+    (m) => m.kind === 'press' || m.kind === 'community',
+  ).length
+
+  return together < threshold
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']

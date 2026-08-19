@@ -55,6 +55,7 @@ export const VALID = [
     source: 'GitHub',
     url: 'https://example.com/fixtures/issue',
     date: '2026-07-29',
+    fixedIn: 'v0.0.1',
     basis: 'public-post',
   },
 ]
@@ -193,6 +194,19 @@ export const INVALID = [
     },
   },
   {
+    why: 'a report with no release to point at',
+    expect: 'no release',
+    row: {
+      kind: 'report',
+      quote: 'Fails on a schema with more than a hundred tables.',
+      author: 'Fixture Reporter',
+      source: 'GitHub',
+      url: 'https://example.com/fixtures/unfixed',
+      date: '2026-07-29',
+      basis: 'public-post',
+    },
+  },
+  {
     why: 'an unparseable date cannot be sorted or spelled out',
     expect: 'does not parse',
     row: {
@@ -214,5 +228,6 @@ export const USER_ISSUE = {
   source: 'GitHub',
   url: 'https://github.com/albertoarena/laravel-truss/issues/2',
   date: '2026-07-29',
+  fixedIn: 'v0.0.1',
   basis: 'public-post',
 }

@@ -56,9 +56,6 @@ describe('the curation rules, against fixtures', () => {
 })
 
 describe('the published set', () => {
-  // Vacuous while MENTIONS is empty, and that is the point of the fixtures
-  // above. It stops being vacuous the moment the first real row lands, which is
-  // the moment it starts mattering.
   it('breaks none of the rules', () => {
     for (const row of MENTIONS) {
       expect(problemsWith(row, KINDS), row.url).toEqual([])
@@ -74,6 +71,33 @@ describe('the published set', () => {
     for (const section of bySection(MENTIONS, SECTIONS)) {
       expect(section.items.length, section.label).toBeGreaterThan(0)
     }
+  })
+
+  it('quotes only published editorial and public bug reports', () => {
+    // The template renders a quote as a pull-quote above the attribution, which
+    // presents it as an endorsement, and that is the case the rules say to ask
+    // permission for first. Anything else ships as an attributed link, which
+    // needs nobody's agreement. A community row acquiring a quote here means
+    // somebody skipped the ask.
+    for (const row of MENTIONS.filter((m) => m.quote)) {
+      expect(['press', 'report'], `${row.author} carries a quote`).toContain(row.kind)
+    }
+  })
+
+  it('names the release that answered every report', () => {
+    for (const row of MENTIONS.filter((m) => m.kind === 'report')) {
+      expect(row.fixedIn, row.author).toMatch(/^v\d+\.\d+\.\d+$/)
+    }
+  })
+
+  it('asserts a role for nobody, since no source showed one', () => {
+    // Absent because nothing displayed one, not because nobody looked. The rule
+    // is never to state anything about a person the visible source does not.
+    expect(MENTIONS.filter((m) => m.role)).toEqual([])
+  })
+
+  it('keeps press out of the collapsed list, so the editorial is not last', () => {
+    expect(shouldCollapse(MENTIONS)).toBe(false)
   })
 })
 
@@ -135,15 +159,25 @@ describe('sections and ordering', () => {
     expect(sections.map((s) => s.kind)).toEqual(['press', 'community'])
   })
 
-  it('collapses press and community below three rows in either', () => {
+  const many = (kind, n) =>
+    Array.from({ length: n }, (_, i) => ({ ...VALID[0], kind, url: `https://example.com/${kind}${i}` }))
+
+  it('collapses press and community when there are fewer than six rows between them', () => {
     // Decided in advance, not judged on the day: three sections with two rows
     // each reads worse than one section with six.
     expect(shouldCollapse(VALID)).toBe(true)
-
-    const many = (kind, n) =>
-      Array.from({ length: n }, (_, i) => ({ ...VALID[0], kind, url: `https://example.com/${kind}${i}` }))
     expect(shouldCollapse([...many('press', 3), ...many('community', 3)])).toBe(false)
     expect(shouldCollapse([...many('press', 3), ...many('community', 2)])).toBe(true)
+  })
+
+  it('does not collapse a lopsided set that is not actually thin', () => {
+    // The assertions above pass under a per-section rule too, so they cannot
+    // tell the two apart. This one can, and it is the shape of the real set:
+    // two press rows and ten community ones. Counting each section separately
+    // merged them, sorted by date, and put the oldest row last, which is where
+    // the editorial would have landed.
+    expect(shouldCollapse([...many('press', 2), ...many('community', 10)])).toBe(false)
+    expect(shouldCollapse([...many('press', 1), ...many('community', 10)])).toBe(false)
   })
 })
 
