@@ -77,6 +77,10 @@ const description =
                   {mention.source}<span aria-hidden="true"> ↗</span>
                 </a>
                 <time datetime={mention.date}>{formatDate(mention.date)}</time>
+                {/* Without this the section is a list of bugs in Truss with no
+                    visible resolution, on Truss's own site. The blurb promises
+                    the releases that answered them; this is where it is kept. */}
+                {mention.fixedIn && <span class="fixed">Fixed in {mention.fixedIn}</span>}
               </span>
             </footer>
           </li>
@@ -213,6 +217,12 @@ const description =
   .where a { color: var(--truss-cyan); text-decoration: none; }
   .where a:hover { text-decoration: underline; }
   .where time { color: var(--truss-muted); font-variant-numeric: tabular-nums; }
+  .fixed {
+    font-family: var(--truss-font-mono);
+    font-size: 11px;
+    color: var(--truss-cyan);
+    white-space: nowrap;
+  }
 
   .note { margin: 40px 0 8px; }
   .note p { margin: 0; font-size: 13px; color: var(--truss-muted); }

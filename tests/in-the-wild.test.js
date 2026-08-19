@@ -304,6 +304,26 @@ describe('the shape of the data module', () => {
   })
 })
 
+describe('the template', () => {
+  const page = readFileSync(join(root, 'src/pages/in-the-wild.astro'), 'utf8')
+
+  it('binds the blockquote language to the quote it renders', () => {
+    // WCAG 2.2 3.1.2, Language of Parts. Nothing else in this repo checks it:
+    // there is no axe-core here and no Lighthouse CI, whatever the accessibility
+    // suite's comments imply about where contrast belongs.
+    //
+    // Asserted against the template rather than the built HTML because every row
+    // in the set is currently English, so an output check would pass while
+    // testing nothing. Promote this to an assertion over dist/ the first time a
+    // translated row ships.
+    expect(page).toMatch(/<blockquote[^>]*lang=\{mention\.quoteLang\}/)
+  })
+
+  it('shows the release that answered a report', () => {
+    expect(page).toMatch(/mention\.fixedIn/)
+  })
+})
+
 describe('the fixtures stay in the tests', () => {
   it('is imported by nothing under src/', () => {
     // The one way invented rows reach the page. Cheap to check, and the cost of

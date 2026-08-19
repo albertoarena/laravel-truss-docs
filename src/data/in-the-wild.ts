@@ -175,9 +175,10 @@ export const SECTIONS: Section[] = [
 /**
  * Heading used when the first two sections render as one list.
  *
- * See shouldCollapse in scripts/in-the-wild.js: below three rows in either, two
- * thin sections read worse than one solid one. Lives here rather than in the
- * template because it is a label, and labels are content.
+ * See shouldCollapse in scripts/in-the-wild.js: below six rows between them, two
+ * thin sections read worse than one solid one. Not in use at the current set,
+ * which has twelve. Lives here rather than in the template because it is a
+ * label, and labels are content.
  */
 export const COLLAPSED: Omit<Section, 'kind'> = {
   label: 'What people say',
