@@ -4,8 +4,13 @@
  * Pure and data-in/data-out, like scripts/faq.js and scripts/structured-data.js,
  * so the rules can be asserted directly rather than by scraping the built HTML.
  * The page imports the grouping and the formatting; the test suite imports the
- * validator and runs it against fixtures, which is what gives the rules teeth
- * while the published set is still empty.
+ * validator and runs it over both the published rows and a fixture set built to
+ * break them, because a rule that has only ever passed is not known to work.
+ *
+ * Worth knowing before trusting any of it: problemsWith is called from the test
+ * suite and from nowhere else. `npm test` rejects a bad row and `astro build`
+ * will happily ship one, so these rules are exactly as strong as CI running on
+ * the pull request.
  */
 
 import { AUTHOR_NAME } from '../config/package.js'
