@@ -39,6 +39,12 @@ const TRY_IT = [
     description: 'The same dashboard across more than one database connection',
   },
   {
+    title: 'Draw your own schema',
+    path: '/demo/your-schema/',
+    description:
+      'Paste a mysqldump taken with no data, or a Truss JSON export, and see your own tables drawn. Parsed in the browser, never uploaded',
+  },
+  {
     title: 'Theme builder',
     path: '/theme-builder/',
     description: 'Build a palette against a live preview and copy the config it produces',

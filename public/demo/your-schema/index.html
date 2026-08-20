@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Laravel Truss: multiple connections demo</title>
+    <title>Laravel Truss: draw your own schema</title>
 
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cstyle%3E*%7Bstroke:%2312356b;fill:none;stroke-width:1.7%7Dcircle%7Bfill:%2312356b;stroke:none%7D@media(prefers-color-scheme:dark)%7B*%7Bstroke:%235fd0e6%7Dcircle%7Bfill:%235fd0e6%7D%7D%3C/style%3E%3Cpath d='M16 5 L27 26 H5 Z'/%3E%3Cpath d='M16 5 V17'/%3E%3Cpath d='M5 26 L16 17'/%3E%3Cpath d='M27 26 L16 17'/%3E%3Ccircle cx='16' cy='5' r='2.4'/%3E%3Ccircle cx='5' cy='26' r='2.4'/%3E%3Ccircle cx='27' cy='26' r='2.4'/%3E%3Ccircle cx='16' cy='17' r='2.4'/%3E%3C/svg%3E">
 
-    <!-- The exact assets Truss ships, copied into ../assets at build time (see
-         scripts/copy-demo-assets.mjs). This page lives one level deeper than the
-         main demo, so the paths step up one directory but reuse the same copy. -->
+    <!-- The exact assets Truss ships, copied here at build time (see
+         scripts/copy-demo-assets.mjs). Relative paths so the demo works
+         regardless of the site's base path without hardcoding it. -->
     <link rel="stylesheet" href="../assets/truss.css">
     <script src="../assets/vendor/mermaid.min.js"></script>
 
@@ -17,11 +17,15 @@
          It reuses the app's own blueprint tokens (--bp-*, set by truss.css), so
          it stays on-palette and theme-reactive without loading anything else. -->
     <style>
-      :root { --site-bar-h: 48px; }
+      /* --strip-h is 0 until a schema is drawn, when the "showing your schema"
+         strip appears and the diagram viewport gives up its height. Set on
+         <html> before truss.js loads, so its first fit measures the real box. */
+      :root { --site-bar-h: 48px; --strip-h: 0px; }
+      html[data-pasted] { --strip-h: 34px; }
       /* The whole thing fits one screen; the diagram viewport pans on its own. */
       html, body { overflow: hidden; }
       /* Reserve room for the site bar on top of the app's toolbar + footer. */
-      #truss-viewport { height: calc(100vh - 54px - 28px - var(--site-bar-h)) !important; }
+      #truss-viewport { height: calc(100vh - 54px - 28px - var(--site-bar-h) - var(--strip-h)) !important; }
       /* Anchor the app's absolutely-positioned overlays (the legend) to the app,
          not the viewport, so the site bar above the app cannot drop the legend
          onto the toolbar. Mirrors the package fix (#truss-app position: relative). */
@@ -42,8 +46,6 @@
         text-decoration: none; color: var(--bp-ink);
       }
       .site-bar-word { font-weight: 600; font-size: 17px; letter-spacing: -0.05em; }
-      /* A caption naming what this demo shows, so the two connections are obvious. */
-      .site-bar-tag { font-family: var(--bp-mono); font-size: 12px; color: var(--bp-muted); letter-spacing: -0.01em; }
       .site-bar-nav { display: flex; align-items: center; gap: 18px; }
       .site-bar-nav a {
         font-size: 13px; color: var(--bp-muted); text-decoration: none; letter-spacing: -0.01em;
@@ -64,8 +66,107 @@
       .site-bar a:focus-visible, .site-bar-theme:focus-visible {
         outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px;
       }
-      @media (max-width: 720px) { .site-bar-tag { display: none; } }
       @media (max-width: 560px) { .site-bar-nav a { display: none; } }
+
+      /* The paste form is the page's empty state, not a dialog over a diagram:
+         until a schema arrives there is no diagram for it to sit over. That is
+         also what lets truss.js load only once a schema exists, so the first
+         draw needs no page reload and somebody who bounces never downloads the
+         vendored Mermaid. */
+      .paste {
+        height: calc(100vh - var(--site-bar-h));
+        overflow: auto; display: flex; align-items: flex-start; justify-content: center;
+        padding: 32px 18px;
+      }
+      .paste[hidden] { display: none; }
+      /* Opaque on purpose: the app's blueprint grid is a page background, and
+         running body copy straight over its rules is hard to read. The card
+         gives the text its own surface. */
+      .paste-card {
+        width: min(760px, 100%); color: var(--bp-fg); font-family: var(--bp-mono);
+        background: var(--bp-panel);
+        border: 1px solid var(--bp-panel-line);
+        border-radius: 10px;
+        padding: 26px 28px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, .08);
+      }
+      .paste-card h1 { font-size: 22px; margin: 0 0 8px; }
+      .paste-lede { margin: 0 0 18px; color: var(--bp-muted); font-size: 13px; line-height: 1.7; }
+      .paste-lede code {
+        background: var(--bp-row-odd); padding: 1px 5px; border-radius: 4px; font-size: 12.5px;
+      }
+      .paste-label { display: block; font-size: 12px; color: var(--bp-muted); margin-bottom: 6px; }
+      #paste-input {
+        width: 100%; min-height: 220px; resize: vertical;
+        background: var(--bp-panel); color: var(--bp-fg);
+        border: 1px solid var(--bp-panel-line); border-radius: 8px; padding: 12px 14px;
+        font-family: var(--bp-mono); font-size: 12.5px; line-height: 1.5;
+      }
+      #paste-input:focus-visible, .paste select:focus-visible, .paste button:focus-visible,
+      .paste input:focus-visible, .paste-strip button:focus-visible, .paste-strip a:focus-visible {
+        outline: 2px solid var(--bp-cyan); outline-offset: 2px;
+      }
+      .paste-actions {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 14px;
+        font-size: 12px; color: var(--bp-muted);
+      }
+      .paste select, .paste input[type='file'] {
+        background: var(--bp-field, var(--bp-panel)); color: var(--bp-fg);
+        border: 1px solid var(--bp-field-line, var(--bp-panel-line));
+        border-radius: 7px; padding: 5px 8px; font-family: var(--bp-mono); font-size: 12px;
+      }
+      #paste-go {
+        margin-left: auto; cursor: pointer;
+        background: var(--bp-ink); color: var(--bp-bg);
+        border: 1px solid var(--bp-ink); border-radius: 7px;
+        padding: 8px 18px; font-family: var(--bp-mono); font-size: 13px;
+      }
+      .paste-report { margin-top: 18px; font-size: 12.5px; line-height: 1.6; }
+      .paste-report:empty { display: none; }
+      .paste-error {
+        border: 1px solid var(--bp-panel-line); border-left: 3px solid #c2410c;
+        border-radius: 8px; padding: 12px 14px; background: var(--bp-panel);
+      }
+
+      /* The strip that replaces the form once a schema is drawn. */
+      .paste-strip {
+        height: var(--strip-h); display: flex; align-items: center; gap: 14px;
+        padding: 0 18px; background: var(--bp-panel);
+        border-bottom: 1px solid var(--bp-panel-line);
+        font-family: var(--bp-mono); font-size: 12px; color: var(--bp-muted);
+        overflow: hidden;
+      }
+      .paste-strip[hidden] { display: none; }
+      .paste-strip strong { color: var(--bp-fg); font-weight: 500; }
+      .paste-strip .spacer { margin-left: auto; }
+      .paste-strip button, .paste-strip a {
+        background: transparent; border: 1px solid var(--bp-panel-line); border-radius: 7px;
+        color: var(--bp-muted); padding: 4px 10px; cursor: pointer;
+        font-family: var(--bp-mono); font-size: 12px; text-decoration: none; white-space: nowrap;
+      }
+      .paste-strip button:hover, .paste-strip a:hover { color: var(--bp-fg); border-color: var(--bp-ink); }
+      /* Something in the paste did not parse cleanly. Marked with a colour AND a
+         word, never colour alone, so it does not depend on telling two shades
+         apart (the same rule the package's v1.9.0 focus rings follow). */
+      .paste-attention { color: #b45309; font-weight: 500; }
+      .paste-strip button.attention { color: #b45309; border-color: #b45309; }
+      @media (prefers-color-scheme: dark) {
+        .paste-attention, .paste-strip button.attention { color: #fbbf24; }
+        .paste-strip button.attention { border-color: #fbbf24; }
+      }
+      #paste-details {
+        position: fixed; top: calc(var(--site-bar-h) + var(--strip-h) + 6px); right: 14px; z-index: 60;
+        margin: 0; max-width: min(92vw, 520px); max-height: 70vh; overflow: auto;
+        background: var(--bp-panel); color: var(--bp-fg);
+        border: 1px solid var(--bp-panel-line); border-radius: 8px; padding: 14px 16px;
+        font-family: var(--bp-mono); font-size: 12px; line-height: 1.6;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, .22);
+      }
+      #paste-details[hidden] { display: none; }
+      #paste-details h2 { font-size: 12px; margin: 14px 0 4px; color: var(--bp-muted); font-weight: 500; }
+      #paste-details h2:first-of-type { margin-top: 0; }
+      #paste-details ul { margin: 0; padding-left: 18px; }
+      @media (max-width: 640px) { .paste-strip .strip-text { display: none; } }
     </style>
 
     <!-- Reconcile the theme before paint. The app themes via data-theme on
@@ -98,10 +199,10 @@
             </svg>
             <span class="site-bar-word">truss</span>
         </a>
-        <span class="site-bar-tag">Two connections. Switch with the Connections selector.</span>
         <nav class="site-bar-nav" aria-label="Site">
-            <a href="../">Demo</a>
-            <a href="../your-schema/">Your own schema</a>
+            <a href="../">Sample demo</a>
+            <a href="../multi-connection/">Multiple connections</a>
+            <a href="../../theme-builder/">Theme builder</a>
             <a href="../../getting-started/installation/">Docs</a>
             <a href="../../roadmap/">Roadmap</a>
             <a class="gh" href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
@@ -117,14 +218,63 @@
         </nav>
     </header>
 
+    <main class="paste" id="paste">
+        <div class="paste-card">
+            <h1>Draw your own schema</h1>
+            <p class="paste-lede">
+                Paste a <code>mysqldump --no-data</code>, or the output of
+                <code>php artisan truss:export --format=json</code>, and this page draws it
+                with the same dashboard Truss ships. It is parsed here in your browser:
+                <strong>nothing is uploaded, and no row data is read</strong>. If your dump
+                has <code>INSERT</code> statements in it, they are counted and thrown away.
+            </p>
+
+            <label class="paste-label" for="paste-input">Your schema</label>
+            <textarea id="paste-input" spellcheck="false" autocomplete="off"
+                      placeholder="CREATE TABLE `users` (&#10;  `id` bigint unsigned NOT NULL AUTO_INCREMENT,&#10;  ...&#10;);"></textarea>
+
+            <div class="paste-actions">
+                <label for="paste-format">Format</label>
+                <select id="paste-format">
+                    <option value="auto">Detect it</option>
+                    <option value="mysql">MySQL or MariaDB SQL</option>
+                    <option value="truss-json">Truss JSON export</option>
+                </select>
+                <label for="paste-file" class="paste-label" style="margin:0">or a file</label>
+                <input type="file" id="paste-file" accept=".sql,.json,.txt,text/plain,application/json">
+                <button type="button" id="paste-go">Draw it</button>
+            </div>
+
+            <div class="paste-report" id="paste-report" role="status" aria-live="polite"></div>
+        </div>
+    </main>
+
+    <div class="paste-strip" id="paste-strip" hidden>
+        <span class="strip-text" id="paste-summary"></span>
+        <span class="spacer"></span>
+        <button type="button" id="paste-details-btn" aria-expanded="false" aria-controls="paste-details">Details</button>
+        <button type="button" id="paste-again">Load another</button>
+        <a href="../">Sample demo</a>
+        <a href="../../getting-started/installation/">Install Truss</a>
+    </div>
+
+    <div id="paste-details" hidden></div>
+
+    <!-- No data-schema-endpoint: ui.js sets it to an in-memory blob once a
+         schema has been pasted and parsed, and only then loads truss.js. Hidden
+         until that happens, so the page opens on the paste form.
+         data-connections stays empty on purpose: loadSchema() appends
+         ?connection= when connections are declared, and a blob URL cannot serve
+         that, so this page must never grow a connection picker. -->
     <div
+        hidden
         id="truss-app"
-        data-schema-endpoint="./schema.json"
-        data-connections='["main","modules"]'
+        data-connections='[]'
         data-type-labels="native"
         data-warn-above="60"
         data-focus-depth="1"
         data-min-zoom="0.7"
+        data-doctor-flag-tables="1"
     >
         <div class="truss-toolbar">
             <span class="truss-brand">
@@ -182,6 +332,13 @@
                         <path d="M5 8 h8 M9 4 v8"/><path d="M11 17 h8"/>
                     </svg>
                 </button>
+                <button type="button" class="truss-util" id="truss-health-btn" title="Structure health (truss:doctor findings)" aria-expanded="false" hidden>
+                    <svg class="truss-health-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                        <path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/>
+                    </svg>
+                    <span class="truss-health-count" id="truss-health-count" aria-hidden="true" hidden></span>
+                </button>
                 <button type="button" class="truss-util" id="truss-legend-btn" title="Legend" aria-expanded="false">▤</button>
                 <button type="button" class="truss-util" id="truss-theme-btn" title="Theme">◐</button>
             </div>
@@ -220,6 +377,14 @@
             <div class="truss-diff-body"></div>
         </div>
 
+        <div class="truss-health-panel" id="truss-health-panel" hidden>
+            <div class="truss-health-head">
+                <span>Structure health</span>
+                <button type="button" class="truss-health-max" id="truss-health-max-btn" title="Maximize" aria-label="Maximize" aria-pressed="false">⤢</button>
+            </div>
+            <div class="truss-health-body"></div>
+        </div>
+
         <div class="truss-popover" id="truss-popover" hidden></div>
 
         <footer class="truss-footer">
@@ -231,45 +396,13 @@
         </footer>
     </div>
 
-    <!-- Demo-only fetch shim. A static host cannot branch on the ?connection=
-         query the dashboard appends (loadSchema in truss.js), and truss.js is the
-         shipped asset we must not fork. So intercept the request here and rewrite
-         schema.json?connection=modules to a per-connection sample file. The real
-         package reads ?connection on the server; this only stands in for that. -->
-    <script>
-        (function () {
-            var realFetch = window.fetch.bind(window);
-            window.fetch = function (input, init) {
-                try {
-                    // loadSchema() calls fetch() with a URL object (.href), but a
-                    // string or a Request (.url) are also valid inputs, so read
-                    // whichever this is before matching.
-                    var href = typeof input === 'string' ? input : (input && (input.href || input.url));
-                    if (href) {
-                        var url = new URL(href, document.baseURI);
-                        if (/\/schema\.json$/.test(url.pathname)) {
-                            var conn = url.searchParams.get('connection');
-                            if (conn && conn !== 'main') {
-                                url.pathname = url.pathname.replace(/schema\.json$/, 'schema-' + conn + '.json');
-                                url.search = '';
-                                return realFetch(url.href, init);
-                            }
-                        }
-                    }
-                } catch (e) {}
-                return realFetch(input, init);
-            };
-        })();
-    </script>
-
-    <!-- Resolve the sample schema against this page's URL, so the fetch works
-         regardless of the deploy base path (loadSchema resolves relative to the
-         origin, not the page). -->
-    <script>
-        document.getElementById('truss-app').dataset.schemaEndpoint =
-            new URL('schema.json', document.baseURI).href;
-    </script>
-    <script type="module" src="../assets/truss.js"></script>
+    <!-- No schema endpoint and no truss.js yet. Both are supplied by the paste
+         flow once there is something to draw: see import/ui.js.
+         The dashboard's URL is declared here rather than inside ui.js because
+         the build stamps a version onto the demo asset folder by rewriting
+         ../assets/ in the page HTML, and it does not rewrite JavaScript. A path
+         written in the module would survive the rewrite and then 404. -->
+    <script type="module" src="./import/ui.js" data-truss-module="../assets/truss.js"></script>
 
     <!-- Site-bar theme toggle: flips data-theme on <html> (the app's CSS reacts)
          and writes both theme keys so the choice sticks across the whole site. -->
@@ -302,5 +435,7 @@
             reflect(pref());
         })();
     </script>
+
+    <!-- Palette picker wiring: swap data-palette, persist it, and keep the swatch
 </body>
 </html>

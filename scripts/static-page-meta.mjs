@@ -32,6 +32,13 @@ export const STATIC_PAGES = [
       'The Laravel Truss dashboard across more than one database connection, running live in your browser. Switch between connections and see each schema drawn on its own.',
   },
   {
+    file: 'demo/your-schema/index.html',
+    path: '/demo/your-schema/',
+    title: 'Laravel Truss: draw your own schema',
+    description:
+      'Paste a mysqldump taken with no data, or a schema exported from Truss, and see your own tables drawn as an ER diagram. Parsed in your browser, never uploaded, and no row data is read.',
+  },
+  {
     file: 'theme-builder/index.html',
     path: '/theme-builder/',
     title: 'Laravel Truss: theme builder',
