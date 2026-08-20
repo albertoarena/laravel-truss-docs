@@ -149,6 +149,13 @@ export const SECTIONS: RoadmapSection[] = [
           'A second pass on truss:doctor: the rest of the rule catalogue, a laravel preset, GitHub and JUnit output for inline CI annotations, a suppression workflow to baseline known findings, and a since-baseline mode that only reports problems a migration newly introduced.',
       },
       {
+        title: 'Try Truss on your own schema',
+        status: 'approved',
+        tag: 'docs-site',
+        blurb:
+          'Paste a schema dump into the demo on this site, a mysqldump with no data or a schema exported from Truss itself, and see your own tables drawn without installing anything. It is parsed in your browser and never uploaded. MySQL and MariaDB to begin with, and other input formats, including DBML, after that.',
+      },
+      {
         title: 'Lighthouse CI',
         status: 'approved',
         tag: 'docs-site',
@@ -182,13 +189,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'exploring',
         blurb:
           'Surface the diagram inside a Filament admin panel as a first-class page, so teams already living in Filament get the schema view where they work.',
-      },
-      {
-        title: 'Live DBML playground',
-        status: 'exploring',
-        tag: 'docs-site',
-        blurb:
-          'Paste or edit DBML on this site and watch the diagram redraw, so people can try the renderer before installing anything.',
       },
       {
         title: 'Tenant-aware snapshot caching',
