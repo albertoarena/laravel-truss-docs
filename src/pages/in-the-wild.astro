@@ -66,7 +66,12 @@ const description =
                 reads as a chosen slogan, which is the thing worth asking
                 permission for. This is an excerpt of something published, with
                 a link to the rest. */}
-            {mention.translation ? (
+            {/* A report whose reporter has no public words ships without a
+                quote. The element is omitted rather than emptied: a blank
+                blockquote beside full ones is the look that got quoteless rows
+                banned in the first place. What goes in its place is the
+                contribution below, which is ours and says so by being prose. */}
+            {mention.quote && (mention.translation ? (
               <blockquote cite={mention.url}>
                 {/* The English leads because it is what most readers can use,
                     and it is labelled as ours in the same breath. The original
@@ -84,6 +89,14 @@ const description =
               <blockquote cite={mention.url} lang={mention.quoteLang} dir={isRtl(mention.quoteLang) ? 'rtl' : undefined}>
                 <p class="excerpt">{mention.quote}</p>
               </blockquote>
+            ))}
+
+            {/* Ours, and it has to read as ours. Third person, no quotation
+                marks, and outside the blockquote, so there is no arrangement of
+                this page on which it can be mistaken for something they said.
+                That is the same separation the translation has, one field on. */}
+            {mention.contribution && (
+              <p class="contribution">{mention.contribution}</p>
             )}
 
             <footer class="who">
@@ -207,6 +220,18 @@ const description =
   blockquote p {
     margin: 0;
     color: var(--truss-fg);
+    font-size: 14px;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  /* Ours, so it must not look like theirs. Same size and leading as an excerpt,
+     because it is read the same way, but muted and without the quotation marks
+     the excerpts carry. The distinction a reader actually uses is the third
+     person; this only has to avoid contradicting it. */
+  .contribution {
+    margin: 0;
+    color: var(--truss-fg-muted, var(--truss-fg));
     font-size: 14px;
     line-height: 1.5;
     text-wrap: pretty;

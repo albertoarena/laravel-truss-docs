@@ -39,6 +39,15 @@
     },
     {
         "kind": "community",
+        "quote": "It caught a few schema issues that I had overlooked, which honestly made me appreciate the package even more. I can definitely see it being useful as a quick schema health check as a project grows. And now it is installed in all of my personal projects.",
+        "author": "Haydar Ali Awan",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7492848896029732864/",
+        "date": "2026-08-11",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
         "quote": "Inheriting a messy codebase used to cost me days of figuring out how the data is structured and how the tables connect. Now it takes 10 minutes.",
         "author": "Haseeb Mirza",
         "source": "LinkedIn",
@@ -96,6 +105,16 @@
         "fixedIn": "v1.8.4",
         "fixedAfter": "1h 44m",
         "basis": "public-post"
+    },
+    {
+        "kind": "report",
+        "contribution": "Reported three problems, each fixed in the next release: a filter that emptied the diagram with no explanation, a table border drawn on three sides, and a Focus picker that was unusable on a large schema.",
+        "author": "Alberto Peripolli",
+        "source": "GitHub",
+        "url": "https://github.com/albertoarena/laravel-truss/releases/tag/v1.9.0",
+        "date": "2026-08-18",
+        "fixedIn": "v1.9.0",
+        "basis": "permission-given"
     },
     {
         "kind": "community",

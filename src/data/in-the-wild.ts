@@ -86,6 +86,18 @@ export interface Mention {
   quoteLang?: string
   /** Ours, shown under a non-English quote and labelled as a translation. */
   translation?: string
+  /**
+   * Ours, for a row about somebody with no public sentence to quote.
+   *
+   * Rendered as plain prose in the third person, never inside the blockquote,
+   * so it cannot be read as something they said. It exists because a reporter
+   * whose bugs were fixed across three releases has no issue, no comment and no
+   * wish to write one, and the alternative was a name above a blank.
+   *
+   * Not an alternative to a quote where one exists: a community or press row
+   * with nothing quotable does not belong on the page at all.
+   */
+  contribution?: string
   author: string
   /** Only what the source itself shows. Never inferred from a bio. */
   role?: string

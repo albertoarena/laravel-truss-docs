@@ -98,7 +98,7 @@ describe('the published set', () => {
     }
   })
 
-  it('gives every row a quote, because a bare name says nothing', () => {
+  it('gives every row words, unless it is a report, which carries a release instead', () => {
     // Replaces a rule that allowed quotes only on press and report rows. That
     // was right while the template rendered a quote as a pull-quote looming
     // above the attribution, which presents an excerpt as an endorsement and is
@@ -107,8 +107,34 @@ describe('the published set', () => {
     // quoteless rows had already been taken off for saying nothing.
     //
     // What replaced it is the stronger rule: no row ships without words.
+    //
+    // One exception, 20/08/2026. A report may ship without a quote when the
+    // report was private and the reporter will not write a public sentence.
+    // Alberto Peripolli reported bugs fixed across three releases and has no
+    // public words anywhere in the repo; he was asked and declined. Quoting the
+    // changelog under his name would publish Alberto's sentence as his, which
+    // is the thing the translation rule already forbids elsewhere on this page.
+    //
+    // It is not a licence for a bare row. A quoteless row must be a report AND
+    // carry `fixedIn`, so it still shows the release that answered him, which
+    // is the fact the section exists to report. Community and press rows keep
+    // the rule intact: there, a missing quote means nothing was said worth
+    // reading, and that row should not be on the page at all.
     for (const row of MENTIONS) {
-      expect(row.quote, `${row.author} has nothing to say`).toBeTruthy()
+      expect(
+        Boolean(row.quote || row.contribution),
+        `${row.author} has nothing to say`,
+      ).toBe(true)
+
+      // A contribution is ours, so it may only stand in where the person has no
+      // public sentence at all: a report, which also carries the release that
+      // answered them, so the row still states a fact about the product rather
+      // than an opinion about the person. On a community or press row a missing
+      // quote means nothing was said worth reading, and it should not be here.
+      if (!row.quote) {
+        expect(row.kind, `${row.author} stands on our words alone`).toBe('report')
+        expect(row.fixedIn, `${row.author} has no release behind it`).toBeTruthy()
+      }
     }
   })
 
