@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Laravel Truss: live demo</title>
+
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cstyle%3E*%7Bstroke:%2312356b;fill:none;stroke-width:1.7%7Dcircle%7Bfill:%2312356b;stroke:none%7D@media(prefers-color-scheme:dark)%7B*%7Bstroke:%235fd0e6%7Dcircle%7Bfill:%235fd0e6%7D%7D%3C/style%3E%3Cpath d='M16 5 L27 26 H5 Z'/%3E%3Cpath d='M16 5 V17'/%3E%3Cpath d='M5 26 L16 17'/%3E%3Cpath d='M27 26 L16 17'/%3E%3Ccircle cx='16' cy='5' r='2.4'/%3E%3Ccircle cx='5' cy='26' r='2.4'/%3E%3Ccircle cx='27' cy='26' r='2.4'/%3E%3Ccircle cx='16' cy='17' r='2.4'/%3E%3C/svg%3E">
+
+    <!-- The exact assets Truss ships, copied here at build time (see
+         scripts/copy-demo-assets.mjs). Relative paths so the demo works
+         regardless of the site's base path without hardcoding it. -->
+    <link rel="stylesheet" href="./assets-v1.9.1/truss.css">
+    <script src="./assets-v1.9.1/vendor/mermaid.min.js"></script>
+
+    <!-- A slim site bar sits above the app so the demo belongs to trussphp.com.
+         It reuses the app's own blueprint tokens (--bp-*, set by truss.css), so
+         it stays on-palette and theme-reactive without loading anything else. -->
+    <style>
+      :root { --site-bar-h: 48px; }
+      /* The whole thing fits one screen; the diagram viewport pans on its own. */
+      html, body { overflow: hidden; }
+      /* Reserve room for the site bar on top of the app's toolbar + footer. */
+      #truss-viewport { height: calc(100vh - 54px - 28px - var(--site-bar-h)) !important; }
+      /* Anchor the app's absolutely-positioned overlays (the legend) to the app,
+         not the viewport, so the site bar above the app cannot drop the legend
+         onto the toolbar. Mirrors the package fix (#truss-app position: relative). */
+      #truss-app { position: relative; }
+      /* One theme control (in the site bar); the app's own button is redundant. */
+      #truss-theme-btn { display: none !important; }
+
+      .site-bar {
+        height: var(--site-bar-h);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; padding: 0 18px;
+        background: var(--bp-panel);
+        border-bottom: 1px solid var(--bp-panel-line);
+        font-family: var(--bp-mono);
+      }
+      .site-bar-logo {
+        display: inline-flex; align-items: center; gap: 9px;
+        text-decoration: none; color: var(--bp-ink);
+      }
+      .site-bar-word { font-weight: 600; font-size: 17px; letter-spacing: -0.05em; }
+      .site-bar-nav { display: flex; align-items: center; gap: 18px; }
+      .site-bar-nav a {
+        font-size: 13px; color: var(--bp-muted); text-decoration: none; letter-spacing: -0.01em;
+      }
+      .site-bar-nav a:hover { color: var(--bp-fg); }
+      .site-bar-theme {
+        background: transparent; border: 1px solid var(--bp-panel-line); border-radius: 7px;
+        color: var(--bp-muted); width: 32px; height: 28px; cursor: pointer; font-size: 14px; line-height: 1;
+      }
+      .site-bar-theme:hover { color: var(--bp-fg); }
+      /* One cycling icon, three states (light / dark / system). */
+      .site-bar-theme { display: inline-flex; align-items: center; justify-content: center; }
+      .site-bar-theme .ti { display: none; }
+      .site-bar-theme[data-mode='light'] .ti-light { display: inline; }
+      .site-bar-theme[data-mode='dark'] .ti-dark { display: inline; }
+      .site-bar-theme[data-mode='auto'] .ti-system { display: inline; }
+      .site-bar-nav a.gh { display: inline-flex; align-items: center; }
+      .site-bar a:focus-visible, .site-bar-theme:focus-visible {
+        outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px;
+      }
+      @media (max-width: 560px) { .site-bar-nav a { display: none; } }
+
+      /* Palette picker: a demo of the v1.6.0 theming feature. Each palette is a
+         set of truss.theme knob values, applied as --bp-* overrides on
+         [data-palette] exactly as the shipped theme.css does. */
+      .site-bar-palettes { display: inline-flex; align-items: center; gap: 6px; }
+      .pal {
+        background: transparent; border: 1px solid transparent; border-radius: 7px;
+        width: 26px; height: 26px; padding: 0; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .pal:hover { border-color: var(--bp-panel-line); }
+      .pal[aria-pressed='true'] { border-color: var(--bp-ink); }
+      .pal-dot { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .2); }
+      .pal[data-palette-set='blueprint'] .pal-dot { background: #12356b; }
+      .pal[data-palette-set='ember'] .pal-dot { background: #c2410c; }
+      .pal[data-palette-set='contrast'] .pal-dot { background: #111827; }
+      .site-bar-code {
+        background: transparent; border: 1px solid var(--bp-panel-line); border-radius: 7px;
+        color: var(--bp-muted); height: 28px; padding: 0 8px; cursor: pointer;
+        font-family: var(--bp-mono); font-size: 12px; line-height: 1;
+      }
+      .site-bar-code:hover { color: var(--bp-fg); }
+      .site-bar-code[aria-expanded='true'] { color: var(--bp-ink); border-color: var(--bp-ink); }
+      .pal:focus-visible, .site-bar-code:focus-visible {
+        outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px;
+      }
+      #demo-config {
+        position: fixed; top: calc(var(--site-bar-h) + 6px); right: 14px; z-index: 60;
+        margin: 0; max-width: min(92vw, 460px); max-height: 60vh; overflow: auto;
+        background: var(--bp-panel); color: var(--bp-fg);
+        border: 1px solid var(--bp-panel-line); border-radius: 8px; padding: 14px 16px;
+        font-family: var(--bp-mono); font-size: 12px; line-height: 1.55; white-space: pre;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, .22);
+      }
+      #demo-config[hidden] { display: none; }
+      @media (max-width: 560px) { .site-bar-code { display: none; } }
+    </style>
+
+    <!-- Reconcile the theme before paint. The app themes via data-theme on
+         <html> from its own `truss-theme` key; the rest of the site uses
+         `starlight-theme`. Seed one from the other so a choice made anywhere
+         carries into the demo, and the app's on-load applyTheme() agrees. -->
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('starlight-theme')
+          var pref = s === 'light' || s === 'dark' ? s : 'auto'
+          if (pref === 'auto') {
+            // App model: no explicit theme, CSS prefers-color-scheme decides.
+            document.documentElement.removeAttribute('data-theme')
+            localStorage.removeItem('truss-theme')
+          } else {
+            document.documentElement.setAttribute('data-theme', pref)
+            localStorage.setItem('truss-theme', pref)
+          }
+        } catch (e) {}
+      })()
+    </script>
+
+    <!-- Palette picker for the demo: a few example truss.theme palettes, applied
+         before paint as --bp-* overrides on [data-palette], mirroring the shipped
+         theme.css (light on :root, dark on the media query and the forced-dark
+         selector). The same values render the "config" snippet, so what you see
+         is exactly what the config produces. -->
+    <script>
+      (function () {
+        var KNOBS = {
+          'accent': ['ink', 'focus-border'],
+          'accent-secondary': ['cyan'],
+          'background': ['bg', 'edge-bg'],
+          'surface': ['panel', 'entity-bg', 'row-odd', 'field'],
+          'surface-alt': ['row-even'],
+          'text': ['fg', 'entity-text'],
+          'muted': ['muted', 'rel', 'edge'],
+          'border': ['entity-border', 'hair', 'panel-line', 'field-line']
+        };
+        var PALETTES = {
+          ember: {
+            // Fonts are a mode-independent theme knob (truss.theme.fonts). Ember
+            // pairs a typewriter mono with an editorial serif, both system stacks
+            // (the demo loads no webfonts), to show the knob alongside the colours.
+            fonts: { mono: '"Courier New", ui-monospace, monospace', sans: 'Georgia, "Times New Roman", serif' },
+            light: { 'accent': '#b45309', 'accent-secondary': '#0f766e', 'background': '#faf6f0', 'surface': '#fffdf8', 'surface-alt': '#f4ebda', 'text': '#3a2a1c', 'muted': '#785a3c', 'border': '#c8873f' },
+            dark: { 'accent': '#fbbf24', 'accent-secondary': '#5eead4', 'background': '#1b130b', 'surface': '#26190d', 'surface-alt': '#33230f', 'text': '#f5e6d0', 'muted': '#c2a17c', 'border': '#8a6428' }
+          },
+          contrast: {
+            light: { 'accent': '#111827', 'accent-secondary': '#374151', 'background': '#ffffff', 'surface': '#ffffff', 'surface-alt': '#eef1f4', 'text': '#000000', 'muted': '#3d4453', 'border': '#111827' },
+            dark: { 'accent': '#ffffff', 'accent-secondary': '#cbd5e1', 'background': '#000000', 'surface': '#0b0b0c', 'surface-alt': '#17181a', 'text': '#ffffff', 'muted': '#aab2c0', 'border': '#e5e7eb' }
+          }
+        };
+        window.__trussDemoPalettes = { KNOBS: KNOBS, PALETTES: PALETTES };
+
+        function hexToRgb(v) {
+          if (!/^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v || '')) return null;
+          var h = v.slice(1);
+          if (h.length <= 4) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+          return parseInt(h.slice(0, 2), 16) + ', ' + parseInt(h.slice(2, 4), 16) + ', ' + parseInt(h.slice(4, 6), 16);
+        }
+        function decls(vals) {
+          var css = '';
+          for (var knob in vals) {
+            var toks = KNOBS[knob];
+            if (!toks) continue;
+            for (var i = 0; i < toks.length; i++) css += '--bp-' + toks[i] + ':' + vals[knob] + ';';
+          }
+          // Row hairlines are a translucent tint of the border, so the table
+          // outline stays stronger than the row separators (mirrors
+          // ThemeStylesheet). Emitted after the loop so it wins.
+          var borderRgb = hexToRgb(vals.border);
+          if (borderRgb) css += '--bp-hair:rgba(' + borderRgb + ',0.35);';
+          // Grid follows the accent, as a faint tint (mirrors ThemeStylesheet).
+          var rgb = hexToRgb(vals.accent);
+          if (rgb) css += '--bp-grid:rgba(' + rgb + ',0.07);--bp-grid-strong:rgba(' + rgb + ',0.12);';
+          return css;
+        }
+        // Fonts have no light/dark split in the package (they live on :root), so
+        // emit them once on the base selector and let both modes inherit them.
+        function fontDecls(fonts) {
+          if (!fonts) return '';
+          var css = '';
+          if (fonts.mono) css += '--bp-mono:' + fonts.mono + ';';
+          if (fonts.sans) css += '--bp-sans:' + fonts.sans + ';';
+          return css;
+        }
+        var out = '';
+        for (var key in PALETTES) {
+          var sel = ':root[data-palette="' + key + '"]';
+          out += sel + '{' + fontDecls(PALETTES[key].fonts) + decls(PALETTES[key].light) + '}';
+          out += '@media (prefers-color-scheme: dark){' + sel + ':not([data-theme="light"]){' + decls(PALETTES[key].dark) + '}}';
+          out += sel + '[data-theme="dark"]{' + decls(PALETTES[key].dark) + '}';
+        }
+        var style = document.createElement('style');
+        style.textContent = out;
+        document.head.appendChild(style);
+
+        try {
+          var saved = localStorage.getItem('truss-demo-palette');
+          if (saved && PALETTES[saved]) document.documentElement.setAttribute('data-palette', saved);
+        } catch (e) {}
+      })();
+    </script>
+  <!-- static page meta -->
+    <meta name="description" content="Try the Laravel Truss dashboard in your browser against a sample schema. A scrollable, zoomable ER diagram with focus mode, filtering and exports, needing no installation and no database.">
+    <link rel="canonical" href="https://trussphp.com/demo/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Laravel Truss: live demo">
+    <meta property="og:description" content="Try the Laravel Truss dashboard in your browser against a sample schema. A scrollable, zoomable ER diagram with focus mode, filtering and exports, needing no installation and no database.">
+    <meta property="og:url" content="https://trussphp.com/demo/">
+    <meta property="og:image" content="https://trussphp.com/cover-light.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://trussphp.com/cover-light.png">
+  </head>
+<body>
+    <header class="site-bar">
+        <a class="site-bar-logo" href="../" aria-label="Laravel Truss home">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="miter" aria-hidden="true">
+                <path d="M16 5 L27 26 H5 Z"/><path d="M16 5 V17"/><path d="M5 26 L16 17"/><path d="M27 26 L16 17"/>
+                <g fill="currentColor" stroke="none"><circle cx="16" cy="5" r="2.3"/><circle cx="5" cy="26" r="2.3"/><circle cx="27" cy="26" r="2.3"/><circle cx="16" cy="17" r="2.3"/></g>
+            </svg>
+            <span class="site-bar-word">truss</span>
+        </a>
+        <nav class="site-bar-nav" aria-label="Site">
+            <a href="./your-schema/">Your own schema</a>
+            <a href="./multi-connection/">Multiple connections</a>
+            <a href="../theme-builder/">Theme builder</a>
+            <a href="../getting-started/installation/">Docs</a>
+            <a href="../roadmap/">Roadmap</a>
+            <a class="gh" href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82a7.55 7.55 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+            </a>
+            <div class="site-bar-palettes" role="group" aria-label="Palette">
+                <button type="button" class="pal" data-palette-set="blueprint" aria-pressed="true" title="Blueprint (default)" aria-label="Blueprint theme"><span class="pal-dot" aria-hidden="true"></span></button>
+                <button type="button" class="pal" data-palette-set="ember" aria-pressed="false" title="Ember (custom)" aria-label="Ember theme"><span class="pal-dot" aria-hidden="true"></span></button>
+                <button type="button" class="pal" data-palette-set="contrast" aria-pressed="false" title="Contrast (custom)" aria-label="Contrast theme"><span class="pal-dot" aria-hidden="true"></span></button>
+                <button type="button" class="site-bar-code" id="demo-config-btn" aria-expanded="false" aria-controls="demo-config" title="Show the config for this palette">&lt;/&gt;</button>
+            </div>
+            <button class="site-bar-theme" type="button" data-theme-cycle data-mode="auto" aria-label="Theme: system" title="Theme: system (click to change)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <g class="ti ti-light" stroke-linecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></g>
+                    <path class="ti ti-dark" d="M20 14.5A8 8 0 1 1 9.5 4a6.2 6.2 0 0 0 10.5 10.5z" />
+                    <g class="ti ti-system" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="12" rx="1.5" /><path d="M8.5 20.5h7M12 16.5v4" /></g>
+                </svg>
+            </button>
+        </nav>
+    </header>
+
+    <pre id="demo-config" hidden aria-live="polite"></pre>
+
+    <div
+        id="truss-app"
+        data-schema-endpoint="./schema.json"
+        data-connections='[]'
+        data-type-labels="native"
+        data-warn-above="60"
+        data-focus-depth="1"
+        data-min-zoom="0.7"
+        data-doctor-flag-tables="1"
+    >
+        <div class="truss-toolbar">
+            <span class="truss-brand">
+                <svg class="truss-mark" width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path d="M16 5 L27 26 H5 Z" stroke-width="1.7" stroke-linejoin="miter"/>
+                    <path d="M16 5 V17" stroke-width="1.7"/><path d="M5 26 L16 17" stroke-width="1.7"/><path d="M27 26 L16 17" stroke-width="1.7"/>
+                    <g fill="currentColor" stroke="none">
+                        <circle cx="16" cy="5" r="2.4"/><circle cx="5" cy="26" r="2.4"/><circle cx="27" cy="26" r="2.4"/><circle cx="16" cy="17" r="2.4"/>
+                    </g>
+                </svg>
+                truss
+            </span>
+
+            <label class="truss-field truss-field--search">
+                <span class="truss-field-label">Filter</span>
+                <input id="truss-search" type="search" placeholder="table name…" autocomplete="off">
+            </label>
+
+            <div class="truss-secondary" id="truss-more">
+                <!-- Mirrors the package's own view: Focus is a combobox rather
+                     than a select, so it can be searched by substring on a large
+                     schema. truss.js wires the picker only when the input and
+                     its listbox are both present. -->
+                <div class="truss-field truss-combo">
+                    <label class="truss-field-label" for="truss-focus">Focus</label>
+                    <input id="truss-focus" type="text" role="combobox" autocomplete="off"
+                           aria-expanded="false" aria-controls="truss-focus-list"
+                           aria-autocomplete="list" placeholder="none">
+                    <ul class="truss-combo-list" id="truss-focus-list" role="listbox"
+                        aria-label="Tables" hidden></ul>
+                    <span class="truss-sr-only" id="truss-focus-status" role="status" aria-live="polite"></span>
+                </div>
+                <label class="truss-field">
+                    <span class="truss-field-label">Depth</span>
+                    <input id="truss-depth" type="number" min="0" step="1">
+                </label>
+                <label class="truss-field truss-field--check">
+                    <input id="truss-labels" type="checkbox"> <span class="truss-field-label">Laravel types</span>
+                </label>
+            </div>
+
+            <div class="truss-utils">
+                <label class="truss-field truss-field--conn" hidden>
+                    <span class="truss-field-label">Connections</span>
+                    <select id="truss-connection"></select>
+                </label>
+                <button type="button" class="truss-util truss-util--more" id="truss-more-btn" title="More controls" aria-expanded="false">⋯</button>
+                <button type="button" class="truss-util" id="truss-export-btn" title="Export the diagram (PNG or SVG)" aria-expanded="false">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3 v11"/><path d="M7 9 l5 5 5-5"/><path d="M4 20 h16"/>
+                    </svg>
+                </button>
+                <button type="button" class="truss-util" id="truss-diff-btn" title="What changed since the last migration" aria-expanded="false" hidden>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 8 h8 M9 4 v8"/><path d="M11 17 h8"/>
+                    </svg>
+                </button>
+                <button type="button" class="truss-util" id="truss-health-btn" title="Structure health (truss:doctor findings)" aria-expanded="false" hidden>
+                    <svg class="truss-health-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                        <path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/>
+                    </svg>
+                    <span class="truss-health-count" id="truss-health-count" aria-hidden="true" hidden></span>
+                </button>
+                <button type="button" class="truss-util" id="truss-legend-btn" title="Legend" aria-expanded="false">▤</button>
+                <button type="button" class="truss-util" id="truss-theme-btn" title="Theme">◐</button>
+            </div>
+        </div>
+
+        <div id="truss-banners"></div>
+
+        <main id="truss-viewport">
+            <div id="truss-canvas"></div>
+
+            <div class="truss-zoom" id="truss-zoom">
+                <button type="button" data-fit title="Fit the whole diagram in view">Fit</button>
+                <!-- A title is a tooltip, not an accessible name (WCAG 4.1.2). -->
+                <input id="truss-zoom-range" type="range" min="0.1" max="3" step="0.02" value="1"
+                       aria-label="Zoom" title="Zoom (scroll or pinch over the diagram)">
+                <span id="truss-zoom-pct">100%</span>
+            </div>
+        </main>
+
+        <div class="truss-legend" id="truss-legend" hidden>
+            <div class="truss-legend-head">Legend</div>
+            <dl class="truss-legend-list">
+                <dt>PK</dt><dd>Primary key</dd>
+                <dt>FK</dt><dd>Foreign key</dd>
+                <dt aria-hidden="true">
+                    <svg width="42" height="12" viewBox="0 0 42 12" fill="none" stroke="currentColor" stroke-width="1.3">
+                        <path d="M2 2 V10 M5 2 V10"/><path d="M5 6 H30"/>
+                        <path d="M30 6 L38 2 M30 6 L38 10 M30 6 H38"/><circle cx="35" cy="6" r="2.4"/>
+                    </svg>
+                </dt><dd>One → many</dd>
+            </dl>
+        </div>
+
+        <div class="truss-diff-panel" id="truss-diff-panel" hidden>
+            <div class="truss-diff-head">Changes since last migration</div>
+            <div class="truss-diff-body"></div>
+        </div>
+
+        <div class="truss-health-panel" id="truss-health-panel" hidden>
+            <div class="truss-health-head">
+                <span>Structure health</span>
+                <button type="button" class="truss-health-max" id="truss-health-max-btn" title="Maximize" aria-label="Maximize" aria-pressed="false">⤢</button>
+            </div>
+            <div class="truss-health-body"></div>
+        </div>
+
+        <div class="truss-popover" id="truss-popover" hidden></div>
+
+        <footer class="truss-footer">
+            <span id="truss-stat-tables">·</span>
+            <span id="truss-stat-conn"></span>
+            <span class="truss-flag" id="truss-stat-fallback" hidden>SQLite&nbsp;fallback</span>
+            <span class="truss-footer-spacer"></span>
+            <span id="truss-stat-updated"></span>
+        </footer>
+    </div>
+
+    <!-- Resolve the sample schema against this page's URL, so the fetch works
+         regardless of the deploy base path (loadSchema resolves relative to the
+         origin, not the page). -->
+    <script>
+        document.getElementById('truss-app').dataset.schemaEndpoint =
+            new URL('schema.json', document.baseURI).href;
+    </script>
+    <script type="module" src="./assets-v1.9.1/truss.js"></script>
+
+    <!-- Site-bar theme toggle: flips data-theme on <html> (the app's CSS reacts)
+         and writes both theme keys so the choice sticks across the whole site. -->
+    <script>
+        (function () {
+            var btn = document.querySelector('[data-theme-cycle]');
+            if (!btn) return;
+            var order = ['light', 'dark', 'auto'];
+            function pref() {
+                try { var v = localStorage.getItem('starlight-theme'); if (v === 'light' || v === 'dark') return v; } catch (e) {}
+                return 'auto';
+            }
+            function reflect(p) {
+                // App model: light/dark set data-theme; auto removes it so CSS
+                // prefers-color-scheme drives both the app and this bar live.
+                if (p === 'auto') document.documentElement.removeAttribute('data-theme');
+                else document.documentElement.setAttribute('data-theme', p);
+                btn.dataset.mode = p;
+                btn.setAttribute('aria-label', 'Theme: ' + p);
+                btn.title = 'Theme: ' + p + ' (click to change)';
+            }
+            btn.addEventListener('click', function () {
+                var next = order[(order.indexOf(pref()) + 1) % order.length];
+                try {
+                    if (next === 'auto') { localStorage.setItem('starlight-theme', ''); localStorage.removeItem('truss-theme'); }
+                    else { localStorage.setItem('starlight-theme', next); localStorage.setItem('truss-theme', next); }
+                } catch (e) {}
+                reflect(next);
+            });
+            reflect(pref());
+        })();
+    </script>
+
+    <!-- Palette picker wiring: swap data-palette, persist it, and keep the swatch
+         state and the config snippet in sync. The snippet is built from the same
+         values that produced the palette CSS, so it matches what is applied. -->
+    <script>
+        (function () {
+            var data = window.__trussDemoPalettes;
+            if (!data) return;
+            var PALETTES = data.PALETTES;
+            var root = document.documentElement;
+            var swatches = Array.prototype.slice.call(document.querySelectorAll('[data-palette-set]'));
+            var cfgBtn = document.getElementById('demo-config-btn');
+            var cfg = document.getElementById('demo-config');
+            var ORDER = ['accent', 'accent-secondary', 'background', 'surface', 'surface-alt', 'text', 'muted', 'border'];
+
+            function current() { return root.getAttribute('data-palette') || 'blueprint'; }
+
+            function block(vals) {
+                return ORDER.filter(function (k) { return vals[k]; })
+                    .map(function (k) { return "            '" + k + "' => '" + vals[k] + "',"; })
+                    .join('\n');
+            }
+            function fontBlock(fonts) {
+                if (!fonts) return '';
+                var lines = [];
+                if (fonts.mono) lines.push("        'mono' => '" + fonts.mono + "',");
+                if (fonts.sans) lines.push("        'sans' => '" + fonts.sans + "',");
+                if (!lines.length) return '';
+                return "    'fonts' => [\n" + lines.join('\n') + "\n    ],\n";
+            }
+            function snippet(key) {
+                if (key === 'blueprint') return '// Blueprint is the shipped default, no config needed.';
+                var p = PALETTES[key];
+                return "// config/truss.php\n'theme' => [\n" + fontBlock(p.fonts) + "    'colors' => [\n"
+                    + "        'light' => [\n" + block(p.light) + "\n        ],\n"
+                    + "        'dark' => [\n" + block(p.dark) + "\n        ],\n"
+                    + '    ],\n],';
+            }
+            function reflect() {
+                var cur = current();
+                swatches.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.paletteSet === cur ? 'true' : 'false'); });
+                if (cfg) cfg.textContent = snippet(cur);
+            }
+            function set(key) {
+                if (key === 'blueprint') root.removeAttribute('data-palette');
+                else root.setAttribute('data-palette', key);
+                try { key === 'blueprint' ? localStorage.removeItem('truss-demo-palette') : localStorage.setItem('truss-demo-palette', key); } catch (e) {}
+                reflect();
+            }
+            swatches.forEach(function (b) { b.addEventListener('click', function () { set(b.dataset.paletteSet); }); });
+            if (cfgBtn && cfg) {
+                cfgBtn.addEventListener('click', function () {
+                    if (cfg.hasAttribute('hidden')) { cfg.removeAttribute('hidden'); cfgBtn.setAttribute('aria-expanded', 'true'); }
+                    else { cfg.setAttribute('hidden', ''); cfgBtn.setAttribute('aria-expanded', 'false'); }
+                });
+            }
+            reflect();
+        })();
+    </script>
+
+<style>
+  #cookie-consent {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 2147483000;
+    background: var(--bp-panel, #0f2338);
+    color: var(--bp-fg, #d7e7f4);
+    border-top: 1px solid var(--bp-line-strong, #4681b2);
+    padding: 1rem 24px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  #cookie-consent[hidden] { display: none; }
+  #cookie-consent .consent-inner {
+    max-width: 940px; margin: 0 auto; display: flex; flex-wrap: wrap;
+    align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  #cookie-consent .consent-copy { flex: 1 1 22rem; }
+  #cookie-consent .consent-title { margin: 0 0 .25rem; font-size: .875rem; font-weight: 600; }
+  #cookie-consent p { margin: 0; font-size: .8125rem; line-height: 1.5; }
+  #cookie-consent a { color: var(--bp-cyan, #7fe0f2); }
+  #cookie-consent .consent-actions { display: flex; gap: .75rem; flex-shrink: 0; }
+  /* One class for both controls: refusing must be exactly as easy as agreeing. */
+  #cookie-consent .consent-btn {
+    font: inherit; font-size: .8125rem; line-height: 1; padding: .7rem 1.1rem;
+    border: 1px solid var(--bp-line-strong, #4681b2); border-radius: 8px;
+    background: transparent; color: inherit; cursor: pointer;
+  }
+  #cookie-consent .consent-btn-accept {
+    background: var(--bp-ink, #5fd0e6); border-color: var(--bp-ink, #5fd0e6); color: #0b1a2b;
+  }
+  #cookie-consent .consent-btn:focus-visible { outline: 2px solid var(--bp-cyan, #7fe0f2); outline-offset: 2px; }
+  @media (max-width: 560px) {
+    #cookie-consent .consent-actions { width: 100%; }
+    #cookie-consent .consent-btn { flex: 1; }
+  }
+</style>
+<div id="cookie-consent" role="dialog" aria-labelledby="cookie-consent-title"
+     aria-describedby="cookie-consent-description" hidden>
+  <div class="consent-inner">
+    <div class="consent-copy">
+      <p id="cookie-consent-title" class="consent-title">Analytics, only if you agree</p>
+      <p id="cookie-consent-description">
+        Nothing is loaded until you choose. Accept and Google Analytics helps show which
+        pages are actually useful. No advertising, no profiling, no cross-site tracking.
+        <a href="/privacy/">Privacy</a>
+      </p>
+    </div>
+    <div class="consent-actions">
+      <button type="button" class="consent-btn" data-consent="declined">Decline</button>
+      <button type="button" class="consent-btn consent-btn-accept" data-consent="accepted">Accept analytics</button>
+    </div>
+  </div>
+</div>
+<script>
+  (function () {
+    var KEY = 'truss-consent', ACCEPTED = 'accepted', DECLINED = 'declined', ID = 'G-HFRCM267PG';
+    var banner = document.getElementById('cookie-consent');
+    if (!banner) return;
+
+    function read() {
+      try {
+        var v = localStorage.getItem(KEY);
+        return v === ACCEPTED || v === DECLINED ? v : null;
+      } catch (e) { return null; }
+    }
+    function store(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
+
+    function load() {
+      if (document.querySelector('script[src^="https://www.googletagmanager.com"]')) return;
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { window.dataLayer.push(arguments); }
+      gtag('consent', 'default', {
+        analytics_storage: 'granted',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied'
+      });
+      gtag('js', new Date());
+      gtag('config', ID);
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-HFRCM267PG';
+      document.head.appendChild(s);
+    }
+
+    var stored = read();
+    if (stored === ACCEPTED) load();
+
+    if (stored) {
+      banner.parentNode.removeChild(banner);
+    } else {
+      banner.hidden = false;
+    }
+
+    var buttons = banner.querySelectorAll('[data-consent]');
+    for (var i = 0; i < buttons.length; i++) {
+      (function (button) {
+        button.addEventListener('click', function () {
+          var choice = button.getAttribute('data-consent') === ACCEPTED ? ACCEPTED : DECLINED;
+          store(choice);
+          if (choice === ACCEPTED) load();
+          banner.parentNode.removeChild(banner);
+        });
+      })(buttons[i]);
+    }
+  })();
+</script>
+</body>
+</html>

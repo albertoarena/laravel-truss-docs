@@ -1,0 +1,48 @@
+# Laravel Truss
+
+> A live database structure viewer for Laravel. Scans your live schema and renders it as a scrollable, zoomable ER diagram inside your app.
+
+Structure only, never data: tables, columns, indexes and foreign keys are read, row contents are never queried or exposed. Requires PHP 8.3+ and Laravel 12+. Source at https://github.com/albertoarena/laravel-truss.
+
+## Getting started
+
+- [Installation](https://trussphp.com/getting-started/installation/): Install Laravel Truss into your application
+- [Quick start](https://trussphp.com/getting-started/quick-start/): A tour of the Truss dashboard and its controls
+
+## Guides
+
+- [Accessibility](https://trussphp.com/guides/accessibility/): What of the Truss dashboard is operable without a mouse, how it is tested, and what is not covered yet
+- [Authorization](https://trussphp.com/guides/authorization/): Gate access to Truss so it is safe to run in production
+- [Focus and filter](https://trussphp.com/guides/focus-and-filter/): Keep large schemas legible with focus mode and filtering
+- [MCP server](https://trussphp.com/guides/mcp-server/): Let a coding agent query your live schema on demand over the Model Context Protocol
+- [Schema diff](https://trussphp.com/guides/schema-diff/): See what changed in your database structure since the last migration
+- [Schema doctor](https://trussphp.com/guides/schema-doctor/): Review your database structure for problems, in the terminal, in CI, and in the dashboard
+- [Schema export](https://trussphp.com/guides/schema-export/): Export your database structure from the command line for CI, tooling, and version control
+- [Theming](https://trussphp.com/guides/theming/): Match the dashboard to your app by defining your own colours and fonts from config
+- [Truss as AI context](https://trussphp.com/guides/ai-context/): Hand your real, live database structure to a coding agent as grounding context, so it stops inventing columns
+
+## Reference
+
+- [Commands](https://trussphp.com/reference/commands/): Artisan commands and asset publishing
+- [Configuration](https://trussphp.com/reference/configuration/): Every Laravel Truss configuration option
+
+## Help
+
+- [Frequently asked questions](https://trussphp.com/help/faq/): Short answers to what people ask before installing Laravel Truss: data safety, production use, access control, requirements, databases and connections
+- [Troubleshooting](https://trussphp.com/help/troubleshooting/): Common issues and how to resolve them
+
+## Try it
+
+- [Live demo](https://trussphp.com/demo/): The dashboard running against a sample schema, no installation needed
+- [Multiple connections demo](https://trussphp.com/demo/multi-connection/): The same dashboard across more than one database connection
+- [Draw your own schema](https://trussphp.com/demo/your-schema/): Paste a mysqldump taken with no data, or a Truss JSON export, and see your own tables drawn. Parsed in the browser, never uploaded
+- [Theme builder](https://trussphp.com/theme-builder/): Build a palette against a live preview and copy the config it produces
+
+## In the wild
+
+- [In the wild](https://trussphp.com/in-the-wild/): What other developers say about Laravel Truss, with a link to every source: coverage, posts by people who installed it, and bugs they reported that shipped as fixes
+
+## Optional
+
+- [Credits](https://trussphp.com/credits/): The tools and people behind Laravel Truss
+- [Privacy](https://trussphp.com/privacy/): What this site collects, what it stores in your browser, and why
