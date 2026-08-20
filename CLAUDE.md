@@ -28,6 +28,13 @@ package **release**; override with `PACKAGE_REF`, e.g. `PACKAGE_REF=main`) into
 then rebuild this site (push to `main` or re-run the Publish workflow) so the
 demo picks up the newly released frontend.
 
+**To review an unreleased package frontend, use `PACKAGE_PATH`**, which copies
+from a local checkout and skips the clone:
+`PACKAGE_PATH=../laravel-truss npm run build`. Such a build is stamped `local`
+rather than a version, so its asset folder is `assets-local` and it cannot be
+mistaken for a release; the suite fails while those assets are in place and says
+to run `npm run copy-demo-assets` to restore them. Do not deploy a local build.
+
 ## Commands
 
 - `npm ci` then `npm run dev` — local dev at http://localhost:4321

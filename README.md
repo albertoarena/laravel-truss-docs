@@ -20,6 +20,18 @@ not committed here; a prebuild step fetches them from the public package repo
 (generated, gitignored). By default it pins to the **latest package release**;
 override with `PACKAGE_REF` (e.g. `PACKAGE_REF=main npm run build`).
 
+To review a package frontend change before it is pushed or released, point the
+build at a local checkout instead:
+
+```bash
+PACKAGE_PATH=../laravel-truss npm run build
+```
+
+That skips the clone entirely and stamps the build `local`, so its asset folder
+is `assets-local` and it can never be mistaken for a release in the output. The
+test suite fails while local assets are in place, telling you to run
+`npm run copy-demo-assets` to restore them.
+
 ## Deployment
 
 Server-pull model: CI (`.github/workflows/publish.yml`) builds the site and

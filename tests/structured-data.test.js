@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
+import { LOCAL_STAMP } from '../scripts/copy-demo-assets.mjs'
+
 import {
   PACKAGE_NAME,
   PACKAGE_VERSION,
@@ -293,7 +295,22 @@ describe('the version constant', () => {
       // GitHub release. It is gitignored, so this only runs after a real build,
       // but when it does it catches the landing page and the structured data
       // advertising a version the site no longer ships.
-      expect(PACKAGE_VERSION).toBe(readFileSync(versionFile, 'utf8').trim())
+      const stamp = readFileSync(versionFile, 'utf8').trim()
+
+      // A build made with PACKAGE_PATH carries a local checkout's frontend
+      // rather than a released one, so there is no version for the structured
+      // data to agree with. Deliberately a failure rather than a skip: the site
+      // would otherwise advertise a version it is not serving, and this doubles
+      // as the reminder that the demo assets are still the local ones.
+      if (stamp === LOCAL_STAMP) {
+        throw new Error(
+          'The demo assets came from a local checkout (PACKAGE_PATH), not a release, so there is '
+          + 'no version to check against. Run `npm run copy-demo-assets` to restore them before '
+          + 'trusting this suite or building to deploy.',
+        )
+      }
+
+      expect(PACKAGE_VERSION).toBe(stamp)
     },
   )
 })

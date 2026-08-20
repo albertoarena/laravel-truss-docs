@@ -45,6 +45,8 @@ The `<docroot>` folder name is the deploy target (an addon-domain docroot).
 The live demo's frontend is fetched at build time from the package repo
 `albertoarena/laravel-truss` (`resources/`), pinned to the latest package
 release; override with `PACKAGE_REF` (see `scripts/copy-demo-assets.mjs`).
+`PACKAGE_PATH=../laravel-truss` builds against a local checkout for review; such
+a build is stamped `local` and must never be deployed.
 
 ## Operations
 
