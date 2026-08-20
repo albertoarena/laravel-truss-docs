@@ -21,6 +21,14 @@ export interface RoadmapItem {
   tag?: string
   /** A related GitHub issue, when one exists. */
   issueUrl?: string
+  /**
+   * Where to go and use a shipped thing that lives on this site, as a
+   * site-relative path. Docs-site items ship with the website rather than a
+   * package release, so they carry no version and previously pointed nowhere:
+   * the card said "shipped" and left the reader to find it. issueUrl cannot
+   * serve here, being constrained to GitHub.
+   */
+  tryUrl?: string
 }
 
 export interface RoadmapSection {
@@ -72,9 +80,18 @@ export const SECTIONS: RoadmapSection[] = [
           'An optional Model Context Protocol server so agents like Claude Code and Cursor pull your live schema on demand, with tools to list and describe tables, export the structure in any format, and focus a table. Read-only and structure only.',
       },
       {
+        title: 'Try Truss on your own schema',
+        status: 'shipped',
+        tag: 'docs-site',
+        tryUrl: '/demo/your-schema/',
+        blurb:
+          'Paste a schema dump into the demo on this site, a mysqldump with no data or a schema exported from Truss itself, and see your own tables drawn without installing anything. It is parsed in your browser and never uploaded. MySQL and MariaDB to begin with, and other input formats, including DBML, after that.',
+      },
+      {
         title: 'Theme builder',
         status: 'shipped',
         tag: 'docs-site',
+        tryUrl: '/theme-builder/',
         blurb:
           'Design a Truss theme in the browser: dial in colours and fonts against a live dashboard preview, then copy a ready-to-paste config block. Every value maps to the shipped truss.theme knobs, so what you build is exactly what the package produces.',
       },
@@ -147,13 +164,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'approved',
         blurb:
           'A second pass on truss:doctor: the rest of the rule catalogue, a laravel preset, GitHub and JUnit output for inline CI annotations, a suppression workflow to baseline known findings, and a since-baseline mode that only reports problems a migration newly introduced.',
-      },
-      {
-        title: 'Try Truss on your own schema',
-        status: 'approved',
-        tag: 'docs-site',
-        blurb:
-          'Paste a schema dump into the demo on this site, a mysqldump with no data or a schema exported from Truss itself, and see your own tables drawn without installing anything. It is parsed in your browser and never uploaded. MySQL and MariaDB to begin with, and other input formats, including DBML, after that.',
       },
       {
         title: 'Lighthouse CI',

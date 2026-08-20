@@ -144,3 +144,40 @@ describe('roadmap data', () => {
     }
   })
 })
+
+describe('try-it links', () => {
+  // A docs-site item ships with the website rather than a package release, so it
+  // carries no version and had nothing pointing at the thing it delivered. The
+  // roadmap said "shipped" and left the reader to go and find it. issueUrl could
+  // not fill the gap: it is constrained to GitHub, which is the wrong
+  // destination for something that lives on this site.
+  const withTry = ALL.filter((item) => item.tryUrl)
+
+  it('exist at all, since a shipped page nobody can reach from here is a dead end', () => {
+    expect(withTry.length).toBeGreaterThan(0)
+  })
+
+  it('point somewhere on this site, not off it', () => {
+    for (const item of withTry) {
+      expect(item.tryUrl, item.title).toMatch(/^\/[\w/-]*\/$/)
+    }
+  })
+
+  it('only appear on shipped items, since you cannot try what is not built', () => {
+    for (const item of withTry) {
+      expect(item.status, item.title).toBe('shipped')
+    }
+  })
+
+  it('cover every shipped docs-site item', () => {
+    // These are the only cards whose deliverable is a page on this site, so
+    // every one of them has somewhere to send the reader.
+    const docsSite = SECTIONS.find((s) => s.status === 'shipped').items
+      .filter((item) => item.tag === 'docs-site')
+
+    expect(docsSite.length).toBeGreaterThan(0)
+    for (const item of docsSite) {
+      expect(item.tryUrl, `${item.title} ships a page but links nowhere`).toBeTruthy()
+    }
+  })
+})
