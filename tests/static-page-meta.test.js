@@ -18,10 +18,11 @@ const SITE = 'https://trussphp.com'
 const COVER = `${SITE}/cover-light.png`
 
 describe('STATIC_PAGES', () => {
-  it('covers all three hand-authored pages', () => {
+  it('covers all four hand-authored pages', () => {
     expect(STATIC_PAGES.map((page) => page.path).sort()).toEqual([
       '/demo/',
       '/demo/multi-connection/',
+      '/demo/your-schema/',
       '/theme-builder/',
     ])
   })

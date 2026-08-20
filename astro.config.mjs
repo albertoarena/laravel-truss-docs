@@ -30,12 +30,17 @@ function demoAssetVersioning() {
           await rename(join(demoDir, 'assets'), join(demoDir, `assets-${safe}`))
           // Repoint every page that references the demo assets at the versioned
           // folder. The demo's top-level page uses ./assets/; pages nested one
-          // level deep (multi-connection/) use ../assets/; the theme builder, a
-          // sibling of demo/, links the demo stylesheet as ../demo/assets/. Each
-          // gets the same version stamp.
+          // level deep (multi-connection/, your-schema/) use ../assets/; the
+          // theme builder, a sibling of demo/, links the demo stylesheet as
+          // ../demo/assets/. Each gets the same version stamp.
+          //
+          // Only HTML is rewritten. That is why your-schema/ declares the
+          // dashboard's URL on a script tag instead of writing it inside its own
+          // JavaScript: a path in a module would survive this and then 404.
           const rewrites = [
             { page: join(demoDir, 'index.html'), find: ['./assets/', '../assets/'] },
             { page: join(demoDir, 'multi-connection', 'index.html'), find: ['./assets/', '../assets/'] },
+            { page: join(demoDir, 'your-schema', 'index.html'), find: ['./assets/', '../assets/'] },
             { page: join(fileURLToPath(dir), 'theme-builder', 'index.html'), find: ['../demo/assets/'] },
           ]
           for (const { page, find } of rewrites) {
@@ -83,6 +88,7 @@ function staticPageConsent() {
         const pages = [
           join(fileURLToPath(dir), 'demo', 'index.html'),
           join(fileURLToPath(dir), 'demo', 'multi-connection', 'index.html'),
+          join(fileURLToPath(dir), 'demo', 'your-schema', 'index.html'),
           join(fileURLToPath(dir), 'theme-builder', 'index.html'),
         ]
 
@@ -344,6 +350,7 @@ export default defineConfig({
             { label: 'Installation', link: '/getting-started/installation/' },
             { label: 'Quick start', link: '/getting-started/quick-start/' },
             { label: 'Live demo', link: '/demo/', attrs: { target: '_blank' }, badge: 'Live' },
+            { label: 'Your own schema', link: '/demo/your-schema/', attrs: { target: '_blank' }, badge: 'New' },
             { label: 'Theme builder', link: '/theme-builder/', attrs: { target: '_blank' }, badge: 'New' },
           ],
         },

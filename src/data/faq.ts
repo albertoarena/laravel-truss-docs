@@ -72,7 +72,7 @@ export const FAQ: FaqItem[] = [
   {
     question: 'Can I try Laravel Truss without installing it?',
     answer:
-      'Yes. The live demo runs the real dashboard against a sample schema in your browser, with no installation and no database. There is a multi-connection variant, and a theme builder that lets you dial in colours and fonts against a live preview and copy the config it produces. The demo contains structure only, and no real data, because there is none.',
+      'Yes, and on your own schema rather than ours. Paste a mysqldump taken with no data, or the output of truss:export --format=json, and the real dashboard draws your tables in your browser: nothing is uploaded, and no row data is read. There is also a plain demo on a sample schema, a multi-connection variant, and a theme builder. All of it is structure only.',
     source: '/getting-started/quick-start/',
   },
 ]

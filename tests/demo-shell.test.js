@@ -18,11 +18,100 @@ const root = fileURLToPath(new URL('..', import.meta.url))
 const SHELLS = [
   'public/demo/index.html',
   'public/demo/multi-connection/index.html',
+  'public/demo/your-schema/index.html',
 ].map((path) => ({ path, html: readFileSync(new URL(`../${path}`, import.meta.url), 'utf8') }))
 
+const shell = (name) => SHELLS.find((s) => s.path.includes(name)).html
+
+/** Elements with no closing tag, so an unbalanced-tag check does not chase them. */
+const VOID = new Set([
+  'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta',
+  'param', 'source', 'track', 'wbr', 'path', 'circle', 'rect', 'use', 'stop',
+])
+
+/**
+ * Every unclosed or crossed tag in a document, by line.
+ *
+ * A deliberately small scanner rather than a parser dependency: a browser's
+ * parser is forgiving by design and recovers from this silently, which is
+ * exactly the problem.
+ *
+ * Comments and the bodies of <script> and <style> are blanked first, keeping
+ * their length so line numbers stay true. Both are raw text to a browser, and
+ * treating them as markup produces false alarms: a CSS comment mentioning
+ * <html>, or a JS string holding "</div>", is not a tag.
+ */
+function unbalancedTags(html) {
+  const errors = []
+  const stack = []
+  const lineAt = (index) => html.slice(0, index).split('\n').length
+  const blank = (match) => match.replace(/[^\n]/g, ' ')
+
+  const markup = html
+    .replace(/<!--[\s\S]*?-->/g, blank)
+    .replace(/(<script\b[^>]*>)([\s\S]*?)(<\/script>)/gi, (_, open, body, close) => open + blank(body) + close)
+    .replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi, (_, open, body, close) => open + blank(body) + close)
+
+  const tag = /<(\/?)([a-zA-Z][a-zA-Z0-9-]*)\b([^>]*)>/g
+
+  let match
+  while ((match = tag.exec(markup)) !== null) {
+    const [whole, closing, name, attrs] = match
+    const lower = name.toLowerCase()
+    if (VOID.has(lower) || lower === '!doctype' || attrs.trimEnd().endsWith('/')) continue
+
+    if (!closing) {
+      stack.push({ name: lower, line: lineAt(match.index) })
+      continue
+    }
+
+    const open = stack.pop()
+    if (!open) errors.push(`stray </${lower}> on line ${lineAt(match.index)}`)
+    else if (open.name !== lower) {
+      errors.push(`</${lower}> on line ${lineAt(match.index)} closes <${open.name}> opened on line ${open.line}`)
+    }
+  }
+
+  for (const open of stack) errors.push(`<${open.name}> opened on line ${open.line} is never closed`)
+
+  return errors
+}
+
+describe('the shells are structurally valid HTML', () => {
+  // This exists because it did not, and a shell shipped with the </a> closing
+  // the GitHub link missing. The browser recovered the way browsers do: it
+  // nested the whole page inside that anchor, so every line of text rendered
+  // underlined and every click navigated to GitHub. Nothing else in this file
+  // noticed, because matching strings with a regex cannot see tag structure.
+  for (const { path, html } of SHELLS) {
+    it(`closes every tag it opens: ${path}`, () => {
+      expect(unbalancedTags(html)).toEqual([])
+    })
+  }
+
+  it('detects the exact failure it was written for', () => {
+    // Guarding the guard: a check for structural damage is worthless if it
+    // cannot fail.
+    const broken = '<header><nav><a href="#"><svg><path d="M0 0"/></svg></nav></header>'
+
+    expect(unbalancedTags(broken)).toContain('</nav> on line 1 closes <a> opened on line 1')
+  })
+
+  it('does not mistake raw text in a style or script for markup', () => {
+    // Both of these appear in the shells: a CSS comment naming the <html>
+    // element, and a script holding a tag in a string.
+    const fine = [
+      '<head><style>/* set on <html> before load */ html[data-x] { color: red }</style>',
+      '<script>var s = "</div>";</script></head>',
+    ].join('\n')
+
+    expect(unbalancedTags(fine)).toEqual([])
+  })
+})
+
 describe('demo shells carry the controls the shipped frontend binds to', () => {
-  it('reads both hand-authored shells', () => {
-    expect(SHELLS.length).toBe(2)
+  it('reads every hand-authored shell', () => {
+    expect(SHELLS.length).toBe(3)
     for (const { path, html } of SHELLS) {
       expect(html.length, path).toBeGreaterThan(0)
     }
@@ -67,5 +156,46 @@ describe('demo shells carry the controls the shipped frontend binds to', () => {
     for (const { path, html } of SHELLS) {
       expect(html, path).toMatch(/id="truss-zoom-range"[^>]*aria-label="Zoom"/s)
     }
+  })
+})
+
+describe('the paste shell', () => {
+  const paste = shell('your-schema')
+
+  it('is the only shell carrying the paste form', () => {
+    // Not a style preference. loadSchema() appends ?connection= to its endpoint
+    // when connections are declared, and a blob: URL cannot serve that, so the
+    // paste flow and a connection picker cannot live on the same page. Keeping
+    // the form off the other two shells is what makes that impossible rather
+    // than merely avoided.
+    expect(paste).toMatch(/id="paste-input"/)
+    expect(shell('demo/index.html')).not.toMatch(/id="paste-input"/)
+    expect(shell('multi-connection')).not.toMatch(/id="paste-input"/)
+  })
+
+  it('declares no connections, so nothing can be appended to a blob endpoint', () => {
+    expect(paste).toMatch(/data-connections='\[\]'/)
+  })
+
+  it('ships with no schema endpoint, since there is no schema until one is pasted', () => {
+    // The attribute, not the word: the shell explains in a comment why it is
+    // absent, and that explanation is worth more than a looser assertion.
+    expect(paste).not.toMatch(/data-schema-endpoint\s*=/)
+  })
+
+  it('hides the dashboard until a schema is drawn', () => {
+    expect(paste).toMatch(/hidden\s+id="truss-app"/)
+  })
+
+  it('loads no dashboard module of its own, and hands ui.js the versioned URL', () => {
+    // The build stamps a version onto the asset folder by rewriting ../assets/
+    // in the page HTML and never in JavaScript, so the URL has to be declared
+    // here or the import 404s in production while working locally.
+    expect(paste).not.toMatch(/<script type="module" src="\.\.\/assets\/truss\.js"/)
+    expect(paste).toMatch(/data-truss-module="\.\.\/assets\/truss\.js"/)
+  })
+
+  it('says on the page itself that nothing is uploaded', () => {
+    expect(paste).toMatch(/nothing is uploaded/i)
   })
 })

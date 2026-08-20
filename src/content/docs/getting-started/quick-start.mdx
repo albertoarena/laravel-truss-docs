@@ -72,6 +72,10 @@ Out of the box Truss shows your application's default database connection. If yo
 
 See it in the [multiple-connections demo](/demo/multi-connection/), which switches between a main application database and a separate module database.
 
+## Try it on your own schema
+
+The demos above run against a sample. To see your own tables without installing anything, open [draw your own schema](/demo/your-schema/) and paste a `mysqldump --no-data`, or the output of `php artisan truss:export --format=json`. It is parsed in your browser, so nothing is uploaded, and any `INSERT` statements in the file are counted and discarded rather than read.
+
 ## Next steps
 
 - [Authorization](/guides/authorization/): run Truss safely in staging or production.
