@@ -20,7 +20,7 @@ Last run **21/08/2026**, against Truss v1.10.
 
 ## Works
 
-Truss installed, booted and ran. **16 applications, 697 tables.**
+Truss installed, booted and ran. **20 applications, 861 tables.**
 
 | Application | Laravel | Tables | Version tested |
 |---|---|---:|---|
@@ -29,10 +29,14 @@ Truss installed, booted and ran. **16 applications, 697 tables.**
 | Firefly III | 13.18 | 81 | `46728cb` |
 | Lunar | 12.67 | 75 | 1.x |
 | Snipe-IT | 12.67 | 58 | `93b0696` |
+| Lychee | 12.66 | 52 | `27f51cf` |
+| InvoiceShelf | 13.15 | 49 | `6a7becd` |
 | BookStack | 12.64 | 41 | `c813c1b` |
 | October CMS | 12.67 | 41 | v4.3.6 |
 | Koel | 13.24 | 40 | `3f5213d` |
+| Pterodactyl | 12.64 | 35 | `113ea43` |
 | Cachet | 13.25 | 32 | `161262d` |
+| Azuriom | 12.65 | 28 | `44008db` |
 | Twill | 12.67 | 24 | 3.x |
 | Laravel + Jetstream | 13.26 | 14 | 5.x |
 | Laravel + Filament | 13.26 | 9 | 5.7 |
@@ -49,8 +53,11 @@ and nothing more. Truss works there and has very little to draw.
 
 ## Fixed in v1.10, after they failed
 
-Two applications could not run Truss at all. Both were fixed in Truss rather
-than worked around, and both are in the table above now.
+Four applications could not run Truss at all. Every one was fixed in Truss
+rather than worked around, and all four are in the table above now.
+
+**Three of the four failed for the same reason**, which is the reason it is
+worth writing down: Truss required a newer PHP than Laravel itself does.
 
 ### October CMS
 
@@ -73,7 +80,33 @@ disciplined.
 **Truss now requires PHP 8.2**, which is what Laravel 12 requires. Fixed in
 v1.10.
 
+### Pterodactyl
+
+**The same mechanism as BookStack, on a different project.** Composer reported
+it plainly: *"require php ^8.3, your php version (8.2.0; overridden via
+config.platform, actual: 8.3.30)"*. The machine was running 8.3, the project
+declares 8.2 as its floor, and Truss was excluded for the gap between them.
+
+Fixed by the same change. Pterodactyl is worth naming separately because it
+shows the BookStack case was not a one-off.
+
+### Azuriom
+
+**Truss would not install on PHP 8.2 at all**, which is the other half of the
+same problem: not a project pinning a platform, just an interpreter that Laravel
+12 supports and Truss did not.
+
+Fixed by the same change.
+
 ## Cannot be tested
+
+### Coolify
+
+Not a Truss limitation, and Truss never ran. Coolify's migrations fail on MySQL
+before any package is involved, because one generated index name is **72
+characters against MySQL's limit of 64**. It is built for PostgreSQL, and every
+application on this page is measured on one pinned MySQL 8.0 so that results
+stay comparable.
 
 ### Invoice Ninja
 
