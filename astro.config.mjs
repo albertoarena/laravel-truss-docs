@@ -373,6 +373,7 @@ export default defineConfig({
           items: [
             { label: 'Configuration', link: '/reference/configuration/' },
             { label: 'Commands', link: '/reference/commands/' },
+            { label: 'Tested applications', link: '/reference/tested-applications/', badge: 'New' },
           ],
         },
         {
