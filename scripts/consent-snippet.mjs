@@ -61,8 +61,12 @@ export function consentSnippet(measurementId) {
     border: 1px solid var(--bp-line-strong, #4681b2); border-radius: 8px;
     background: transparent; color: inherit; cursor: pointer;
   }
+  /* The text has to flip with --bp-ink, which is a dark navy in light mode and
+     a pale cyan in dark. --bp-bg is the page background on both themes, so it
+     is the one token that always contrasts with the ink. The fallback stays the
+     dark-mode value, matching every other fallback in this block. */
   #cookie-consent .consent-btn-accept {
-    background: var(--bp-ink, #5fd0e6); border-color: var(--bp-ink, #5fd0e6); color: #0b1a2b;
+    background: var(--bp-ink, #5fd0e6); border-color: var(--bp-ink, #5fd0e6); color: var(--bp-bg, #0b1a2b);
   }
   #cookie-consent .consent-btn:focus-visible { outline: 2px solid var(--bp-cyan, #7fe0f2); outline-offset: 2px; }
   @media (max-width: 560px) {
