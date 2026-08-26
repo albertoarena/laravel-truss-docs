@@ -199,3 +199,38 @@ describe('the paste shell', () => {
     expect(paste).toMatch(/nothing is uploaded/i)
   })
 })
+
+describe('demo shells preload the face the diagram is measured in', () => {
+  // The dashboard's Blade view preloads this face. These shells never render
+  // that view, so the hint has to be repeated here by hand or the demo, which
+  // is the page the clipping was reported against, loads without it.
+  //
+  // The package waits for the face before measuring, so this is not what fixes
+  // the clipping. It shortens the wait: without the hint the face is discovered
+  // only when truss.css is parsed, and the demo fetches it across the network
+  // on a cold visit.
+  const PRELOAD = /<link[^>]*rel="preload"[^>]*>/g
+
+  it('preloads the 400 weight, which is what the labels paint in', () => {
+    for (const { path, html } of SHELLS) {
+      const tags = html.match(PRELOAD) ?? []
+      const face = tags.find((tag) => tag.includes('ibm-plex-mono-400.woff2'))
+      expect(face, `${path} does not preload the label face`).toBeTruthy()
+      expect(face, `${path}: preload needs as="font"`).toMatch(/as="font"/)
+      // Required even same-origin, or the preload is fetched again rather than
+      // reused, which makes the hint worse than useless.
+      expect(face, `${path}: font preloads need crossorigin`).toMatch(/crossorigin/)
+    }
+  })
+
+  it('points the preload at the relative assets folder the build rewrites', () => {
+    // demo-asset-versioning renames assets/ to assets-<version>/ and repoints
+    // only the './assets/' and '../assets/' tokens it finds in the built HTML.
+    // An absolute or differently spelled path survives the rewrite and then
+    // 404s, which would preload nothing and warn in the console on every visit.
+    for (const { path, html } of SHELLS) {
+      const face = (html.match(PRELOAD) ?? []).find((tag) => tag.includes('ibm-plex-mono-400.woff2'))
+      expect(face, path).toMatch(/href="\.{1,2}\/assets\/ibm-plex-mono-400\.woff2"/)
+    }
+  })
+})
