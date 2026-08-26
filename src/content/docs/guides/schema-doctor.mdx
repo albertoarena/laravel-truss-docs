@@ -110,6 +110,16 @@ Every finding carries a stable **code** (e.g. `TRUSS-INT-003`), shown in both th
 
 \* `TRUSS-IDX-001` is engine-aware: an **error** on PostgreSQL and SQLite, which do not auto-index foreign keys, and only **info** on MySQL and MariaDB, which do.
 
+### What `TRUSS-INT-007` counts as a pivot
+
+Two single-column foreign keys are necessary but **not sufficient**, or every entity table with two relationships would be flagged. A profile table with a `user_id` and a `plan_id` is not a many-to-many join, and the composite unique key the rule suggests would be wrong there.
+
+So Truss also asks whether the table carries its key pair and little else. It counts the columns that are not the pair, not `id`, and not `created_at` / `updated_at` / `deleted_at`. A table whose primary key **is** the pair, or which has no primary key at all, may carry one such column. A table with its own `id` primary key must carry none, because a table with its own identity is treated as an entity unless it has nothing else in it. Any other primary key is never a pivot.
+
+The rule also stays quiet when a unique index already covers **any part** of the pair, since a unique `user_id` makes `(user_id, plan_id)` unique on its own. Nullable columns do not count, because most engines allow repeated `NULL`s in a unique index.
+
+**A genuine pivot carrying two payload columns is missed on purpose.** A finding you never see costs you nothing, and a wrong one here recommends a migration that loses rows.
+
 Use these codes in `doctor.rules` (to enable, disable, or re-severity a rule) and `doctor.ignore` (to silence a known case per table or `table.column`). More rules land in later phases.
 
 ## Caveats

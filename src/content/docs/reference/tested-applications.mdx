@@ -1,0 +1,145 @@
+---
+title: Tested applications
+description: Which real Laravel applications Truss has been installed and run in, which needed a fix first, and which cannot be tested
+---
+
+Truss is installed and run against real open-source Laravel applications, not
+only against its own test fixtures. This page reports what happened in each one,
+**including the ones where it did not work**.
+
+It exists because two of them did not work, and finding that out from a bug
+report would have been worse for everybody than saying so here.
+
+## What was measured
+
+Every application below was installed from source, given an empty **MySQL 8.0**
+database, migrated, and then had `php artisan truss:doctor` run against it.
+Migrations only, no seed data, since Truss reads structure and never rows.
+
+Last run **21/08/2026**, against Truss v1.10.
+
+## Works
+
+Truss installed, booted and ran. **20 applications, 861 tables.**
+
+| Application | Laravel | Tables | Version tested |
+|---|---|---:|---|
+| Bagisto | 12.62 | 146 | v2.4.9 |
+| Monica | 12.22 | 100 | `e08e917` |
+| Firefly III | 13.18 | 81 | `46728cb` |
+| Lunar | 12.67 | 75 | 1.x |
+| Snipe-IT | 12.67 | 58 | `93b0696` |
+| Lychee | 12.66 | 52 | `27f51cf` |
+| InvoiceShelf | 13.15 | 49 | `6a7becd` |
+| BookStack | 12.64 | 41 | `c813c1b` |
+| October CMS | 12.67 | 41 | v4.3.6 |
+| Koel | 13.24 | 40 | `3f5213d` |
+| Pterodactyl | 12.64 | 35 | `113ea43` |
+| Cachet | 13.25 | 32 | `161262d` |
+| Azuriom | 12.65 | 28 | `44008db` |
+| Twill | 12.67 | 24 | 3.x |
+| Laravel + Jetstream | 13.26 | 14 | 5.x |
+| Laravel + Filament | 13.26 | 9 | 5.7 |
+| Laravel + Breeze | 13.26 | 9 | 2.x |
+| Statamic | 13.26 | 9 | 6.x |
+| Laravel 13 skeleton | 13.26 | 9 | v13.10.0 |
+| Laravel 12 skeleton | 12.67 | 9 | v12.12.2 |
+
+**A table count is a size, not a score.** Bagisto has more tables than Cachet
+because a shop is bigger than a status page.
+
+**Statamic keeps content in flat files**, so its database is the Laravel default
+and nothing more. Truss works there and has very little to draw.
+
+## Fixed in v1.10, after they failed
+
+Four applications could not run Truss at all. Every one was fixed in Truss
+rather than worked around, and all four are in the table above now.
+
+**Three of the four failed for the same reason**, which is the reason it is
+worth writing down: Truss required a newer PHP than Laravel itself does.
+
+### October CMS
+
+**Every `artisan` command failed**, not just Truss's own. October ships its own
+authentication and does not bind Laravel's `Gate` contract, and Truss resolved
+that contract while booting, for a gate only the dashboard ever consults. The
+error named Laravel and a third-party package, so it did not even look like a
+Truss problem.
+
+Truss no longer touches the authorization system at boot. Fixed in v1.10.
+
+### BookStack
+
+**Composer refused to install Truss**, on a machine running PHP 8.4. BookStack
+declares `config.platform.php` as `8.2.0`, which is careful practice: it makes
+Composer resolve as if running the oldest PHP the project supports. Truss
+required PHP 8.3, so it was excluded precisely because the project was being
+disciplined.
+
+**Truss now requires PHP 8.2**, which is what Laravel 12 requires. Fixed in
+v1.10.
+
+### Pterodactyl
+
+**The same mechanism as BookStack, on a different project.** Composer reported
+it plainly: *"require php ^8.3, your php version (8.2.0; overridden via
+config.platform, actual: 8.3.30)"*. The machine was running 8.3, the project
+declares 8.2 as its floor, and Truss was excluded for the gap between them.
+
+Fixed by the same change. Pterodactyl is worth naming separately because it
+shows the BookStack case was not a one-off.
+
+### Azuriom
+
+**Truss would not install on PHP 8.2 at all**, which is the other half of the
+same problem: not a project pinning a platform, just an interpreter that Laravel
+12 supports and Truss did not.
+
+Fixed by the same change.
+
+## Cannot be tested
+
+### Coolify
+
+Not a Truss limitation, and Truss never ran. Coolify's migrations fail on MySQL
+before any package is involved, because one generated index name is **72
+characters against MySQL's limit of 64**. It is built for PostgreSQL, and every
+application on this page is measured on one pinned MySQL 8.0 so that results
+stay comparable.
+
+### Invoice Ninja
+
+Not a Truss limitation. Its `composer.json` declares a path repository pointing
+at `../admin-api`, a directory that is not part of the repository, so **no
+package can be added to a plain clone by anyone**. `composer install` works,
+because it replays the lock file; `composer require` does not.
+
+## Not tested, and why
+
+- **Winter CMS** and **Akaunting** support Laravel 9 and 10 respectively, below
+  Truss's minimum of Laravel 12.
+- **Pixelfed** publishes its work on a `dev` branch that moves daily, and its
+  most recent release is from February 2026. Neither is comparable with the
+  releases measured above.
+- **Flarum** is not a Laravel application, only a consumer of its components.
+
+## What this page does not say
+
+**It does not rank these applications, and the findings are not published here.**
+`truss:doctor` reported real findings in most of them. Those go to each project
+first, as issues or pull requests, because a maintainer should hear about
+something in their schema from a person and not from a table on somebody else's
+website.
+
+A finding is also not a defect. Some rules are heuristics, and a heuristic that
+fires is asking a question, not making an accusation. See the
+[schema doctor guide](/guides/schema-doctor/) for what each rule checks.
+
+## Reproducing this
+
+The harness is not public, but the method is deliberately dull and anyone can
+repeat it: install the application, point it at an empty MySQL 8.0 database, run
+its migrations, add Truss, run `php artisan truss:doctor --format=json`. Every
+row above records the exact commit or release measured, so a result can be
+checked rather than taken on trust.
