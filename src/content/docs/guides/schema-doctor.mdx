@@ -95,7 +95,7 @@ Every finding carries a stable **code** (e.g. `TRUSS-INT-003`), shown in both th
 | Code | Checks | Severity | Confidence |
 | --- | --- | --- | --- |
 | `TRUSS-INT-001` | Table has no primary key | error | high |
-| `TRUSS-INT-002` | A `*_id` column matches a table but declares no foreign key | warning | heuristic |
+| `TRUSS-INT-002` | A `*_id` column matches a table but declares no foreign key, polymorphic columns excluded | warning | heuristic |
 | `TRUSS-INT-003` | A foreign key column's type differs from the key it references | error | high |
 | `TRUSS-INT-007` | A pivot table has no unique constraint on its key pair | warning | high |
 | `TRUSS-INT-009` | A polymorphic pair (`*_type`, `*_id`) has no composite index | warning | heuristic |
@@ -126,4 +126,20 @@ Use these codes in `doctor.rules` (to enable, disable, or re-severity a rule) an
 
 - **Structure only.** The doctor reads the same cached snapshot the diagram uses and never queries row data. It cannot know selectivity or query patterns, so it reviews structure, not performance.
 - **Heuristics are guesses.** They are off by default for a reason. Turn them on when you want them, and ignore the deliberate exceptions per pattern.
-- **Deterministic.** No AI, no network. The same schema always yields the same findings, so a diff in CI output is a real structural change.
+- **Deterministic, for a given version.** No AI, no network. The same schema and the same version of Truss always yield the same findings, so a diff in CI output is a real structural change. Across an upgrade it may not be: a rule that gets narrower reports less on a schema nobody touched. See [Upgrading](#upgrading-and-a-changed-rule) below.
+
+## Upgrading, and a changed rule
+
+Rules are calibrated against real schemas, so a release can change what the doctor reports on a database nobody touched. The first run after an upgrade is the one to read carefully: a smaller report is usually Truss having got quieter, not your schema having improved.
+
+**v1.10 narrowed `TRUSS-INT-007`.** Two single-column foreign keys stopped being enough to call a table a pivot. Measured across sixteen real Laravel applications, the rule fired 69 times before and 14 times after, and 56 of those 69 were wrong: profile tables, settings tables and one-to-one joins that are not many-to-many at all. One of them recommended a unique constraint that would have capped a user at a single budget.
+
+What that means for you:
+
+- **A CI job on `--fail-on=error` may now pass where it failed**, on a schema you have not changed. That is the intended outcome, not a regression.
+- **Findings you had suppressed in `doctor.ignore` may no longer fire.** A stale ignore entry is harmless, but it is worth pruning so the next real finding is not silently covered by it.
+- **Some genuine pivots are now missed on purpose.** A pivot carrying two payload columns escapes the rule. A finding you never see costs you nothing; a wrong one recommends a migration that loses rows.
+
+The same release stopped `TRUSS-INT-002` asking for a foreign key on polymorphic columns, which contradicted `TRUSS-INT-009` inside the same report, so a morph-heavy schema also gets a shorter report than it did.
+
+Findings and counts are only comparable between runs of the **same** version. If you track them over time, record the Truss version alongside the number.
