@@ -50,6 +50,14 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Laravel Boost support',
+        status: 'shipped',
+        version: 'v1.10.0',
+        tag: 'community requested',
+        blurb:
+          'Truss ships Boost guidelines and a skill inside the package, so an agent set up with Laravel Boost knows Truss is installed and reaches for your real schema instead of guessing at columns, with no MCP server to wire up by hand. Run boost:install and tick Truss in the third-party list: nothing third-party is selected by default, so it stays your call. The standalone MCP server and truss:export are unchanged, for people not using Boost. Read-only and structure only, as always.',
+      },
+      {
         title: 'Searchable Focus picker',
         status: 'shipped',
         version: 'v1.9.0',
@@ -151,13 +159,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'approved',
         blurb:
           'The rest of the accessibility work now that the keyboard is done. A text view of the same structure the diagram draws, since a rendered diagram is not a text alternative, then an audit of the criteria v1.9.0 did not cover, including contrast on control boundaries and inside the diagram itself, and a published statement saying exactly what is supported and what is not.',
-      },
-      {
-        title: 'Laravel Boost support',
-        status: 'approved',
-        tag: 'community requested',
-        blurb:
-          'Ship Boost guidelines and skills inside the package so an agent set up with Laravel Boost knows Truss is installed and reaches for your real schema, with no MCP server to wire up by hand. The standalone MCP server and truss:export stay exactly as they are, for people not using Boost. Read-only and structure only, as always.',
       },
       {
         title: 'Schema doctor: more rules and CI formats',
