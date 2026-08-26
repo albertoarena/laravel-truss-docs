@@ -16,7 +16,7 @@ Every application below was installed from source, given an empty **MySQL 8.0**
 database, migrated, and then had `php artisan truss:doctor` run against it.
 Migrations only, no seed data, since Truss reads structure and never rows.
 
-Last run **21/08/2026**, against Truss v1.10.
+Last run **21/08/2026**, against the v1.10 release branch.
 
 ## Works
 
@@ -47,6 +47,10 @@ Truss installed, booted and ran. **20 applications, 861 tables.**
 
 **A table count is a size, not a score.** Bagisto has more tables than Cachet
 because a shop is bigger than a status page.
+
+**Five of the twenty are framework starter skeletons**: Breeze, Jetstream,
+Filament, and the two bare Laravel installs. A fresh project is the schema Truss
+meets most often, so they are measured too.
 
 **Statamic keeps content in flat files**, so its database is the Laravel default
 and nothing more. Truss works there and has very little to draw.
