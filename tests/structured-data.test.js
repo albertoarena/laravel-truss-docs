@@ -234,12 +234,14 @@ describe('breadcrumbCrumbs', () => {
     expect(crumbs[0]).toEqual({ name: 'Home', item: `${SITE}/` })
   })
 
-  it('names the section without inventing a URL for it', () => {
-    // /guides/ is not a real page on this site. Emitting it as a linked crumb
-    // would put a 404 into the structured data, so the section is carried as a
-    // name only.
+  it('leaves the section out rather than carrying it with no URL', () => {
+    // /guides/ is not a real page on this site, so it cannot be linked. It also
+    // cannot be a name-only crumb: Google requires item on every element but the
+    // last, and one without it invalidates the whole list rather than shortening
+    // it. That is what Search Console reported on all fifteen section pages.
     const crumbs = breadcrumbCrumbs(SITE, '/guides/authorization/', 'Authorization')
-    expect(crumbs[1]).toEqual({ name: 'Guides' })
+    expect(crumbs).toHaveLength(2)
+    expect(crumbs.map((crumb) => crumb.name)).not.toContain('Guides')
   })
 
   it('ends on the page itself, using the real page title', () => {
@@ -250,12 +252,7 @@ describe('breadcrumbCrumbs', () => {
     })
   })
 
-  it('title-cases a hyphenated section the way the sidebar reads', () => {
-    const crumbs = breadcrumbCrumbs(SITE, '/getting-started/installation/', 'Installation')
-    expect(crumbs[1]).toEqual({ name: 'Getting Started' })
-  })
-
-  it('is just home and the page when there is no section', () => {
+  it('is home and the page at any depth', () => {
     const crumbs = breadcrumbCrumbs(SITE, '/credits/', 'Credits')
     expect(crumbs).toHaveLength(2)
     expect(crumbs.at(-1).name).toBe('Credits')
@@ -270,14 +267,26 @@ describe('breadcrumbNode', () => {
   it('numbers positions from one', () => {
     const node = breadcrumbNode(SITE, '/guides/authorization/', 'Authorization')
     expect(node['@type']).toBe('BreadcrumbList')
-    expect(node.itemListElement.map((element) => element.position)).toEqual([1, 2, 3])
+    expect(node.itemListElement.map((element) => element.position)).toEqual([1, 2])
   })
 
-  it('omits the item property on a crumb that has no URL', () => {
-    const node = breadcrumbNode(SITE, '/guides/authorization/', 'Authorization')
-    const section = node.itemListElement[1]
-    expect(section.name).toBe('Guides')
-    expect('item' in section).toBe(false)
+  it('gives every list item an item, at every depth the site has', () => {
+    // The rule this exists to hold: Google requires item on every element
+    // except the last, and drops the entire BreadcrumbList over one that is
+    // missing. A name-only crumb is valid schema.org and a critical error in
+    // Search Console, so nothing here may emit one.
+    const paths = [
+      ['/credits/', 'Credits'],
+      ['/help/faq/', 'FAQ'],
+      ['/getting-started/installation/', 'Installation'],
+      ['/guides/authorization/', 'Authorization'],
+    ]
+
+    for (const [pathname, title] of paths) {
+      for (const element of breadcrumbNode(SITE, pathname, title).itemListElement) {
+        expect(element.item).toMatch(/^https:\/\//)
+      }
+    }
   })
 
   it('is null rather than an empty list when there are no crumbs', () => {
