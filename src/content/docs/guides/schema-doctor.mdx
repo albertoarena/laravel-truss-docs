@@ -132,7 +132,7 @@ Use these codes in `doctor.rules` (to enable, disable, or re-severity a rule) an
 
 Rules are calibrated against real schemas, so a release can change what the doctor reports on a database nobody touched. The first run after an upgrade is the one to read carefully: a smaller report is usually Truss having got quieter, not your schema having improved.
 
-**v1.10 narrowed `TRUSS-INT-007`.** Two single-column foreign keys stopped being enough to call a table a pivot. Measured across sixteen real Laravel applications, the rule fired 69 times before and 14 times after, and 56 of those 69 were wrong: profile tables, settings tables and one-to-one joins that are not many-to-many at all. One of them recommended a unique constraint that would have capped a user at a single budget.
+**v1.10 narrowed `TRUSS-INT-007`.** Two single-column foreign keys stopped being enough to call a table a pivot. Measured across the twelve real Laravel applications that could run both versions, the rule fired 69 times before and 14 times after, and 56 of those 69 were wrong: profile tables, settings tables and one-to-one joins that are not many-to-many at all. One of them recommended a unique constraint that would have capped a user at a single budget. Those twelve schemas are also the ones the new rule was tuned on, so read the counts as a measure of what changed, not as a forecast of what your own report will do.
 
 What that means for you:
 
