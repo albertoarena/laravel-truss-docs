@@ -59,7 +59,12 @@ describe('the FAQ content', () => {
 
   it('covers the ground someone evaluating the package asks about', () => {
     const text = FAQ.map((item) => `${item.question} ${item.answer}`).join(' ').toLowerCase()
-    for (const topic of ['php 8.3', 'laravel 12', 'production', 'connection', 'demo']) {
+    // The PHP version is pinned on purpose rather than matched loosely: when the
+    // floor moves, this test should fail and make somebody check the other
+    // places that state it. It caught exactly that on the 8.3 to 8.2 change,
+    // where the requirement also lives in installation.mdx, llms.txt and the
+    // package README.
+    for (const topic of ['php 8.2', 'laravel 12', 'production', 'connection', 'demo']) {
       expect(text, `nothing about ${topic}`).toContain(topic)
     }
   })

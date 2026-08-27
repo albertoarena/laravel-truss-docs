@@ -16,7 +16,7 @@ const SUMMARY =
   'A live database structure viewer for Laravel. Scans your live schema and renders it as a scrollable, zoomable ER diagram inside your app.'
 
 const INTRO =
-  'Structure only, never data: tables, columns, indexes and foreign keys are read, row contents are never queried or exposed. Requires PHP 8.3+ and Laravel 12+. Source at https://github.com/albertoarena/laravel-truss.'
+  'Structure only, never data: tables, columns, indexes and foreign keys are read, row contents are never queried or exposed. Requires PHP 8.2+ and Laravel 12+. Source at https://github.com/albertoarena/laravel-truss.'
 
 /**
  * Pages that are not in the content collection.

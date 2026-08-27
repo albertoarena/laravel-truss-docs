@@ -45,6 +45,14 @@ The ability name is fixed (`viewTruss`); only the callback varies, and that live
 
 Once you define your own gate, `TRUSS_ALLOWED_EMAILS` is unused and can be dropped from your environment. Keep `TRUSS_ENABLED`.
 
+### If your application has no Gate at all
+
+Some applications ship their own authentication and never bind Laravel's `Gate` contract. October CMS is one. From **v1.10** Truss handles that: it no longer touches the authorization system while booting, and defines its gate only when a request needs one.
+
+Two consequences, both deliberate. Every `php artisan` command works normally, including `truss:doctor` and `truss:export`, which never consult the gate and are safe in CI. And the dashboard returns **404**, the same answer as a denial, because a route that cannot be authorised should stay invisible rather than confirm it exists.
+
+If you want the dashboard in an application like this, bind a `Gate` implementation and define `viewTruss` on it. Before v1.10, installing Truss in such an application broke every artisan command, so if you are on an older version this is the upgrade that fixes it.
+
 ### With Spatie roles or permissions
 
 If you use [spatie/laravel-permission](https://spatie.be/docs/laravel-permission), gate by role, or preferably by a dedicated permission:

@@ -48,7 +48,7 @@ export const FAQ: FaqItem[] = [
   {
     question: 'What PHP and Laravel versions does Laravel Truss require?',
     answer:
-      'PHP 8.3 or higher and Laravel 12 or higher. Install it with composer require albertoarena/laravel-truss --dev for local use. The service provider is auto-discovered, and there is nothing to publish to get started. Publishing the config to config/truss.php is optional, and every option has a sensible default.',
+      'PHP 8.2 or higher and Laravel 12 or higher. Install it with composer require albertoarena/laravel-truss --dev for local use. The service provider is auto-discovered, and there is nothing to publish to get started. Publishing the config to config/truss.php is optional, and every option has a sensible default.',
     source: '/getting-started/installation/',
   },
   {

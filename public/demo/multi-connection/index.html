@@ -10,6 +10,15 @@
     <!-- The exact assets Truss ships, copied into ../assets at build time (see
          scripts/copy-demo-assets.mjs). This page lives one level deeper than the
          main demo, so the paths step up one directory but reuse the same copy. -->
+    <!-- The face the diagram is measured in. Truss waits for it before
+         measuring, so this does not fix anything on its own; it starts the
+         fetch with the document rather than when truss.css is parsed, which
+         on a cold visit is a network round trip earlier. crossorigin is
+         required even same-origin, or the preload is not reused. The build
+         rewrites this ./assets/ path along with the others. -->
+    <link rel="preload" as="font" type="font/woff2"
+          href="../assets/ibm-plex-mono-400.woff2" crossorigin>
+
     <link rel="stylesheet" href="../assets/truss.css">
     <script src="../assets/vendor/mermaid.min.js"></script>
 

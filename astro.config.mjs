@@ -365,6 +365,7 @@ export default defineConfig({
             { label: 'Schema export', link: '/guides/schema-export/' },
             { label: 'Truss as AI context', link: '/guides/ai-context/', badge: 'New' },
             { label: 'MCP server', link: '/guides/mcp-server/', badge: 'New' },
+            { label: 'Laravel Boost', link: '/guides/laravel-boost/', badge: 'New' },
             { label: 'Theming', link: '/guides/theming/' },
           ],
         },
@@ -373,6 +374,7 @@ export default defineConfig({
           items: [
             { label: 'Configuration', link: '/reference/configuration/' },
             { label: 'Commands', link: '/reference/commands/' },
+            { label: 'Tested applications', link: '/reference/tested-applications/', badge: 'New' },
           ],
         },
         {

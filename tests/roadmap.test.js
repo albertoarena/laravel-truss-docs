@@ -77,13 +77,20 @@ describe('roadmap data', () => {
     expect(deps.blurb).not.toMatch(/spatie|package-tools/i)
   })
 
-  it('commits Laravel Boost support under approved next', () => {
-    const boost = ALL.find((i) => /boost/i.test(i.title))
-    expect(boost, 'Laravel Boost item exists').toBeTruthy()
-    expect(boost.status).toBe('approved')
+  it('ships Laravel Boost support in v1.10.0', () => {
+    const boost = ALL.filter((i) => /boost/i.test(i.title))
+    // Moved from approved next to shipped on release. Asserted as exactly one
+    // card, because promoting an item means moving it rather than copying it,
+    // and a duplicate would show the same feature as both shipped and planned.
+    expect(boost, 'exactly one Laravel Boost card').toHaveLength(1)
+    expect(boost[0].status).toBe('shipped')
+    expect(boost[0].version).toBe('v1.10.0')
     // The point of the item is that Boost users get Truss context without
     // wiring our MCP server up by hand, so the blurb has to say so.
-    expect(boost.blurb).toMatch(/boost/i)
+    expect(boost[0].blurb).toMatch(/boost/i)
+    // Discovery is automatic, installation is not: nothing third-party is
+    // preselected, so a card claiming it just appears would be wrong.
+    expect(boost[0].blurb).toMatch(/tick|boost:install/i)
   })
 
   it('ships the keyboard and screen reader work in v1.9.0', () => {

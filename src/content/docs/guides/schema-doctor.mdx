@@ -95,7 +95,7 @@ Every finding carries a stable **code** (e.g. `TRUSS-INT-003`), shown in both th
 | Code | Checks | Severity | Confidence |
 | --- | --- | --- | --- |
 | `TRUSS-INT-001` | Table has no primary key | error | high |
-| `TRUSS-INT-002` | A `*_id` column matches a table but declares no foreign key | warning | heuristic |
+| `TRUSS-INT-002` | A `*_id` column matches a table but declares no foreign key, polymorphic columns excluded | warning | heuristic |
 | `TRUSS-INT-003` | A foreign key column's type differs from the key it references | error | high |
 | `TRUSS-INT-007` | A pivot table has no unique constraint on its key pair | warning | high |
 | `TRUSS-INT-009` | A polymorphic pair (`*_type`, `*_id`) has no composite index | warning | heuristic |
@@ -110,10 +110,36 @@ Every finding carries a stable **code** (e.g. `TRUSS-INT-003`), shown in both th
 
 \* `TRUSS-IDX-001` is engine-aware: an **error** on PostgreSQL and SQLite, which do not auto-index foreign keys, and only **info** on MySQL and MariaDB, which do.
 
+### What `TRUSS-INT-007` counts as a pivot
+
+Two single-column foreign keys are necessary but **not sufficient**, or every entity table with two relationships would be flagged. A profile table with a `user_id` and a `plan_id` is not a many-to-many join, and the composite unique key the rule suggests would be wrong there.
+
+So Truss also asks whether the table carries its key pair and little else. It counts the columns that are not the pair, not `id`, and not `created_at` / `updated_at` / `deleted_at`. A table whose primary key **is** the pair, or which has no primary key at all, may carry one such column. A table with its own `id` primary key must carry none, because a table with its own identity is treated as an entity unless it has nothing else in it. Any other primary key is never a pivot.
+
+The rule also stays quiet when a unique index already covers **any part** of the pair, since a unique `user_id` makes `(user_id, plan_id)` unique on its own. Nullable columns do not count, because most engines allow repeated `NULL`s in a unique index.
+
+**A genuine pivot carrying two payload columns is missed on purpose.** A finding you never see costs you nothing, and a wrong one here recommends a migration that loses rows.
+
 Use these codes in `doctor.rules` (to enable, disable, or re-severity a rule) and `doctor.ignore` (to silence a known case per table or `table.column`). More rules land in later phases.
 
 ## Caveats
 
 - **Structure only.** The doctor reads the same cached snapshot the diagram uses and never queries row data. It cannot know selectivity or query patterns, so it reviews structure, not performance.
 - **Heuristics are guesses.** They are off by default for a reason. Turn them on when you want them, and ignore the deliberate exceptions per pattern.
-- **Deterministic.** No AI, no network. The same schema always yields the same findings, so a diff in CI output is a real structural change.
+- **Deterministic, for a given version.** No AI, no network. The same schema and the same version of Truss always yield the same findings, so a diff in CI output is a real structural change. Across an upgrade it may not be: a rule that gets narrower reports less on a schema nobody touched. See [Upgrading](#upgrading-and-a-changed-rule) below.
+
+## Upgrading, and a changed rule
+
+Rules are calibrated against real schemas, so a release can change what the doctor reports on a database nobody touched. The first run after an upgrade is the one to read carefully: a smaller report is usually Truss having got quieter, not your schema having improved.
+
+**v1.10 narrowed `TRUSS-INT-007`.** Two single-column foreign keys stopped being enough to call a table a pivot. Measured across the twelve real Laravel applications that could run both versions, the rule fired 69 times before and 14 times after, and 56 of those 69 were wrong: profile tables, settings tables and one-to-one joins that are not many-to-many at all. One of them recommended a unique constraint that would have capped a user at a single budget. Those twelve schemas are also the ones the new rule was tuned on, so read the counts as a measure of what changed, not as a forecast of what your own report will do.
+
+What that means for you:
+
+- **A CI job on `--fail-on=error` may now pass where it failed**, on a schema you have not changed. That is the intended outcome, not a regression.
+- **Findings you had suppressed in `doctor.ignore` may no longer fire.** A stale ignore entry is harmless, but it is worth pruning so the next real finding is not silently covered by it.
+- **Some genuine pivots are now missed on purpose.** A pivot carrying two payload columns escapes the rule. A finding you never see costs you nothing; a wrong one recommends a migration that loses rows.
+
+The same release stopped `TRUSS-INT-002` asking for a foreign key on polymorphic columns, which contradicted `TRUSS-INT-009` inside the same report, so a morph-heavy schema also gets a shorter report than it did.
+
+Findings and counts are only comparable between runs of the **same** version. If you track them over time, record the Truss version alongside the number.
