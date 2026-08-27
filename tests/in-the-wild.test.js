@@ -188,6 +188,17 @@ describe('what is excluded', () => {
     expect(selfAuthoredMatch('https://laravel-news.com/laravel-truss')).toBeNull()
   })
 
+  it('still blocks his own Medium after the narrowing that let a publication through', () => {
+    // medium.com was denied whole until 27/08/2026, when the tripwire the
+    // SELF_AUTHORED comment describes fired for real: a third party wrote about
+    // Truss on Medium and the blanket rule blocked the row. Narrowing it to his
+    // own profile is the deliberate edit that comment asked for, and this test
+    // is what stops the narrowing quietly becoming an opening. Both halves are
+    // asserted, because only one of them can be walked back.
+    expect(selfAuthoredMatch('https://medium.com/@arena.alberto/my-coding-agent-kept-inventing-columns-f0c2de4c4e1d')).toBeTruthy()
+    expect(selfAuthoredMatch('https://medium.com/codex/5-new-laravel-packages-you-should-try-right-now-726a2b143966')).toBeNull()
+  })
+
   it('leaves LinkedIn and X open, since they are the bulk of the real set', () => {
     expect(selfAuthoredMatch('https://www.linkedin.com/posts/someone-else')).toBeNull()
     expect(selfAuthoredMatch('https://x.com/someone-else/status/1')).toBeNull()

@@ -205,12 +205,21 @@ export const COLLAPSED: Omit<Section, 'kind'> = {
  * the maintainer's own name. Matching is by host, optionally narrowed to a path
  * prefix where only part of a domain is self-authored.
  *
- * Two entries fail safe on purpose. dev.to and medium.com are denied whole
- * because Truss content there is syndication of Alberto's own posts, so if a
- * third party ever writes about it on either, this rule blocks the row and
- * somebody has to come and change it deliberately. That is the right way round:
- * a blocked real row costs an edit, a published self-authored quote cannot be
- * walked back.
+ * dev.to fails safe on purpose and is denied whole, because Truss content there
+ * is syndication of Alberto's own posts, so if a third party ever writes about
+ * it there this rule blocks the row and somebody has to come and change it
+ * deliberately. That is the right way round: a blocked real row costs an edit,
+ * a published self-authored quote cannot be walked back.
+ *
+ * **medium.com was denied whole for the same reason until 27/08/2026, and the
+ * tripwire fired exactly as that paragraph predicted.** Developer Awam's CodeX
+ * roundup on 14/08 is a third party writing about Truss on Medium, and the
+ * blanket rule blocked it. It is now narrowed to Alberto's own profile, which is
+ * where all seven of his Medium URLs live; the roundup sits under a publication
+ * path instead. The edit is the remedy the comment above asked for rather than a
+ * loosening of it, and the author check still stands behind it: a syndication
+ * into a Medium publication under his own byline would slip this path rule and
+ * be caught there.
  *
  * LinkedIn and X are deliberately absent. They are the bulk of the genuine set,
  * and the author check is what keeps Alberto's own posts out of it.
@@ -226,7 +235,7 @@ export const SELF_AUTHORED: SelfAuthored[] = [
   { host: 'trussphp.com', why: 'This site, which is the same author quoting himself' },
   { host: 'albertoarena.it', why: 'Same author' },
   { host: 'dev.to', why: 'Syndicated from albertoarena.it' },
-  { host: 'medium.com', why: 'Syndicated from albertoarena.it' },
+  { host: 'medium.com', path: '/@arena.alberto', why: 'Syndicated from albertoarena.it' },
   {
     host: 'laravel-news.com',
     path: '/links/',

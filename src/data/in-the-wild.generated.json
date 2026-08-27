@@ -79,6 +79,15 @@
     },
     {
         "kind": "community",
+        "quote": "The usual fix is opening an external database GUI client, or asking someone to redraw the diagram in a whiteboard tool — which, of course, goes stale the moment a new migration runs.",
+        "author": "Developer Awam",
+        "source": "CodeX on Medium",
+        "url": "https://medium.com/codex/5-new-laravel-packages-you-should-try-right-now-726a2b143966?sk=b1659ed190da8bfee9aab5bfeef44f81",
+        "date": "2026-08-14",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
         "quote": "Sometimes the hardest part of working with a database isn't writing the query… It's understanding the database itself.",
         "author": "Bhavin Vaghadiya",
         "source": "LinkedIn",
@@ -123,6 +132,59 @@
         "source": "LinkedIn",
         "url": "https://www.linkedin.com/posts/ghanshyam-ashra_laravel-laravelphp-php-share-7493562942555271168-TmuL/",
         "date": "2026-08-19",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Instead of switching between Laravel, MySQL Workbench/phpMyAdmin and migration files just to understand the database structure, you can get a visual overview directly from the application.",
+        "author": "Sandeep Verma",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/pulse/laravel-truss-see-your-database-structure-sandeep-verma-ujgcc/",
+        "date": "2026-08-20",
+        "basis": "public-post"
+    },
+    {
+        "kind": "report",
+        "quote": "False positive pivot-table warning for one-to-one table with unique user_id",
+        "author": "Belabied Redouane",
+        "source": "GitHub",
+        "url": "https://github.com/albertoarena/laravel-truss/issues/58",
+        "date": "2026-08-22",
+        "fixedIn": "v1.10.0",
+        "fixedAfter": "5 days",
+        "basis": "public-post"
+    },
+    {
+        "kind": "report",
+        "quote": "Firefox truncates table names",
+        "author": "Dirk",
+        "source": "GitHub",
+        "url": "https://github.com/albertoarena/laravel-truss/issues/59",
+        "date": "2026-08-23",
+        "fixedIn": "v1.10.0",
+        "fixedAfter": "4 days",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "بتقرأ الـ schema الحقيقي من قاعدة البيانات، مش ملفات الـ migrations، فبتكون دايمًا محدثة.",
+        "quoteLang": "ar",
+        "translation": "It reads the real schema from the database, not the migration files, so it is always up to date.",
+        "author": "@mohammed_FBeshr",
+        "source": "X",
+        "url": "https://x.com/mohammed_FBeshr/status/2091890405570695353",
+        "date": "2026-08-24",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "تتيح لك فهم علاقات الجداول فوراً في المتصفح، تتبع الفروقات بعد الـ Migrations، واكتشاف المفاتيح والفهارس المفقودة بدون قراءة البيانات الفعلية.",
+        "quoteLang": "ar",
+        "translation": "It lets you understand how the tables relate straight away in the browser, track what changed after your migrations, and find the missing keys and indexes, all without reading the actual data.",
+        "author": "Maigd Hammoud",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/posts/maigd-hammoud-822a513a2_laravel-php-backend-share-7497666164010004480-drg-/",
+        "date": "2026-08-24",
         "basis": "public-post"
     }
 ]
