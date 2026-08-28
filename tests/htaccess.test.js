@@ -87,6 +87,34 @@ describe('the deployed .htaccess', () => {
     expect(rule).toBeTruthy()
   })
 
+  it('adds the trailing slash itself, rather than leaving it to mod_dir', () => {
+    // Without this rule, mod_dir builds its DirectorySlash redirect from the
+    // path the docroot already rewrote to current/$1, so every URL on the site
+    // that arrived without a trailing slash redirected through a
+    // client-visible /current/... URL before landing on the canonical one.
+    //
+    // This asserts the rule is present, which is all a text assertion can do.
+    // Whether it actually beats mod_dir is a question about Apache's fixup
+    // ordering on the host, and it is answered by npm run check:redirects.
+    expect(htaccess).toMatch(/RewriteCond\s+%\{REQUEST_FILENAME\}\s+-d/)
+    expect(htaccess).toMatch(/RewriteRule\s+\^\(\.\*\[\^\/\]\)\$/)
+  })
+
+  it('builds that redirect from the request host, not a hardcoded domain', () => {
+    // Same reason the rules above use %{HTTP_HOST}: a preview or staging host
+    // must redirect to itself rather than bouncing traffic to production. It
+    // also keeps this file passing the assertion below, which forbids naming
+    // the production domain here at all.
+    expect(htaccess).toMatch(/RewriteRule\s+\^\(\.\*\[\^\/\]\)\$\s+https:\/\/%\{HTTP_HOST\}\/\$1\//)
+  })
+
+  it('preserves the query string when it adds a slash', () => {
+    // A crawler following /roadmap?utm_source=x must keep the query, or the
+    // redirect silently drops attribution and campaign parameters.
+    const rule = htaccess.match(/RewriteRule\s+\^\(\.\*\[\^\/\]\)\$[^\n]*/)?.[0] ?? ''
+    expect(rule).toMatch(/QSA/)
+  })
+
   it('points the 404 at a path that exists from the docroot', () => {
     // ErrorDocument resolves against the docroot, not the directory holding the
     // .htaccess. The docroot has no 404.html of its own: it only exists inside
