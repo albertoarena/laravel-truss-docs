@@ -40,6 +40,18 @@ export const FAQ: FaqItem[] = [
     source: '/guides/authorization/',
   },
   {
+    question: 'Is Laravel Truss an ERD generator?',
+    answer:
+      'Yes, that is what the dashboard is: your schema as an ER diagram, with each table an entity box carrying its columns, native types and PK / FK badges, and foreign keys drawn as crow\'s-foot relationships. The difference is where the diagram comes from. Truss reads the live database rather than your migration files, so the ERD shows the structure that is actually there. Structure only, never data.',
+    source: '/getting-started/quick-start/',
+  },
+  {
+    question: 'Can Laravel Truss draw an ERD from my Eloquent models or migrations?',
+    answer:
+      'No. Truss builds every relationship from the foreign keys your database enforces, so an application that declares its relations in Eloquent without database constraints will show tables with few edges between them. truss:doctor reports the foreign keys that look missing. Reading Eloquent relations as a second source of edges is on the roadmap under Exploring.',
+    source: '/roadmap/',
+  },
+  {
     question: 'How is access to the Truss dashboard controlled?',
     answer:
       'By two layers. truss.enabled is the deploy switch and defaults to the local environment only, so a production deploy stays dark until you set TRUSS_ENABLED=true. The fixed viewTruss gate is the access control, consulted only outside local. Both failure modes return 404 rather than 403, so the dashboard never confirms it exists to someone who may not view it.',
