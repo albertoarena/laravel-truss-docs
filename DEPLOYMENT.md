@@ -74,6 +74,41 @@ ln -sfn releases/<previous-ts> ~/<docroot>/current
 (`npm ci && npm run build`), upload `dist/` into a new
 `~/<docroot>/releases/<ts>/`, and repoint `current`.
 
+## Post-deploy checks
+
+**After any change to `public/.htaccess` or the docroot `.htaccess`:**
+
+```
+npm run check:redirects
+```
+
+15 cases. It asserts hop counts, final URLs, and on every hop of every case that
+neither `/current/` nor `/releases/` reaches a `Location` header. Exits non-zero
+on the first problem, so it can gate a deploy. It takes a base URL as an
+argument if you need to point it somewhere else.
+
+**Wait for the release to land first.** The cron pulls every ~5 minutes, so a
+green run against the previous release means nothing. Either wait, or force it
+on the host with `bash ~/bin/server-deploy.sh`.
+
+**Nothing in `tests/` can replace this.** Every assertion over the `.htaccess`
+files reads them as text, so they confirm a rule is present and never that it
+works. Both redirect failures this site has had were invisible that way:
+
+- **17/08/2026** a 301 added through cPanel landed below the docroot's catch-all
+  `[L]` rule and never fired once. Nothing reported an error.
+- **28/08/2026** `mod_dir` built its redirect from the internally rewritten path,
+  so every URL without a trailing slash went through a client-visible
+  `/current/...` URL. This one survived a full round of verification, because
+  every URL that round tested already ended in a slash, which is the one shape
+  that cannot trigger it.
+
+**If it fails, roll back before walking away.** `public/.htaccess` ships *inside*
+each release, so the symlink flip under Rollback above reverts it in seconds and
+beats reverting the commit and waiting for CI plus the cron. Pause the cron
+first, or the next run rolls forward into the broken release again. Then revert
+on `main` properly.
+
 ## Troubleshooting
 
 - Log: `tail -n 50 ~/server-deploy.log`
