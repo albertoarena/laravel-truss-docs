@@ -1,0 +1,190 @@
+[
+    {
+        "kind": "report",
+        "quote": "getTables() is called without a schema",
+        "author": "Santos Sabanari",
+        "source": "GitHub",
+        "url": "https://github.com/albertoarena/laravel-truss/issues/3",
+        "date": "2026-07-28",
+        "fixedIn": "v1.3.1",
+        "fixedAfter": "6h 43m",
+        "basis": "public-post"
+    },
+    {
+        "kind": "press",
+        "quote": "It reads structure only, meaning tables, columns, keys, and indexes, and never queries row data, so you don't need to point an external GUI client at the database or regenerate a static diagram every time you run a migration.",
+        "author": "Yannick Lyn Fatt",
+        "source": "Laravel News",
+        "url": "https://laravel-news.com/laravel-truss-database-er-diagrams",
+        "date": "2026-08-10",
+        "basis": "public-post"
+    },
+    {
+        "kind": "press",
+        "quote": "I saw a new Laravel package to view/export/review your database schema, with just one \"composer require\" and zero configuration.",
+        "author": "Povilas Korop",
+        "source": "Laravel Daily",
+        "url": "https://www.youtube.com/watch?v=zogsFocamlU",
+        "date": "2026-08-10",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "On larger SaaS codebases, understanding how tables relate to each other is something that usually requires either a paid GUI tool or a manually maintained diagram that drifts over time.",
+        "author": "Mohamed Said",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7492777380558852097/",
+        "date": "2026-08-11",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "It caught a few schema issues that I had overlooked, which honestly made me appreciate the package even more. I can definitely see it being useful as a quick schema health check as a project grows. And now it is installed in all of my personal projects.",
+        "author": "Haydar Ali Awan",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7492848896029732864/",
+        "date": "2026-08-11",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Inheriting a messy codebase used to cost me days of figuring out how the data is structured and how the tables connect. Now it takes 10 minutes.",
+        "author": "Haseeb Mirza",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7492942932958892033/",
+        "date": "2026-08-11",
+        "basis": "public-post"
+    },
+    {
+        "kind": "report",
+        "quote": "[Bug] Table connection prefix (`prefix` / `DB_PREFIX`) causes empty columns, keys, and foreign   key relationships",
+        "author": "Nguyễn Tiến Lộc",
+        "source": "GitHub",
+        "url": "https://github.com/albertoarena/laravel-truss/issues/46",
+        "date": "2026-08-12",
+        "fixedIn": "v1.8.3",
+        "fixedAfter": "1h 59m",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "بتقرأ الـ schema الحقيقي من قاعدة البيانات، مش ملفات الـ migrations، فبتكون دايمًا محدثة",
+        "quoteLang": "ar",
+        "translation": "It reads the real schema from the database, not the migration files, so it is always up to date.",
+        "author": "Amr Lotfy Saleh",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7493611779424423936/",
+        "date": "2026-08-13",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "The usual fix is opening an external database GUI client, or asking someone to redraw the diagram in a whiteboard tool — which, of course, goes stale the moment a new migration runs.",
+        "author": "Developer Awam",
+        "source": "CodeX on Medium",
+        "url": "https://medium.com/codex/5-new-laravel-packages-you-should-try-right-now-726a2b143966?sk=b1659ed190da8bfee9aab5bfeef44f81",
+        "date": "2026-08-14",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Sometimes the hardest part of working with a database isn't writing the query… It's understanding the database itself.",
+        "author": "Bhavin Vaghadiya",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7493977387634892800/",
+        "date": "2026-08-14",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Instead of opening your DB client and jumping between tables, Laravel Truss gives you a live, interactive ER diagram directly inside your Laravel app.",
+        "author": "Mohammad Ghanem",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/posts/mohammad-ghanem-901108186_laravel-php-laraveltips-share-7494400677201424385--oas/",
+        "date": "2026-08-15",
+        "basis": "public-post"
+    },
+    {
+        "kind": "report",
+        "quote": "[Bug] Uncaught cache-store failure crashes `php artisan migrate` and the `/truss` dashboard",
+        "author": "Hafiz Muhammad Moaz",
+        "source": "GitHub",
+        "url": "https://github.com/albertoarena/laravel-truss/issues/51",
+        "date": "2026-08-17",
+        "fixedIn": "v1.8.4",
+        "fixedAfter": "1h 44m",
+        "basis": "public-post"
+    },
+    {
+        "kind": "report",
+        "contribution": "Reported three problems, each fixed in the next release: a filter that emptied the diagram with no explanation, a table border drawn on three sides, and a Focus picker that was unusable on a large schema.",
+        "author": "Alberto Peripolli",
+        "source": "GitHub",
+        "url": "https://github.com/albertoarena/laravel-truss/releases/tag/v1.9.0",
+        "date": "2026-08-18",
+        "fixedIn": "v1.9.0",
+        "basis": "permission-given"
+    },
+    {
+        "kind": "community",
+        "quote": "Sometimes, a visual diagram explains a database much faster than reading 20 migration files.",
+        "author": "Ghanshyam Ashra",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/posts/ghanshyam-ashra_laravel-laravelphp-php-share-7493562942555271168-TmuL/",
+        "date": "2026-08-19",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Instead of switching between Laravel, MySQL Workbench/phpMyAdmin and migration files just to understand the database structure, you can get a visual overview directly from the application.",
+        "author": "Sandeep Verma",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/pulse/laravel-truss-see-your-database-structure-sandeep-verma-ujgcc/",
+        "date": "2026-08-20",
+        "basis": "public-post"
+    },
+    {
+        "kind": "report",
+        "quote": "False positive pivot-table warning for one-to-one table with unique user_id",
+        "author": "Belabied Redouane",
+        "source": "GitHub",
+        "url": "https://github.com/albertoarena/laravel-truss/issues/58",
+        "date": "2026-08-22",
+        "fixedIn": "v1.10.0",
+        "fixedAfter": "5 days",
+        "basis": "public-post"
+    },
+    {
+        "kind": "report",
+        "quote": "Firefox truncates table names",
+        "author": "Dirk",
+        "source": "GitHub",
+        "url": "https://github.com/albertoarena/laravel-truss/issues/59",
+        "date": "2026-08-23",
+        "fixedIn": "v1.10.0",
+        "fixedAfter": "4 days",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "بتقرأ الـ schema الحقيقي من قاعدة البيانات، مش ملفات الـ migrations، فبتكون دايمًا محدثة.",
+        "quoteLang": "ar",
+        "translation": "It reads the real schema from the database, not the migration files, so it is always up to date.",
+        "author": "@mohammed_FBeshr",
+        "source": "X",
+        "url": "https://x.com/mohammed_FBeshr/status/2091890405570695353",
+        "date": "2026-08-24",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "تتيح لك فهم علاقات الجداول فوراً في المتصفح، تتبع الفروقات بعد الـ Migrations، واكتشاف المفاتيح والفهارس المفقودة بدون قراءة البيانات الفعلية.",
+        "quoteLang": "ar",
+        "translation": "It lets you understand how the tables relate straight away in the browser, track what changed after your migrations, and find the missing keys and indexes, all without reading the actual data.",
+        "author": "Maigd Hammoud",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/posts/maigd-hammoud-822a513a2_laravel-php-backend-share-7497666164010004480-drg-/",
+        "date": "2026-08-24",
+        "basis": "public-post"
+    }
+]

@@ -52,6 +52,35 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 RewriteCond %{THE_REQUEST} \s/+[^?\s]*index\.html[\s?] [NC]
 RewriteRule ^(.*/)?index\.html$ https://%{HTTP_HOST}/$1 [R=301,L]
 
+# Add the trailing slash to a directory URL ourselves, rather than letting
+# Apache's mod_dir do it.
+#
+# By the time this file runs, the docroot .htaccess has already rewritten the
+# request internally to current/$1, preserving whatever trailing-slash-ness the
+# client sent. When the client sent none, mod_dir's DirectorySlash fires and
+# builds its Location from that rewritten path, so every non-trailing-slash URL
+# on the site redirected through a client-visible /current/... URL:
+#
+#   /roadmap -> /current/roadmap/ -> /roadmap/     (two hops, internal path leaked)
+#
+# The current|releases rule above only matches %{THE_REQUEST}, and the client's
+# request line never said current, so it cleaned up the last hop instead of
+# preventing the first. This rule runs before mod_dir gets the chance, and
+# builds the redirect from $1, which per-directory rewriting has already
+# stripped back to the path below the site root.
+#
+# Matching ^(.*[^/])$ rather than testing %{REQUEST_URI} is deliberate: whether
+# REQUEST_URI shows the original or the rewritten path in per-directory context
+# is exactly the ambiguity that produced this bug. The pattern is self
+# contained. It cannot match the empty string, so the site root is untouched and
+# cannot gain a second slash.
+#
+# The -d test, rather than an extension regex, is what keeps static files out:
+# /favicon.svg is not a directory, so it is served rather than redirected, and a
+# path segment containing a dot is still classified correctly.
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(.*[^/])$ https://%{HTTP_HOST}/$1/ [R=301,L,QSA]
+
 # Response headers. Every directive here is wrapped, because an unguarded
 # Header on a server without mod_headers is a 500, which would take the site
 # down rather than quietly do less.

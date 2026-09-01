@@ -32,8 +32,14 @@ function walk(dir) {
   return out
 }
 
-/** Hand-authored pages (SiteLayout), as opposed to Starlight-generated ones. */
-const CUSTOM_PAGES = ['index.html', 'roadmap/index.html']
+/**
+ * Hand-authored pages (SiteLayout), as opposed to Starlight-generated ones.
+ *
+ * Enumerated rather than discovered, so a new one is simply absent from the
+ * checks below until it is added here: no red test, just assertions that quietly
+ * stop applying. Add the page when you add the route.
+ */
+const CUSTOM_PAGES = ['index.html', 'roadmap/index.html', 'in-the-wild/index.html']
 
 let pages = []
 

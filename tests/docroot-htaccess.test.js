@@ -64,13 +64,21 @@ describe('the docroot .htaccess reference copy', () => {
     expect(htaccess).toContain('RewriteCond %{HTTP_HOST} ^www\\.trussphp\\.com$ [NC]')
   })
 
-  it('sends every non-canonical host to the apex in a single hop', () => {
-    const hops = htaccess.match(/RewriteRule \^\(\.\*\)\$ https:\/\/trussphp\.com\/\$1 \[R=301,L\]/g)
+  it('carries two rules that both target the apex directly', () => {
+    const rules = htaccess.match(/RewriteRule \^\(\.\*\)\$ https:\/\/trussphp\.com\/\$1 \[R=301,L\]/g)
 
     // Two rules, because mod_rewrite has no parentheses and an AND-group
-    // cannot be nested inside an OR. Both target the apex directly, so
-    // http://www redirects once rather than chaining through https://www.
-    expect(hops).toHaveLength(2)
+    // cannot be nested inside an OR. Both target the apex rather than each
+    // other, which is what stops http://www chaining through https://www.
+    //
+    // This assertion used to be named "sends every non-canonical host to the
+    // apex in a single hop". It cannot know that: it counts two matches in a
+    // text file. The claim was also false. On 28/08/2026
+    // http://www.trussphp.com/roadmap measured three hops, because a path with
+    // no trailing slash picks up a mod_dir redirect that no amount of reading
+    // this file would reveal. Hop counts come from npm run check:redirects,
+    // against production. Do not put a behavioural claim in a name here again.
+    expect(rules).toHaveLength(2)
   })
 
   it('is not published with the site', () => {

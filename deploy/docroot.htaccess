@@ -31,12 +31,30 @@
 # Then check, in this order, before walking away. The first two are the ones
 # that mean "roll back now":
 #
+#   npm run check:redirects
+#
+# That covers every case below and, unlike the list, it fails loudly. Run it.
+# The by-hand equivalents, if there is no checkout to hand:
+#
 #   curl -sSI https://trussphp.com/                  # must stay 200
 #   curl -sSI https://trussphp.com/releases/         # must stay 403
 #   curl -sSI https://www.trussphp.com/roadmap/      # 301 to the apex
 #   curl -sSI http://www.trussphp.com/theme-builder/ # 301 to the apex, one hop
 #   curl -sSI http://trussphp.com/                   # 301 to https
 #   curl -sSI https://trussphp.com/current/roadmap/  # must stay 301
+#
+# And the ones without a trailing slash, which are the reason this list grew.
+# Every check above ends in a slash or is the bare root, and that is the one
+# shape that cannot trigger mod_dir's DirectorySlash. All six passed on
+# 28/08/2026 while every non-slashed URL on the site was redirecting through a
+# client-visible /current/... URL:
+#
+#   curl -sSIL https://trussphp.com/roadmap          # one hop, no /current/
+#   curl -sSIL http://www.trussphp.com/roadmap       # two hops, no /current/
+#   curl -sSIL https://trussphp.com/current/roadmap  # no /current/ in the last hop
+#   curl -sSI  https://trussphp.com/favicon.svg      # 200, no slash appended
+#
+# If /current/ appears in any Location header, stop and roll back.
 #
 # Rolling back is restoring the .bak copy.
 

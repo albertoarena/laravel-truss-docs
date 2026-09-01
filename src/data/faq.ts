@@ -40,6 +40,18 @@ export const FAQ: FaqItem[] = [
     source: '/guides/authorization/',
   },
   {
+    question: 'Is Laravel Truss an ERD generator?',
+    answer:
+      'Yes, that is what the dashboard is: your schema as an ER diagram, with each table an entity box carrying its columns, native types and PK / FK badges, and foreign keys drawn as crow\'s-foot relationships. The difference is where the diagram comes from. Truss reads the live database rather than your migration files, so the ERD shows the structure that is actually there. Structure only, never data.',
+    source: '/getting-started/quick-start/',
+  },
+  {
+    question: 'Can Laravel Truss draw an ERD from my Eloquent models or migrations?',
+    answer:
+      'No. Truss builds every relationship from the foreign keys your database enforces, so an application that declares its relations in Eloquent without database constraints will show tables with few edges between them. truss:doctor reports the foreign keys that look missing. Reading Eloquent relations as a second source of edges is on the roadmap under Exploring.',
+    source: '/roadmap/',
+  },
+  {
     question: 'How is access to the Truss dashboard controlled?',
     answer:
       'By two layers. truss.enabled is the deploy switch and defaults to the local environment only, so a production deploy stays dark until you set TRUSS_ENABLED=true. The fixed viewTruss gate is the access control, consulted only outside local. Both failure modes return 404 rather than 403, so the dashboard never confirms it exists to someone who may not view it.',
@@ -48,7 +60,7 @@ export const FAQ: FaqItem[] = [
   {
     question: 'What PHP and Laravel versions does Laravel Truss require?',
     answer:
-      'PHP 8.3 or higher and Laravel 12 or higher. Install it with composer require albertoarena/laravel-truss --dev for local use. The service provider is auto-discovered, and there is nothing to publish to get started. Publishing the config to config/truss.php is optional, and every option has a sensible default.',
+      'PHP 8.2 or higher and Laravel 12 or higher. Install it with composer require albertoarena/laravel-truss --dev for local use. The service provider is auto-discovered, and there is nothing to publish to get started. Publishing the config to config/truss.php is optional, and every option has a sensible default.',
     source: '/getting-started/installation/',
   },
   {
@@ -72,7 +84,7 @@ export const FAQ: FaqItem[] = [
   {
     question: 'Can I try Laravel Truss without installing it?',
     answer:
-      'Yes. The live demo runs the real dashboard against a sample schema in your browser, with no installation and no database. There is a multi-connection variant, and a theme builder that lets you dial in colours and fonts against a live preview and copy the config it produces. The demo contains structure only, and no real data, because there is none.',
+      'Yes, and on your own schema rather than ours. Paste a mysqldump taken with no data, or the output of truss:export --format=json, and the real dashboard draws your tables in your browser: nothing is uploaded, and no row data is read. There is also a plain demo on a sample schema, a multi-connection variant, and a theme builder. All of it is structure only.',
     source: '/getting-started/quick-start/',
   },
 ]

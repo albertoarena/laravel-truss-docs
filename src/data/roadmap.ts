@@ -21,6 +21,14 @@ export interface RoadmapItem {
   tag?: string
   /** A related GitHub issue, when one exists. */
   issueUrl?: string
+  /**
+   * Where to go and use a shipped thing that lives on this site, as a
+   * site-relative path. Docs-site items ship with the website rather than a
+   * package release, so they carry no version and previously pointed nowhere:
+   * the card said "shipped" and left the reader to find it. issueUrl cannot
+   * serve here, being constrained to GitHub.
+   */
+  tryUrl?: string
 }
 
 export interface RoadmapSection {
@@ -42,6 +50,30 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Laravel Boost support',
+        status: 'shipped',
+        version: 'v1.10.0',
+        tag: 'community requested',
+        blurb:
+          'Truss ships Boost guidelines and a skill inside the package, so an agent set up with Laravel Boost knows Truss is installed and reaches for your real schema instead of guessing at columns, with no MCP server to wire up by hand. Run boost:install and tick Truss in the third-party list: nothing third-party is selected by default, so it stays your call. The standalone MCP server and truss:export are unchanged, for people not using Boost. Read-only and structure only, as always.',
+      },
+      {
+        title: 'Searchable Focus picker',
+        status: 'shipped',
+        version: 'v1.9.0',
+        tag: 'community requested',
+        blurb:
+          'Focus a table by typing part of its name. The picker matches anywhere in the name, not just the start, marks what it matched in each row, and ranks exact names first, so a couple of hundred tables is a search rather than a scroll. It agrees with the toolbar filter, which has always matched substrings.',
+        issueUrl: `${REPO}/issues/39`,
+      },
+      {
+        title: 'Accessibility: keyboard and screen reader support',
+        status: 'shipped',
+        version: 'v1.9.0',
+        blurb:
+          'The dashboard answers the keyboard. Table names, type labels and health markers behave like the buttons they announce themselves as, Escape closes a menu and hands focus back, every trigger has a visible focus ring, and the diagram names and describes the view it is showing for assistive technology. Verified by hand with a screen reader, and guarded by axe-core in CI so it stays that way.',
+      },
+      {
         title: 'Truss as AI context',
         status: 'shipped',
         version: 'v1.8.0',
@@ -56,9 +88,18 @@ export const SECTIONS: RoadmapSection[] = [
           'An optional Model Context Protocol server so agents like Claude Code and Cursor pull your live schema on demand, with tools to list and describe tables, export the structure in any format, and focus a table. Read-only and structure only.',
       },
       {
+        title: 'Try Truss on your own schema',
+        status: 'shipped',
+        tag: 'docs-site',
+        tryUrl: '/demo/your-schema/',
+        blurb:
+          'Paste a schema dump into the demo on this site, a mysqldump with no data or a schema exported from Truss itself, and see your own tables drawn without installing anything. It is parsed in your browser and never uploaded. MySQL and MariaDB to begin with, and other input formats, including DBML, after that.',
+      },
+      {
         title: 'Theme builder',
         status: 'shipped',
         tag: 'docs-site',
+        tryUrl: '/theme-builder/',
         blurb:
           'Design a Truss theme in the browser: dial in colours and fonts against a live dashboard preview, then copy a ready-to-paste config block. Every value maps to the shipped truss.theme knobs, so what you build is exactly what the package produces.',
       },
@@ -81,7 +122,7 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'shipped',
         version: 'v1.5.0',
         blurb:
-          'Run truss:doctor to review your schema for problems visible from structure alone: missing primary keys, unindexed foreign keys, duplicate indexes, money stored as float, and more. It runs in the terminal and in CI, failing the build when a migration introduces a new problem, and a dashboard Health panel flags the same findings on the diagram. Deterministic and structure only, with no AI and no query stats.',
+          'Run truss:doctor to review your schema for problems visible from structure alone: missing primary keys, unindexed foreign keys, duplicate indexes, money stored as float, and more. It runs in the terminal and in CI, failing the build when a migration introduces a new problem, and a dashboard Health panel flags the same findings on the diagram. Deterministic and structure only, with no AI and no query stats. Recalibrated in v1.10.0 against sixteen real Laravel applications, narrowing TRUSS-INT-007 so an entity table with two foreign keys is no longer called a pivot.',
       },
       {
         title: 'Schema diff',
@@ -114,17 +155,10 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Decided. This is what comes next.',
     items: [
       {
-        title: 'Accessibility: keyboard and screen reader support',
+        title: 'Accessible structure view and a conformance statement',
         status: 'approved',
         blurb:
-          'Operate the whole dashboard from the keyboard, with proper roles and names on the diagram and its controls, a visible focus indicator everywhere, and automated accessibility checks in CI so it stays that way. Groundwork for a full WCAG conformance statement, with an accessible table view of the same structure to follow.',
-      },
-      {
-        title: 'Laravel Boost support',
-        status: 'approved',
-        tag: 'community requested',
-        blurb:
-          'Ship Boost guidelines and skills inside the package so an agent set up with Laravel Boost knows Truss is installed and reaches for your real schema, with no MCP server to wire up by hand. The standalone MCP server and truss:export stay exactly as they are, for people not using Boost. Read-only and structure only, as always.',
+          'The rest of the accessibility work now that the keyboard is done. A text view of the same structure the diagram draws, since a rendered diagram is not a text alternative, then an audit of the criteria v1.9.0 did not cover, including contrast on control boundaries and inside the diagram itself, and a published statement saying exactly what is supported and what is not.',
       },
       {
         title: 'Schema doctor: more rules and CI formats',
@@ -166,13 +200,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'exploring',
         blurb:
           'Surface the diagram inside a Filament admin panel as a first-class page, so teams already living in Filament get the schema view where they work.',
-      },
-      {
-        title: 'Live DBML playground',
-        status: 'exploring',
-        tag: 'docs-site',
-        blurb:
-          'Paste or edit DBML on this site and watch the diagram redraw, so people can try the renderer before installing anything.',
       },
       {
         title: 'Tenant-aware snapshot caching',

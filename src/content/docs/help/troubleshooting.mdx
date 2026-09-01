@@ -85,3 +85,13 @@ php artisan truss:rebuild
 ## A table is missing from the diagram
 
 Check `excluded_tables` (global and per-connection). Excluded tables are removed server-side and never reach the browser. Framework tables such as `migrations`, `sessions`, `cache`, and `jobs` are excluded by default.
+
+## Labels lose their last character in Firefox on Windows
+
+Fixed in v1.10.0. Upgrade with `composer update albertoarena/laravel-truss`.
+
+Every label was cut in proportion to its length: table names, column names and column types alike, losing roughly the last character on longer ones. It showed only in Firefox on Windows. Chrome on the same machine was fine, and so was Firefox on macOS or Linux.
+
+The diagram was drawn before the IBM Plex Mono webfont had loaded, so the label boxes were sized against whichever monospace font the system provided, then repainted in IBM Plex Mono once it arrived. On Windows that fallback is Consolas, which is about 9 percent narrower, so every label painted wider than the box it was measured into. The boxes carry no spare room, so the overflow was clipped. Elsewhere the fallback happens to have the same character width as IBM Plex Mono, which is why it never showed there.
+
+If you cannot upgrade yet, opening the page with the browser's developer tools already open avoids it, since the extra startup time lets the font arrive first. That is a diagnostic, not a fix.

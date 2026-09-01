@@ -77,13 +77,53 @@ describe('roadmap data', () => {
     expect(deps.blurb).not.toMatch(/spatie|package-tools/i)
   })
 
-  it('commits Laravel Boost support under approved next', () => {
-    const boost = ALL.find((i) => /boost/i.test(i.title))
-    expect(boost, 'Laravel Boost item exists').toBeTruthy()
-    expect(boost.status).toBe('approved')
+  it('ships Laravel Boost support in v1.10.0', () => {
+    const boost = ALL.filter((i) => /boost/i.test(i.title))
+    // Moved from approved next to shipped on release. Asserted as exactly one
+    // card, because promoting an item means moving it rather than copying it,
+    // and a duplicate would show the same feature as both shipped and planned.
+    expect(boost, 'exactly one Laravel Boost card').toHaveLength(1)
+    expect(boost[0].status).toBe('shipped')
+    expect(boost[0].version).toBe('v1.10.0')
     // The point of the item is that Boost users get Truss context without
     // wiring our MCP server up by hand, so the blurb has to say so.
-    expect(boost.blurb).toMatch(/boost/i)
+    expect(boost[0].blurb).toMatch(/boost/i)
+    // Discovery is automatic, installation is not: nothing third-party is
+    // preselected, so a card claiming it just appears would be wrong.
+    expect(boost[0].blurb).toMatch(/tick|boost:install/i)
+  })
+
+  it('ships the keyboard and screen reader work in v1.9.0', () => {
+    const a11y = ALL.find((i) => /accessib/i.test(i.title) && i.tag !== 'docs-site')
+    expect(a11y, 'accessibility item exists').toBeTruthy()
+    expect(a11y.status).toBe('shipped')
+    expect(a11y.version).toBe('v1.9.0')
+  })
+
+  it('claims no WCAG conformance anywhere on the roadmap', () => {
+    // v1.9.0 closed the Level A keyboard failures it found; it did not audit
+    // every criterion, and a custom theme can fail contrast whatever the
+    // package ships. A roadmap card is a published claim, so it must not read
+    // as a conformance statement.
+    for (const item of ALL) {
+      expect(item.blurb, item.title).not.toMatch(/wcag[^.]*\b(conformant|compliant)\b/i)
+    }
+  })
+
+  it('keeps the accessible structure view and the conformance statement ahead', () => {
+    const ahead = ALL.find((i) => /structure view|conformance/i.test(i.title))
+    expect(ahead, 'remaining accessibility item exists').toBeTruthy()
+    expect(ahead.status).toBe('approved')
+    expect(ahead.version, 'unshipped items carry no version').toBeUndefined()
+  })
+
+  it('ships the searchable Focus picker in v1.9.0, credited to its issue', () => {
+    const picker = ALL.find((i) => /focus picker/i.test(i.title))
+    expect(picker, 'Focus picker item exists').toBeTruthy()
+    expect(picker.status).toBe('shipped')
+    expect(picker.version).toBe('v1.9.0')
+    expect(picker.tag).toBe('community requested')
+    expect(picker.issueUrl).toBe('https://github.com/albertoarena/laravel-truss/issues/39')
   })
 
   it('promotes the remaining schema doctor work to approved next', () => {
@@ -108,6 +148,43 @@ describe('roadmap data', () => {
   it('uses no em or en dashes in any blurb', () => {
     for (const item of ALL) {
       expect(item.blurb + (item.tag ?? ''), item.title).not.toMatch(/[—–]/)
+    }
+  })
+})
+
+describe('try-it links', () => {
+  // A docs-site item ships with the website rather than a package release, so it
+  // carries no version and had nothing pointing at the thing it delivered. The
+  // roadmap said "shipped" and left the reader to go and find it. issueUrl could
+  // not fill the gap: it is constrained to GitHub, which is the wrong
+  // destination for something that lives on this site.
+  const withTry = ALL.filter((item) => item.tryUrl)
+
+  it('exist at all, since a shipped page nobody can reach from here is a dead end', () => {
+    expect(withTry.length).toBeGreaterThan(0)
+  })
+
+  it('point somewhere on this site, not off it', () => {
+    for (const item of withTry) {
+      expect(item.tryUrl, item.title).toMatch(/^\/[\w/-]*\/$/)
+    }
+  })
+
+  it('only appear on shipped items, since you cannot try what is not built', () => {
+    for (const item of withTry) {
+      expect(item.status, item.title).toBe('shipped')
+    }
+  })
+
+  it('cover every shipped docs-site item', () => {
+    // These are the only cards whose deliverable is a page on this site, so
+    // every one of them has somewhere to send the reader.
+    const docsSite = SECTIONS.find((s) => s.status === 'shipped').items
+      .filter((item) => item.tag === 'docs-site')
+
+    expect(docsSite.length).toBeGreaterThan(0)
+    for (const item of docsSite) {
+      expect(item.tryUrl, `${item.title} ships a page but links nowhere`).toBeTruthy()
     }
   })
 })

@@ -38,7 +38,7 @@ const features = [
 ]
 ---
 <SiteLayout
-  title="Laravel Truss: a live database structure viewer"
+  title="Laravel Truss: live database structure viewer and ERD"
   active="home"
   schema={[softwareApplicationNode(new URL(Astro.url.pathname, Astro.site ?? "https://trussphp.com").origin)]}
 >
@@ -68,6 +68,7 @@ const features = [
     <div class="actions">
       <a class="btn primary" href="/demo/">Live demo <span aria-hidden="true">→</span></a>
       <a class="btn ghost" href="/theme-builder/">Theme builder</a>
+      <a class="btn ghost" href="/demo/your-schema/">Your own schema</a>
       <a class="btn ghost" href="/demo/multi-connection/">Multiple connections</a>
       <a class="btn ghost" href="/getting-started/installation/">Get started</a>
     </div>

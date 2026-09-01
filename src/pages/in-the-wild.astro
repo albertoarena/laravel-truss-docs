@@ -1,0 +1,322 @@
+---
+/**
+ * What other people have said about Truss.
+ *
+ * On the SiteLayout marketing surface rather than in the docs shell: a reader
+ * arriving here is deciding whether to install, not looking something up, and
+ * the docs shell would frame it as reference material. Same reasoning as the
+ * roadmap, and the same shape: a curated data module, this layout, its own tests.
+ *
+ * Everything rendered here comes from src/data/in-the-wild.ts, which takes only
+ * rows with a source that can be opened and checked.
+ */
+import SiteLayout from '../layouts/SiteLayout.astro'
+import { MENTIONS, SECTIONS } from '../data/in-the-wild.ts'
+import {
+  sectionsFor,
+  formatDate,
+  initialsOf,
+  isRtl,
+  languageName,
+  isVideo,
+} from '../scripts/in-the-wild.js'
+import { mentionsNode, softwareApplicationNode } from '../scripts/structured-data.js'
+
+const site = Astro.site ?? new URL('https://trussphp.com')
+
+const sections = sectionsFor(MENTIONS, SECTIONS)
+const mentions = mentionsNode(site.origin, Astro.url.pathname, MENTIONS)
+
+// Every mention points at the package as the thing it is about, so the package
+// node has to be on this page for that reference to resolve. The landing and
+// every docs page carry it for the same reason. An @id pointing at nothing is
+// worse than no reference at all: it is a claim a parser cannot follow.
+const schema = mentions ? [softwareApplicationNode(site.origin), mentions] : []
+
+const title = 'Who uses Laravel Truss: reviews and coverage'
+const description =
+  'What other developers say about Laravel Truss, with a link to every source: editorial coverage, posts by people who installed it, and bugs they reported that shipped as fixes.'
+---
+<SiteLayout title={title} description={description} active="in-the-wild" schema={schema}>
+  <section class="intro">
+    <p class="eyebrow">In the wild</p>
+    <h1>What other people say about Truss</h1>
+    <p class="lede">
+      Coverage written by other people, not by us. Every row links to the source
+      it came from, so you can read the whole thing rather than the part that
+      flatters us. Nothing here is measured or ranked: it is ordered by date.
+      Structure only, never data.
+    </p>
+  </section>
+
+  {sections.map((section) => (
+    <section class="group" aria-labelledby={`h-${section.kind}`}>
+      <header class="group-head">
+        <h2 id={`h-${section.kind}`}>{section.label}</h2>
+        <p>{section.blurb}</p>
+      </header>
+
+      <ul class="mentions">
+        {section.items.map((mention) => {
+          const video = isVideo(mention.url)
+          return (
+          <li class="mention">
+            {/* Cited, not pulled out. The excerpt sits with its attribution and
+                keeps body size: a quote floated above the name in larger type
+                reads as a chosen slogan, which is the thing worth asking
+                permission for. This is an excerpt of something published, with
+                a link to the rest. */}
+            {/* A report whose reporter has no public words ships without a
+                quote. The element is omitted rather than emptied: a blank
+                blockquote beside full ones is the look that got quoteless rows
+                banned in the first place. What goes in its place is the
+                contribution below, which is ours and says so by being prose. */}
+            {mention.quote && (mention.translation ? (
+              <blockquote cite={mention.url}>
+                {/* The English leads because it is what most readers can use,
+                    and it is labelled as ours in the same breath. The original
+                    is present, in its own language and direction. What must
+                    never happen is the English reading as though he wrote it. */}
+                <p class="excerpt">{mention.translation}</p>
+                <p class="original-label">
+                  Translated from {languageName(mention.quoteLang)}. His words:
+                </p>
+                <p class="original" lang={mention.quoteLang} dir={isRtl(mention.quoteLang) ? 'rtl' : undefined}>
+                  {mention.quote}
+                </p>
+              </blockquote>
+            ) : (
+              <blockquote cite={mention.url} lang={mention.quoteLang} dir={isRtl(mention.quoteLang) ? 'rtl' : undefined}>
+                <p class="excerpt">{mention.quote}</p>
+              </blockquote>
+            ))}
+
+            {/* Ours, and it has to read as ours. Third person, no quotation
+                marks, and outside the blockquote, so there is no arrangement of
+                this page on which it can be mistaken for something they said.
+                That is the same separation the translation has, one field on. */}
+            {mention.contribution && (
+              <p class="contribution">{mention.contribution}</p>
+            )}
+
+            <footer class="who">
+              <span class="initials" aria-hidden="true">{initialsOf(mention.author)}</span>
+              <span class="named">
+                <cite>{mention.author}</cite>
+                {mention.role && <span class="role">{mention.role}</span>}
+              </span>
+              <span class="where">
+                {/* A plain triangle and the platform in words, not YouTube's
+                    mark. Their published guidance permits the icon as a link
+                    only when the destination is a channel, and this points at a
+                    watch page. The name in plain text is ordinary nominative use
+                    and carries the same information: it tells a reader where the
+                    link goes before they follow it, which is the whole benefit
+                    an icon was going to buy. */}
+                <a href={mention.url} target="_blank" rel="noopener">
+                  {video && <span class="is-video" aria-hidden="true">▶</span>}
+                  {mention.source}{video && ' on YouTube'}<span aria-hidden="true"> ↗</span>
+                </a>
+                <time datetime={mention.date}>{formatDate(mention.date)}</time>
+              </span>
+            </footer>
+
+            {/* Without this the section is a list of bugs in Truss with no
+                visible resolution, on Truss's own site. The blurb promises the
+                releases that answered them; this is where it is kept. The
+                interval is opened to release, so it agrees with the version
+                beside it, and it measures Alberto rather than the reporter. */}
+            {mention.fixedIn && (
+              <p class="fixed">
+                {mention.fixedAfter ? `Answered in ${mention.fixedAfter}` : 'Answered'}
+                <span class="fixed-rel">Released in {mention.fixedIn}</span>
+              </p>
+            )}
+          </li>
+          )
+        })}
+      </ul>
+    </section>
+  ))}
+
+  <section class="note">
+    <p>
+      Quoted here and would rather not be? Mail
+      <a href="mailto:hello@albertoarena.it">hello@albertoarena.it</a> and the
+      row comes down.
+    </p>
+  </section>
+
+</SiteLayout>
+
+<style>
+  section { padding: 0 var(--truss-gutter); }
+  @media (max-width: 640px) { section { padding: 0 22px; } }
+
+  .intro { padding-top: 52px; padding-bottom: 8px; }
+  .eyebrow {
+    font-family: var(--truss-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--truss-cyan);
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before { content: ''; width: 22px; height: 1px; background: var(--truss-cyan); }
+  .intro h1 {
+    font-family: var(--truss-font-mono);
+    font-weight: 600;
+    font-size: clamp(28px, 4.6vw, 42px);
+    letter-spacing: -0.03em;
+    color: var(--truss-fg);
+    margin: 0;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: clamp(15px, 2.2vw, 17px);
+    color: var(--truss-muted);
+    max-width: 60ch;
+    margin: 16px 0 0;
+  }
+
+  .group { margin-top: 44px; }
+  .group-head { border-top: 1px solid var(--truss-line); padding-top: 18px; }
+  .group-head h2 {
+    font-family: var(--truss-font-mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--truss-ink);
+    margin: 0 0 4px;
+  }
+  .group-head p { margin: 0; color: var(--truss-muted); font-size: 13px; }
+
+  .mentions {
+    list-style: none;
+    margin: 20px 0 0;
+    padding: 0;
+    display: grid;
+    /* Two up where there is room, one up below. A quote that has to be scanned
+       across a full-width line is a quote nobody reads. */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1px;
+    background: var(--truss-line);
+    border: 1px solid var(--truss-line);
+  }
+  .mention {
+    background: var(--truss-panel);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Citation, not pull-quote: body size, no rule down the side, no oversized
+     glyphs. The quotation marks are what say "these are somebody else's words",
+     and the size is what stops it reading as a slogan we chose. */
+  blockquote { margin: 0; }
+  blockquote p {
+    margin: 0;
+    color: var(--truss-fg);
+    font-size: 14px;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  /* Ours, so it must not look like theirs. Same size and leading as an excerpt,
+     because it is read the same way, but muted and without the quotation marks
+     the excerpts carry. The distinction a reader actually uses is the third
+     person; this only has to avoid contradicting it. */
+  .contribution {
+    margin: 0;
+    color: var(--truss-fg-muted, var(--truss-fg));
+    font-size: 14px;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+  .excerpt::before { content: '\201C'; }
+  .excerpt::after { content: '\201D'; }
+
+  /* The label is ours and stays outside the quoted element, so the quotation
+     marks wrap his words and not our sentence about them. */
+  .original-label {
+    margin-top: 10px !important;
+    font-family: var(--truss-font-mono);
+    font-size: 10px !important;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--truss-muted);
+  }
+  .original {
+    margin-top: 4px !important;
+    color: var(--truss-muted);
+    font-size: 13px !important;
+  }
+  .original::before { content: '\201C'; }
+  .original::after { content: '\201D'; }
+
+  .is-video { margin-right: 5px; font-size: 10px; }
+
+  /* Pinned to the foot of the card, so attributions line up across a row
+     however long the quotes above them run. Two names sitting at different
+     heights in adjacent columns reads as a layout mistake.
+
+     This was removed at one point on the theory that it caused the pull-quote
+     look. It did not: the weight of the quote did, and that is fixed in the
+     type above. Alignment and citation were never in tension. */
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 12px;
+    flex-wrap: wrap;
+  }
+  /* Initials, never an avatar: hotlinking somebody's profile picture from a
+     third-party CDN rots and leaks the visitor to that CDN on every view. */
+  .initials {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--truss-line);
+    border-radius: 50%;
+    font-family: var(--truss-font-mono);
+    font-size: 11px;
+    color: var(--truss-muted);
+  }
+  .named { display: flex; flex-direction: column; min-width: 0; }
+  .named cite { font-style: normal; font-size: 13px; color: var(--truss-ink); }
+  .role { font-size: 12px; color: var(--truss-muted); }
+  .where {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 12px;
+  }
+  .where a { color: var(--truss-cyan); text-decoration: none; }
+  .where a:hover { text-decoration: underline; }
+  .where time { color: var(--truss-muted); font-variant-numeric: tabular-nums; }
+  .fixed {
+    margin: 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--truss-line);
+    font-family: var(--truss-font-mono);
+    font-size: 11px;
+    color: var(--truss-cyan);
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .fixed-rel { color: var(--truss-muted); }
+
+  .note { margin: 40px 0 8px; }
+  .note p { margin: 0; font-size: 13px; color: var(--truss-muted); }
+  .note a { color: var(--truss-cyan); }
+</style>

@@ -8,6 +8,13 @@
  * Credits and privacy are left out. They are the Optional section of llms.txt,
  * secondary material an agent may skip, and padding a grounding document with a
  * cookie policy makes it worse rather than more complete.
+ *
+ * /in-the-wild/ is left out for the same reason, deliberately and not by
+ * oversight: this file is the documentation collection rendered in full, and
+ * coverage by other people is not documentation. It is listed in llms.txt, which
+ * is the index an agent uses to decide what to fetch, so nothing is hidden;
+ * reproducing other people's words inside a grounding document would only invite
+ * them to be quoted without the link that makes them checkable.
  */
 import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'

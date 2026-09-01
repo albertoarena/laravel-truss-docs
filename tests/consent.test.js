@@ -157,6 +157,7 @@ describe('built output with no measurement ID configured', () => {
     const paths = [
       'index.html',
       'roadmap/index.html',
+      'in-the-wild/index.html',
       'getting-started/installation/index.html',
     ].map((p) => fileURLToPath(new URL(`../dist/${p}`, import.meta.url)))
 

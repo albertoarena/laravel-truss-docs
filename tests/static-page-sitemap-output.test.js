@@ -33,6 +33,14 @@ describe('the built sitemap', () => {
     expect(xml).toContain('<loc>https://trussphp.com/guides/theming/</loc>')
   })
 
+  it('lists in the wild, which is an Astro route and not one of the static pages', () => {
+    // Worth asserting rather than assuming, and worth being clear about what it
+    // means: an Astro route is crawlable the moment it is built, whether or not
+    // anything on the site links to it. Unlinked is not unindexed.
+    expect(xml).toContain('<loc>https://trussphp.com/in-the-wild/</loc>')
+    expect(STATIC_PAGES.map((page) => page.path)).not.toContain('/in-the-wild/')
+  })
+
   it('lists nothing twice', () => {
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1])
 

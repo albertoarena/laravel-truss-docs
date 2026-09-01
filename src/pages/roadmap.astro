@@ -35,6 +35,7 @@ const visible = SECTIONS.filter((section) => section.items.length > 0)
               <p>{item.blurb}</p>
               <div class="meta">
                 {item.tag && <span class="tag">{item.tag}</span>}
+                {item.tryUrl && <a href={item.tryUrl}>Try it</a>}
                 {item.issueUrl && (
                   <a href={item.issueUrl} target="_blank" rel="noopener">
                     {item.issueUrl.includes('/issues/')

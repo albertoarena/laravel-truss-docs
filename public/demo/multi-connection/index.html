@@ -10,6 +10,15 @@
     <!-- The exact assets Truss ships, copied into ../assets at build time (see
          scripts/copy-demo-assets.mjs). This page lives one level deeper than the
          main demo, so the paths step up one directory but reuse the same copy. -->
+    <!-- The face the diagram is measured in. Truss waits for it before
+         measuring, so this does not fix anything on its own; it starts the
+         fetch with the document rather than when truss.css is parsed, which
+         on a cold visit is a network round trip earlier. crossorigin is
+         required even same-origin, or the preload is not reused. The build
+         rewrites this ./assets/ path along with the others. -->
+    <link rel="preload" as="font" type="font/woff2"
+          href="../assets/ibm-plex-mono-400.woff2" crossorigin>
+
     <link rel="stylesheet" href="../assets/truss.css">
     <script src="../assets/vendor/mermaid.min.js"></script>
 
@@ -101,6 +110,7 @@
         <span class="site-bar-tag">Two connections. Switch with the Connections selector.</span>
         <nav class="site-bar-nav" aria-label="Site">
             <a href="../">Demo</a>
+            <a href="../your-schema/">Your own schema</a>
             <a href="../../getting-started/installation/">Docs</a>
             <a href="../../roadmap/">Roadmap</a>
             <a class="gh" href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
@@ -143,10 +153,19 @@
             </label>
 
             <div class="truss-secondary" id="truss-more">
-                <label class="truss-field">
-                    <span class="truss-field-label">Focus</span>
-                    <select id="truss-focus"></select>
-                </label>
+                <!-- Mirrors the package's own view: Focus is a combobox rather
+                     than a select, so it can be searched by substring on a large
+                     schema. truss.js wires the picker only when the input and
+                     its listbox are both present. -->
+                <div class="truss-field truss-combo">
+                    <label class="truss-field-label" for="truss-focus">Focus</label>
+                    <input id="truss-focus" type="text" role="combobox" autocomplete="off"
+                           aria-expanded="false" aria-controls="truss-focus-list"
+                           aria-autocomplete="list" placeholder="none">
+                    <ul class="truss-combo-list" id="truss-focus-list" role="listbox"
+                        aria-label="Tables" hidden></ul>
+                    <span class="truss-sr-only" id="truss-focus-status" role="status" aria-live="polite"></span>
+                </div>
                 <label class="truss-field">
                     <span class="truss-field-label">Depth</span>
                     <input id="truss-depth" type="number" min="0" step="1">
@@ -184,7 +203,9 @@
 
             <div class="truss-zoom" id="truss-zoom">
                 <button type="button" data-fit title="Fit the whole diagram in view">Fit</button>
-                <input id="truss-zoom-range" type="range" min="0.1" max="3" step="0.02" value="1" title="Zoom (scroll or pinch over the diagram)">
+                <!-- A title is a tooltip, not an accessible name (WCAG 4.1.2). -->
+                <input id="truss-zoom-range" type="range" min="0.1" max="3" step="0.02" value="1"
+                       aria-label="Zoom" title="Zoom (scroll or pinch over the diagram)">
                 <span id="truss-zoom-pct">100%</span>
             </div>
         </main>

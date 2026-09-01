@@ -1,7 +1,7 @@
 ---
 /**
- * Shared layout for the custom (non-Starlight) pages: the landing and the
- * roadmap. Owns the blueprint frame, the slim header and footer, head/meta
+ * Shared layout for the custom (non-Starlight) pages: the landing, the roadmap
+ * and in the wild. Owns the blueprint frame, the slim header and footer, head/meta
  * (OG + Cloudflare beacon, matching astro.config), and theme handling that
  * shares Starlight's `starlight-theme` localStorage key so the light/dark
  * choice persists across the custom pages and the docs.
@@ -16,7 +16,7 @@ interface Props {
   title: string
   description?: string
   /** Active top-nav item, for aria-current. */
-  active?: 'home' | 'roadmap'
+  active?: 'home' | 'roadmap' | 'in-the-wild'
   /**
    * Extra schema.org nodes for this page, appended to the Person and WebSite
    * every page carries. The landing adds the SoftwareApplication describing the
@@ -38,6 +38,7 @@ const cover = new URL('/cover-light.png', site).href
 const nav = [
   { label: 'Docs', href: '/getting-started/installation/' },
   { label: 'Roadmap', href: '/roadmap/', key: 'roadmap' },
+  { label: 'In the wild', href: '/in-the-wild/', key: 'in-the-wild' },
   { label: 'Demo', href: '/demo/' },
 ]
 ---
@@ -165,10 +166,12 @@ const nav = [
           <a href="/getting-started/installation/">Get started</a>
           <a href="/help/faq/">FAQ</a>
           <a href="/roadmap/">Roadmap</a>
+          <a href="/in-the-wild/">In the wild</a>
           <a href="/credits/">Credits</a>
           <a href="/privacy/">Privacy</a>
           <a href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener">GitHub</a>
           <a href="https://www.youtube.com/playlist?list=PLdadt28gT2Qc" target="_blank" rel="noopener">Videos</a>
+          <a href="https://discord.gg/x3Qt9CJkcE" target="_blank" rel="noopener">Discord</a>
           <a href="https://ko-fi.com/albertoarena" target="_blank" rel="noopener">Support</a>
           <ConsentSettings />
         </nav>

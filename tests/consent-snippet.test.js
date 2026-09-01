@@ -72,6 +72,59 @@ describe('the static-page consent snippet', () => {
   it('escapes the measurement ID rather than interpolating it raw', () => {
     expect(consentSnippet('G-<script>')).not.toContain('<script>x')
   })
+
+  // The accept button paints itself on --bp-ink, which is a dark navy in light
+  // mode and a pale cyan in dark mode. A text colour that does not flip with it
+  // is legible in exactly one theme. This shipped hardcoded as #0b1a2b, correct
+  // against the dark-mode cyan and 1.46:1 against the light-mode navy.
+  //
+  // palette-contrast.test.js cannot see this: it reads src/styles/tokens.css,
+  // and these static pages resolve the package's --bp-* palette instead. Nor can
+  // accessibility.test.js, which excludes 'demo' and 'theme-builder', the only
+  // two pages the snippet is injected into.
+  describe('the accept button stays legible in both themes', () => {
+    const rule = snippet.match(/\.consent-btn-accept\s*\{([^}]*)\}/)[1]
+    const declared = (prop) => rule.match(new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`))?.[1].trim()
+
+    // The package palette these pages actually resolve against, from
+    // resources/css/truss.css in albertoarena/laravel-truss. Kept as a table so
+    // a token swap has to justify itself against real contrast, not by eye.
+    const PALETTE = {
+      light: { '--bp-ink': '#12356b', '--bp-bg': '#eef1f6', '--bp-fg': '#132741', '--bp-panel': '#fbfcfe' },
+      dark: { '--bp-ink': '#5fd0e6', '--bp-bg': '#0b1a2b', '--bp-fg': '#d7e7f4', '--bp-panel': '#0f2338' },
+    }
+
+    const rgb = (hex) => [0, 2, 4].map((i) => parseInt(hex.replace('#', '').slice(i, i + 2), 16))
+    const luminance = (hex) => {
+      const [r, g, b] = rgb(hex).map((v) => {
+        const s = v / 255
+        return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+      })
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+    const contrast = (a, b) => {
+      const [x, y] = [luminance(a), luminance(b)]
+      return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
+    }
+
+    // "var(--bp-bg, #0b1a2b)" -> "--bp-bg". A bare hex has no token and fails.
+    const token = (value) => value?.match(/var\(\s*(--[\w-]+)/)?.[1]
+
+    it('resolves its text colour through a token rather than a fixed hex', () => {
+      expect(token(declared('color'))).toBeTruthy()
+    })
+
+    it.each(['light', 'dark'])('clears 4.5:1 in %s mode', (theme) => {
+      const palette = PALETTE[theme]
+      const [fg, bg] = [['color', 'background']].flat().map((prop) => {
+        const t = token(declared(prop))
+        expect(t, `${prop} must resolve through a --bp-* token so it can flip with the theme`).toBeTruthy()
+        expect(palette, `the snippet names ${t}, which is not in the package palette`).toHaveProperty(t)
+        return palette[t]
+      })
+      expect(contrast(fg, bg)).toBeGreaterThanOrEqual(4.5)
+    })
+  })
 })
 
 describe('the build wires the snippet into every static page', () => {

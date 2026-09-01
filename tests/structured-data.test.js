@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
+import { LOCAL_STAMP } from '../scripts/copy-demo-assets.mjs'
+
 import {
   PACKAGE_NAME,
   PACKAGE_VERSION,
@@ -17,10 +19,12 @@ import {
   websiteNode,
   softwareApplicationNode,
   techArticleNode,
+  mentionsNode,
   breadcrumbCrumbs,
   breadcrumbNode,
   graph,
 } from '../src/scripts/structured-data.js'
+import { VALID as MENTION_FIXTURES } from './fixtures/in-the-wild.js'
 
 // The site emitted no structured data at all: zero application/ld+json in the
 // whole built output. For a package whose documentation wants to be quoted by
@@ -162,18 +166,82 @@ describe('techArticleNode', () => {
   })
 })
 
+describe('mentionsNode', () => {
+  const node = mentionsNode(SITE, '/in-the-wild/', MENTION_FIXTURES)
+
+  it('is null for an empty set, because an ItemList of nothing says nothing', () => {
+    expect(mentionsNode(SITE, '/in-the-wild/', [])).toBeNull()
+  })
+
+  it('describes each mention as a CreativeWork at the URL it really lives at', () => {
+    expect(node['@type']).toBe('ItemList')
+    expect(node.numberOfItems).toBe(MENTION_FIXTURES.length)
+
+    const [first] = node.itemListElement
+    expect(first['@type']).toBe('ListItem')
+    expect(first.position).toBe(1)
+    expect(first.item['@type']).toBe('CreativeWork')
+    expect(first.item.url).toBe(MENTION_FIXTURES[0].url)
+    expect(first.item.author).toEqual({ '@type': 'Person', name: MENTION_FIXTURES[0].author })
+  })
+
+  it('carries no Review and no AggregateRating, ever', () => {
+    // Self-serving review markup on your own product page is against Google's
+    // own guidance, and a score synthesised out of LinkedIn comments would be a
+    // number this project cannot source. That is the same failure mode as
+    // claiming a conformance level nobody audited.
+    const json = JSON.stringify(node)
+    expect(json).not.toMatch(/Review|AggregateRating|ratingValue|reviewRating/)
+  })
+
+  it('declares the order it actually renders in, which is by date and nothing else', () => {
+    expect(node.itemListOrder).toBe('https://schema.org/ItemListOrderDescending')
+  })
+
+  it('states the language of a quote that has one, and invents one for nobody', () => {
+    const translated = node.itemListElement.find((el) => el.item.inLanguage)
+    expect(translated.item.inLanguage).toBe('pt-BR')
+
+    const english = node.itemListElement.find((el) => el.item.url.endsWith('/editorial'))
+    expect(english.item.inLanguage).toBeUndefined()
+  })
+
+  it('marks up the quote and not our translation of it', () => {
+    // A reader sees both; the machine-readable copy carries what the person
+    // actually wrote, because that is the part attributable to them.
+    const translated = node.itemListElement.find((el) => el.item.inLanguage)
+    const source = MENTION_FIXTURES.find((m) => m.quoteLang)
+
+    expect(translated.item.text).toBe(source.quote)
+    expect(JSON.stringify(node)).not.toContain(source.translation)
+  })
+
+  it('omits text entirely for a row with no quote', () => {
+    const quoteless = node.itemListElement.find((el) => el.item.url.endsWith('/quoteless'))
+    expect(quoteless.item.text).toBeUndefined()
+  })
+
+  it('points every mention at the same package entity as the rest of the graph', () => {
+    for (const el of node.itemListElement) {
+      expect(el.item.about).toEqual({ '@id': ids(SITE).software })
+    }
+  })
+})
+
 describe('breadcrumbCrumbs', () => {
   it('starts at the site root', () => {
     const crumbs = breadcrumbCrumbs(SITE, '/guides/authorization/', 'Authorization')
     expect(crumbs[0]).toEqual({ name: 'Home', item: `${SITE}/` })
   })
 
-  it('names the section without inventing a URL for it', () => {
-    // /guides/ is not a real page on this site. Emitting it as a linked crumb
-    // would put a 404 into the structured data, so the section is carried as a
-    // name only.
+  it('leaves the section out rather than carrying it with no URL', () => {
+    // /guides/ is not a real page on this site, so it cannot be linked. It also
+    // cannot be a name-only crumb: Google requires item on every element but the
+    // last, and one without it invalidates the whole list rather than shortening
+    // it. That is what Search Console reported on all fifteen section pages.
     const crumbs = breadcrumbCrumbs(SITE, '/guides/authorization/', 'Authorization')
-    expect(crumbs[1]).toEqual({ name: 'Guides' })
+    expect(crumbs).toHaveLength(2)
+    expect(crumbs.map((crumb) => crumb.name)).not.toContain('Guides')
   })
 
   it('ends on the page itself, using the real page title', () => {
@@ -184,12 +252,7 @@ describe('breadcrumbCrumbs', () => {
     })
   })
 
-  it('title-cases a hyphenated section the way the sidebar reads', () => {
-    const crumbs = breadcrumbCrumbs(SITE, '/getting-started/installation/', 'Installation')
-    expect(crumbs[1]).toEqual({ name: 'Getting Started' })
-  })
-
-  it('is just home and the page when there is no section', () => {
+  it('is home and the page at any depth', () => {
     const crumbs = breadcrumbCrumbs(SITE, '/credits/', 'Credits')
     expect(crumbs).toHaveLength(2)
     expect(crumbs.at(-1).name).toBe('Credits')
@@ -204,14 +267,26 @@ describe('breadcrumbNode', () => {
   it('numbers positions from one', () => {
     const node = breadcrumbNode(SITE, '/guides/authorization/', 'Authorization')
     expect(node['@type']).toBe('BreadcrumbList')
-    expect(node.itemListElement.map((element) => element.position)).toEqual([1, 2, 3])
+    expect(node.itemListElement.map((element) => element.position)).toEqual([1, 2])
   })
 
-  it('omits the item property on a crumb that has no URL', () => {
-    const node = breadcrumbNode(SITE, '/guides/authorization/', 'Authorization')
-    const section = node.itemListElement[1]
-    expect(section.name).toBe('Guides')
-    expect('item' in section).toBe(false)
+  it('gives every list item an item, at every depth the site has', () => {
+    // The rule this exists to hold: Google requires item on every element
+    // except the last, and drops the entire BreadcrumbList over one that is
+    // missing. A name-only crumb is valid schema.org and a critical error in
+    // Search Console, so nothing here may emit one.
+    const paths = [
+      ['/credits/', 'Credits'],
+      ['/help/faq/', 'FAQ'],
+      ['/getting-started/installation/', 'Installation'],
+      ['/guides/authorization/', 'Authorization'],
+    ]
+
+    for (const [pathname, title] of paths) {
+      for (const element of breadcrumbNode(SITE, pathname, title).itemListElement) {
+        expect(element.item).toMatch(/^https:\/\//)
+      }
+    }
   })
 
   it('is null rather than an empty list when there are no crumbs', () => {
@@ -229,7 +304,22 @@ describe('the version constant', () => {
       // GitHub release. It is gitignored, so this only runs after a real build,
       // but when it does it catches the landing page and the structured data
       // advertising a version the site no longer ships.
-      expect(PACKAGE_VERSION).toBe(readFileSync(versionFile, 'utf8').trim())
+      const stamp = readFileSync(versionFile, 'utf8').trim()
+
+      // A build made with PACKAGE_PATH carries a local checkout's frontend
+      // rather than a released one, so there is no version for the structured
+      // data to agree with. Deliberately a failure rather than a skip: the site
+      // would otherwise advertise a version it is not serving, and this doubles
+      // as the reminder that the demo assets are still the local ones.
+      if (stamp === LOCAL_STAMP) {
+        throw new Error(
+          'The demo assets came from a local checkout (PACKAGE_PATH), not a release, so there is '
+          + 'no version to check against. Run `npm run copy-demo-assets` to restore them before '
+          + 'trusting this suite or building to deploy.',
+        )
+      }
+
+      expect(PACKAGE_VERSION).toBe(stamp)
     },
   )
 })

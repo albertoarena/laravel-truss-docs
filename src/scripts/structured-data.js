@@ -117,46 +117,93 @@ export function faqNode(site, items) {
   }
 }
 
-const titleCase = (segment) =>
-  segment
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+/**
+ * Coverage by other people, as an ItemList of CreativeWork.
+ *
+ * No Review and no AggregateRating, ever. Self-serving review markup on your
+ * own product page is against Google's own guidance, and a score synthesised out
+ * of LinkedIn comments would be a number this project cannot source, which is
+ * the same failure mode as claiming a conformance level nobody audited. An
+ * ItemList pointing at the real URLs is honest, and it is all an answer engine
+ * needs to follow the trail to the people who actually said these things.
+ *
+ * Ordering is declared descending because the page sorts by date and by nothing
+ * else. How well somebody's post performed is in the private notes and never
+ * reaches this file, including as a sort order.
+ *
+ * Null for an empty list, like faqNode: an ItemList with no items says nothing.
+ */
+export function mentionsNode(site, pathname, mentions) {
+  if (mentions.length === 0) return null
+
+  return {
+    '@type': 'ItemList',
+    '@id': `${site}${pathname}#mentions`,
+    name: `Coverage of ${PACKAGE_NAME} by other people`,
+    itemListOrder: 'https://schema.org/ItemListOrderDescending',
+    numberOfItems: mentions.length,
+    itemListElement: mentions.map((mention, i) => {
+      const work = {
+        '@type': 'CreativeWork',
+        url: mention.url,
+        datePublished: mention.date,
+        author: { '@type': 'Person', name: mention.author },
+        publisher: { '@type': 'Organization', name: mention.source },
+        about: { '@id': ids(site).software },
+      }
+
+      // Only what the source shows, and only in the language it was written in.
+      if (mention.quote) work.text = mention.quote
+      if (mention.quoteLang) work.inLanguage = mention.quoteLang
+
+      return { '@type': 'ListItem', position: i + 1, item: work }
+    }),
+  }
+}
 
 /**
- * Home, then the section, then the page.
+ * Home, then the page. The section in between is deliberately not a crumb.
  *
- * The section carries a name and no URL on purpose. Sections like /guides/ are
- * sidebar groupings, not pages, so linking them would put a 404 into the
- * structured data. schema.org permits a ListItem with a name alone, and a
- * hierarchy that is honest beats one that is clickable and wrong.
+ * Sections like /guides/ are sidebar groupings and not pages, so this used to
+ * carry them as a name with no URL rather than link a 404. schema.org permits a
+ * ListItem with a name alone; Google does not. Its breadcrumb rule is that item
+ * is required on every element except the last, so a name-only crumb does not
+ * degrade to a shorter trail, it invalidates the whole BreadcrumbList. Search
+ * Console flagged exactly the fifteen pages that sit inside a section folder
+ * with `Missing field "item" (in "itemListElement")`.
+ *
+ * Dropping the middle level keeps the original rule intact rather than trading
+ * it away: every crumb still points somewhere a reader can actually go. To get
+ * the section back, give the sections index pages for the crumb to link.
  */
 export function breadcrumbCrumbs(site, pathname, title) {
   const segments = pathname.split('/').filter(Boolean)
   if (segments.length === 0) return []
 
-  const crumbs = [{ name: 'Home', item: `${site}/` }]
-
-  for (const segment of segments.slice(0, -1)) {
-    crumbs.push({ name: titleCase(segment) })
-  }
-
-  crumbs.push({ name: title, item: `${site}${pathname}` })
-
-  return crumbs
+  return [
+    { name: 'Home', item: `${site}/` },
+    { name: title, item: `${site}${pathname}` },
+  ]
 }
 
-/** Null rather than an empty list: a breadcrumb of nothing is not worth emitting. */
+/**
+ * Null rather than an empty list: a breadcrumb of nothing is not worth emitting.
+ *
+ * item is set unconditionally, with no guard for a crumb that lacks one. A
+ * guard here would let a URL-less crumb through silently, which is the failure
+ * this came from; the test suite asserts every element has one instead.
+ */
 export function breadcrumbNode(site, pathname, title) {
   const crumbs = breadcrumbCrumbs(site, pathname, title)
   if (crumbs.length === 0) return null
 
   return {
     '@type': 'BreadcrumbList',
-    itemListElement: crumbs.map((crumb, index) => {
-      const element = { '@type': 'ListItem', position: index + 1, name: crumb.name }
-      if (crumb.item) element.item = crumb.item
-      return element
-    }),
+    itemListElement: crumbs.map((crumb, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: crumb.name,
+      item: crumb.item,
+    })),
   }
 }
