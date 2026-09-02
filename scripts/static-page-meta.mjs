@@ -15,6 +15,24 @@
  * lives in one place instead of three.
  */
 
+import { DEMO_APPS, appPageFile, appPagePath } from './demo-apps.mjs'
+
+/**
+ * The per-application demo pages, in the shape the rest of this file expects.
+ *
+ * Derived rather than typed out: these are the pages most likely to arrive in
+ * bulk (one per application in the field study), and the sitemap is generated
+ * from this same array, so an application listed in one and missed in the other
+ * would be shared as a bare URL or left out of the sitemap with nothing to say
+ * so.
+ */
+const appPages = DEMO_APPS.map((app) => ({
+  file: appPageFile(app),
+  path: appPagePath(app),
+  title: app.title,
+  description: app.description,
+}))
+
 /** One entry per hand-authored page. `file` is relative to the build output. */
 export const STATIC_PAGES = [
   {
@@ -38,6 +56,7 @@ export const STATIC_PAGES = [
     description:
       'Paste a mysqldump taken with no data, or a schema exported from Truss, and see your own tables drawn as an ER diagram. Parsed in your browser, never uploaded, and no row data is read.',
   },
+  ...appPages,
   {
     file: 'theme-builder/index.html',
     path: '/theme-builder/',

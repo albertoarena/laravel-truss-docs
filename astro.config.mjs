@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import { consentSnippet } from './scripts/consent-snippet.mjs'
+import { DEMO_APPS, appPageFile, APP_ASSET_TOKEN } from './scripts/demo-apps.mjs'
 import { STATIC_PAGES, metaTags, injectMeta } from './scripts/static-page-meta.mjs'
 import { staticPageUrls, addUrls } from './scripts/static-page-sitemap.mjs'
 
@@ -31,8 +32,16 @@ function demoAssetVersioning() {
           // Repoint every page that references the demo assets at the versioned
           // folder. The demo's top-level page uses ./assets/; pages nested one
           // level deep (multi-connection/, your-schema/) use ../assets/; the
-          // theme builder, a sibling of demo/, links the demo stylesheet as
-          // ../demo/assets/. Each gets the same version stamp.
+          // per-application pages under demo/apps/<slug>/ are one deeper again
+          // and use ../../assets/; the theme builder, a sibling of demo/, links
+          // the demo stylesheet as ../demo/assets/. Each gets the same stamp.
+          //
+          // The app pages come from scripts/demo-apps.mjs rather than being
+          // listed here, because a page missing from this array fails silently
+          // and in one direction only: it keeps pointing at demo/assets/, which
+          // by now has been renamed, so it renders in dev and shows an empty
+          // diagram in production. Twenty applications is twenty chances to
+          // forget one, so the list is derived instead of retyped.
           //
           // Only HTML is rewritten. That is why your-schema/ declares the
           // dashboard's URL on a script tag instead of writing it inside its own
@@ -41,6 +50,10 @@ function demoAssetVersioning() {
             { page: join(demoDir, 'index.html'), find: ['./assets/', '../assets/'] },
             { page: join(demoDir, 'multi-connection', 'index.html'), find: ['./assets/', '../assets/'] },
             { page: join(demoDir, 'your-schema', 'index.html'), find: ['./assets/', '../assets/'] },
+            ...DEMO_APPS.map((app) => ({
+              page: join(fileURLToPath(dir), appPageFile(app)),
+              find: [APP_ASSET_TOKEN],
+            })),
             { page: join(fileURLToPath(dir), 'theme-builder', 'index.html'), find: ['../demo/assets/'] },
           ]
           for (const { page, find } of rewrites) {
@@ -85,12 +98,10 @@ function staticPageConsent() {
           return
         }
 
-        const pages = [
-          join(fileURLToPath(dir), 'demo', 'index.html'),
-          join(fileURLToPath(dir), 'demo', 'multi-connection', 'index.html'),
-          join(fileURLToPath(dir), 'demo', 'your-schema', 'index.html'),
-          join(fileURLToPath(dir), 'theme-builder', 'index.html'),
-        ]
+        // Derived from STATIC_PAGES, which the per-application demo pages join
+        // as they are added, so a new hand-authored page cannot get head
+        // metadata and a sitemap entry while quietly going unmeasured.
+        const pages = STATIC_PAGES.map((page) => join(fileURLToPath(dir), page.file))
 
         let injected = 0
         for (const page of pages) {

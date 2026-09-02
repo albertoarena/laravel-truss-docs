@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
+import { DEMO_APPS, appPageFile, APP_ASSET_TOKEN } from '../scripts/demo-apps.mjs'
+
 // The two demo pages are hand-authored shells around the package's ACTUAL
 // shipped frontend: scripts/copy-demo-assets.mjs fetches resources/ from the
 // latest package release, but the markup those assets bind to lives here and is
@@ -15,10 +17,15 @@ import { fileURLToPath } from 'node:url'
 // change, on both shells, since the multi-connection variant is easy to forget.
 const root = fileURLToPath(new URL('..', import.meta.url))
 
+// The per-application pages are shells too, and the same drift applies to them.
+// Derived from the registry rather than listed, so the twentieth application is
+// covered by these assertions on the day it is added rather than the day
+// somebody remembers this file.
 const SHELLS = [
   'public/demo/index.html',
   'public/demo/multi-connection/index.html',
   'public/demo/your-schema/index.html',
+  ...DEMO_APPS.map((app) => `public/${appPageFile(app)}`),
 ].map((path) => ({ path, html: readFileSync(new URL(`../${path}`, import.meta.url), 'utf8') }))
 
 const shell = (name) => SHELLS.find((s) => s.path.includes(name)).html
@@ -111,7 +118,7 @@ describe('the shells are structurally valid HTML', () => {
 
 describe('demo shells carry the controls the shipped frontend binds to', () => {
   it('reads every hand-authored shell', () => {
-    expect(SHELLS.length).toBe(3)
+    expect(SHELLS.length).toBe(3 + DEMO_APPS.length)
     for (const { path, html } of SHELLS) {
       expect(html.length, path).toBeGreaterThan(0)
     }
@@ -169,8 +176,10 @@ describe('the paste shell', () => {
     // the form off the other two shells is what makes that impossible rather
     // than merely avoided.
     expect(paste).toMatch(/id="paste-input"/)
-    expect(shell('demo/index.html')).not.toMatch(/id="paste-input"/)
-    expect(shell('multi-connection')).not.toMatch(/id="paste-input"/)
+    for (const { path, html } of SHELLS) {
+      if (path.includes('your-schema')) continue
+      expect(html, `${path} carries the paste form`).not.toMatch(/id="paste-input"/)
+    }
   })
 
   it('declares no connections, so nothing can be appended to a blob endpoint', () => {
@@ -225,12 +234,20 @@ describe('demo shells preload the face the diagram is measured in', () => {
 
   it('points the preload at the relative assets folder the build rewrites', () => {
     // demo-asset-versioning renames assets/ to assets-<version>/ and repoints
-    // only the './assets/' and '../assets/' tokens it finds in the built HTML.
-    // An absolute or differently spelled path survives the rewrite and then
-    // 404s, which would preload nothing and warn in the console on every visit.
+    // only the literal tokens it is given for each page. An absolute or
+    // differently spelled path survives the rewrite and then 404s, which would
+    // preload nothing and warn in the console on every visit.
+    //
+    // The depth is per page and not a free choice: the top-level demo uses
+    // ./assets/, the pages one level down use ../assets/, and the
+    // per-application pages two levels down use ../../assets/, which is the
+    // token astro.config.mjs registers for them through APP_ASSET_TOKEN.
     for (const { path, html } of SHELLS) {
       const face = (html.match(PRELOAD) ?? []).find((tag) => tag.includes('ibm-plex-mono-400.woff2'))
-      expect(face, path).toMatch(/href="\.{1,2}\/assets\/ibm-plex-mono-400\.woff2"/)
+      const expected = path.includes('/demo/apps/')
+        ? `href="${APP_ASSET_TOKEN}ibm-plex-mono-400.woff2"`
+        : /href="\.{1,2}\/assets\/ibm-plex-mono-400\.woff2"/
+      expect(face, path).toMatch(expected)
     }
   })
 })

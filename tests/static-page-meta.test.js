@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { STATIC_PAGES, metaTags, injectMeta } from '../scripts/static-page-meta.mjs'
+import { DEMO_APPS, appPagePath } from '../scripts/demo-apps.mjs'
 
 // The demo, its multi-connection variant and the theme builder are hand-authored
 // files under public/, copied verbatim, so they never pass through either
@@ -18,13 +19,24 @@ const SITE = 'https://trussphp.com'
 const COVER = `${SITE}/cover-light.png`
 
 describe('STATIC_PAGES', () => {
-  it('covers all four hand-authored pages', () => {
+  it('covers every hand-authored page, including one per demo application', () => {
     expect(STATIC_PAGES.map((page) => page.path).sort()).toEqual([
       '/demo/',
+      ...DEMO_APPS.map(appPagePath),
       '/demo/multi-connection/',
       '/demo/your-schema/',
       '/theme-builder/',
-    ])
+    ].sort())
+  })
+
+  it('lists an entry for every demo application, so none is added to one list only', () => {
+    // The failure this exists for is quiet: an application page absent from
+    // STATIC_PAGES gets no canonical, no OpenGraph, no sitemap entry and no
+    // consent banner, and looks perfectly fine in a browser.
+    const paths = STATIC_PAGES.map((page) => page.path)
+    for (const app of DEMO_APPS) {
+      expect(paths, `${app.slug} is missing from STATIC_PAGES`).toContain(appPagePath(app))
+    }
   })
 
   it('gives every page a title and a description of its own', () => {
