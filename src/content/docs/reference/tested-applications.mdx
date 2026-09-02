@@ -55,6 +55,15 @@ tables out, so the diagram for Lunar draws 67 where this table records 75. Both
 numbers are right and they answer different questions, and each diagram says
 which one it is showing.
 
+**The two were counted against the same database, not subtracted across two
+runs.** That distinction matters here: a row measured on one date and a snapshot
+taken on another are two measurements, and presenting the gap between them as
+arithmetic would be the kind of welding this page exists to avoid. Lunar's
+database holds 75 tables, its export holds 67, and the difference is exactly
+eight named tables: `cache`, `cache_locks`, `failed_jobs`, `job_batches`,
+`jobs`, `migrations`, `password_reset_tokens` and `sessions`. The sum is
+asserted in the test suite rather than only stated here.
+
 **Five of the twenty are framework starter skeletons**: Breeze, Jetstream,
 Filament, and the two bare Laravel installs. A fresh project is the schema Truss
 meets most often, so they are measured too.

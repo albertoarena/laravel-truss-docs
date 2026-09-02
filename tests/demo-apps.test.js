@@ -205,6 +205,40 @@ describe('the copy on the page can be checked against the file', () => {
         .toMatch(/scaffolding/i)
     }
   })
+
+  it('reconciles the two counts by arithmetic, not by assertion', () => {
+    // The figure-welding guard. Both pages claim the whole gap between the
+    // diagram's count and the field study's is Laravel's own scaffolding. That
+    // is a sentence in prose and prose does not get checked, so the claim is
+    // stated here as a sum instead: if a future application's numbers do not
+    // reconcile, this fails rather than the page publishing two figures from
+    // two measurements as though they were one.
+    for (const app of DEMO_APPS) {
+      expect(app.tables + app.excludedTables.length, `${app.slug}: ${app.tables} + ${app.excludedTables.length} is not ${app.fieldStudyTables}`)
+        .toBe(app.fieldStudyTables)
+    }
+  })
+
+  it('names the excluded tables, and none of them is in the snapshot', () => {
+    // The sum above would also balance with the wrong eight names. These are
+    // the tables the exporter leaves out, so finding one in the file means the
+    // count is right by coincidence.
+    for (const app of DEMO_APPS) {
+      const names = new Set(schema(app).tables.map((t) => t.name))
+      expect(app.excludedTables.length, `${app.slug}: no excluded tables named`).toBeGreaterThan(0)
+      for (const excluded of app.excludedTables) {
+        expect(names.has(excluded), `${app.slug}: ${excluded} is counted as excluded but is in the export`).toBe(false)
+      }
+    }
+  })
+
+  it('prints both numbers on the page, so the reader can do the same sum', () => {
+    for (const app of DEMO_APPS) {
+      expect(html(app), `${app.slug}`).toContain(String(app.tables))
+      expect(html(app), `${app.slug}: the field study's count is not on the page`)
+        .toContain(String(app.fieldStudyTables))
+    }
+  })
 })
 
 describe('the courtesies owed to somebody else\'s schema', () => {
@@ -243,6 +277,60 @@ describe('the courtesies owed to somebody else\'s schema', () => {
   it('claims no affiliation it does not have', () => {
     for (const app of DEMO_APPS) {
       expect(html(app), `${app.slug}`).toMatch(/not affiliated/i)
+    }
+  })
+
+  it('keeps the courtesies at every width, not only the wide ones', () => {
+    // These assertions read the source, so all of them passed while the licence,
+    // the date and the disclaimer were display:none below 900px. A phone saw a
+    // page titled "Lunar's database structure" with no attribution on it, which
+    // is exactly the device a link in somebody's Discord is opened on.
+    //
+    // So the check is not "is it in the markup" but "is it outside every span
+    // the narrow queries hide". .fact-wide is the class those queries drop.
+    for (const app of DEMO_APPS) {
+      const facts = html(app).match(/<p class="app-head-facts">([\s\S]*?)<\/p>/)?.[1]
+      expect(facts, `${app.slug}: no fact line`).toBeTruthy()
+      const alwaysShown = facts.replace(/<span class="fact-wide">[\s\S]*?<\/span>\s*(?=<|$)/g, ' ')
+
+      expect(alwaysShown, `${app.slug}: the licence is dropped on narrow screens`).toContain(app.licence)
+      expect(alwaysShown, `${app.slug}: the snapshot date is dropped on narrow screens`).toContain(app.snapshot)
+      expect(alwaysShown, `${app.slug}: the disclaimer is dropped on narrow screens`).toMatch(/not affiliated/i)
+      expect(alwaysShown, `${app.slug}: the version is dropped on narrow screens`).toContain(app.version)
+    }
+  })
+
+  it('names the repository link for a screen reader at every width', () => {
+    // Below 720px the visible label is hidden and the icon is aria-hidden, so
+    // without this the one link crediting the project has no accessible name
+    // (WCAG 4.1.2) on precisely the widths where it is only an icon.
+    for (const app of DEMO_APPS) {
+      const link = html(app).match(/<a class="app-repo"[^>]*>/s)?.[0]
+      expect(link, `${app.slug}: no repository link`).toBeTruthy()
+      expect(link, `${app.slug}: repository link has no accessible name`).toMatch(/aria-label="[^"]+"/)
+    }
+  })
+})
+
+describe('the viewport fills the screen the reader actually has', () => {
+  it('sizes itself in dvh as well as vh', () => {
+    // The footer strip carries the removal address and the body cannot scroll
+    // to it: overflow is hidden and the diagram preventDefaults every wheel
+    // event. On iOS Safari 100vh is the toolbars-retracted height, so a
+    // vh-only layout is taller than the visible viewport at first paint and
+    // puts that strip under the fold.
+    for (const app of DEMO_APPS) {
+      expect(html(app), `${app.slug}`).toMatch(/calc\(100dvh/)
+      expect(html(app), `${app.slug}: the vh fallback is gone`).toMatch(/calc\(100vh/)
+    }
+  })
+
+  it('does not promise a fit the zoom floor forbids', () => {
+    // With a floor above the scale a true fit would need, the Fit button
+    // recentres rather than fits. The shipped wording would be a tooltip
+    // promising the one thing this page rules out.
+    for (const app of DEMO_APPS) {
+      expect(html(app), `${app.slug}`).not.toMatch(/title="Fit the whole diagram in view"/)
     }
   })
 })

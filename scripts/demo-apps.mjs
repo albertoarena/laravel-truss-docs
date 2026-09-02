@@ -48,6 +48,24 @@ export const DEMO_APPS = [
     // The count in this snapshot. See the note above before changing it.
     tables: 67,
     foreignKeys: 83,
+    // What /reference/tested-applications/ reports for the same application,
+    // and the tables that account for the difference. Both are here so the
+    // reconciliation is arithmetic a test can run rather than a sentence on a
+    // page, because "the gap is just scaffolding" is the kind of claim that
+    // stays in the prose long after it stops being true.
+    //
+    // Checked on one database rather than inferred across two runs, which is
+    // the trap: `lunar_truss_local` holds 75 tables, the export holds 67, and
+    // the eight below are exactly the difference by name. The field study's row
+    // is from 21/08 against an older Lunar, so that could have been two numbers
+    // from two checkouts; it is not, because no Schema::create migration exists
+    // in the package after that date (2026_08_26 is an alter), so the table
+    // count did not move in between.
+    fieldStudyTables: 75,
+    excludedTables: [
+      'cache', 'cache_locks', 'failed_jobs', 'job_batches', 'jobs',
+      'migrations', 'password_reset_tokens', 'sessions',
+    ],
     focus: 'lunar_products',
     repository: 'https://github.com/lunarphp/core',
     licence: 'MIT',
