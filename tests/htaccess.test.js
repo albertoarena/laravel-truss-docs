@@ -39,6 +39,28 @@ describe('the deployed .htaccess', () => {
     expect(htaccess).toMatch(/RewriteEngine\s+On/i)
   })
 
+  it('turns directory listings off', () => {
+    // This repeats a guarantee rather than creating one: the docroot .htaccess
+    // already carries `Options +FollowSymLinks -Indexes` and Options inherits
+    // into subdirectories. It is repeated because that file is hand-maintained
+    // on the host and not deployed by CI, while this one ships inside every
+    // release. /demo/apps/ is what made it worth stating: it holds the
+    // per-application pages and has no index of its own until there is a second.
+    //
+    // As with every rule in this file, this confirms the line is present and
+    // never that it works: see Post-deploy checks in DEPLOYMENT.md.
+    expect(htaccess).toMatch(/^\s*Options\s+-Indexes\s*$/m)
+  })
+
+  it('writes Options in the relative form, never the absolute one', () => {
+    // The trap this exists for. `Options -Indexes` MERGES with what the parent
+    // granted. `Options Indexes` or `Options None` REPLACES it, which would
+    // drop the +FollowSymLinks the docroot sets, and the entire deploy is a
+    // symlink flip. The difference is one character and the failure is the
+    // whole site.
+    expect(htaccess).not.toMatch(/^\s*Options\s+(?![+-])/m)
+  })
+
   it('matches on the original request line, not the rewritten path', () => {
     // %{THE_REQUEST} is what the client actually asked for, so an internal
     // rewrite to current/ done at the docroot cannot trigger this rule. Matching

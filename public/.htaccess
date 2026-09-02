@@ -15,6 +15,32 @@
 # file owns it. A tracked, reference-only copy is in deploy/docroot.htaccess,
 # which explains the ordering trap that kept a redirect dead there for days.
 
+# No directory listings, anywhere in the site.
+#
+# Belt and braces rather than a new rule. The docroot .htaccess already carries
+# `Options +FollowSymLinks -Indexes` (see deploy/docroot.htaccess), and Options
+# inherits into subdirectories, so the tree below it is covered today. But that
+# file is hand-maintained on the host and is not deployed by CI: it can drift,
+# be replaced by a panel, or be restored from a .bak that predates the line.
+# This file ships inside every release, so the guarantee travels with the site.
+#
+# It became worth stating rather than assuming with /demo/apps/, which holds one
+# application page and has no index of its own until there is a second. A
+# listing there would publish the directory's contents as a side effect of a
+# page not being written yet.
+#
+# The `-Indexes` form is required, not stylistic. A relative Options merges with
+# what the parent granted; an absolute one (`Options Indexes`, `Options None`)
+# REPLACES it, which here would drop the +FollowSymLinks the docroot sets, and
+# the whole deploy is a symlink. Never write this line without the minus.
+#
+# Unguarded by <IfModule> on purpose: Options is core Apache, not a module, so a
+# module guard cannot protect it. What could refuse it is AllowOverride, but the
+# host demonstrably permits Options in .htaccess, because the docroot file's own
+# Options line is live and the site would already be answering 500 if it were
+# not.
+Options -Indexes
+
 RewriteEngine On
 
 # The deploy plumbing was reachable from the web: /current/ served the entire
