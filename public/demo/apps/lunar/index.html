@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lunar's database structure, drawn by Laravel Truss</title>
+
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cstyle%3E*%7Bstroke:%2312356b;fill:none;stroke-width:1.7%7Dcircle%7Bfill:%2312356b;stroke:none%7D@media(prefers-color-scheme:dark)%7B*%7Bstroke:%235fd0e6%7Dcircle%7Bfill:%235fd0e6%7D%7D%3C/style%3E%3Cpath d='M16 5 L27 26 H5 Z'/%3E%3Cpath d='M16 5 V17'/%3E%3Cpath d='M5 26 L16 17'/%3E%3Cpath d='M27 26 L16 17'/%3E%3Ccircle cx='16' cy='5' r='2.4'/%3E%3Ccircle cx='5' cy='26' r='2.4'/%3E%3Ccircle cx='27' cy='26' r='2.4'/%3E%3Ccircle cx='16' cy='17' r='2.4'/%3E%3C/svg%3E">
+
+    <!-- The exact assets Truss ships, copied into demo/assets at build time (see
+         scripts/copy-demo-assets.mjs) and shared by every demo page rather than
+         copied per application: 3.6 MB referenced once.
+
+         This page lives TWO levels below demo/, so every asset path is ../../
+         where the other shells use ../ or ./. That is not cosmetic. The build
+         renames assets/ to assets-<version>/ and repoints only the literal
+         tokens it is given (demoAssetVersioning in astro.config.mjs), and
+         ../../assets/ is registered there through scripts/demo-apps.mjs. A page
+         whose token is not in that list keeps pointing at demo/assets/, which by
+         then does not exist: it renders correctly in `npm run dev` and shows an
+         empty diagram in production. -->
+    <!-- The face the diagram is measured in. Truss waits for it before
+         measuring, so this does not fix anything on its own; it starts the
+         fetch with the document rather than when truss.css is parsed, which
+         on a cold visit is a network round trip earlier. crossorigin is
+         required even same-origin, or the preload is not reused. -->
+    <link rel="preload" as="font" type="font/woff2"
+          href="../../assets/ibm-plex-mono-400.woff2" crossorigin>
+
+    <link rel="stylesheet" href="../../assets/truss.css">
+    <script src="../../assets/vendor/mermaid.min.js"></script>
+
+    <!-- A site bar and two thin strips around the app, so the page belongs to
+         trussphp.com and says whose schema this is. They reuse the app's own
+         blueprint tokens (--bp-*, set by truss.css), so they stay on-palette and
+         theme-reactive without loading anything else.
+
+         Every strip has a fixed height, and the viewport calc below subtracts
+         all of them. That is deliberate rather than lazy: the page cannot
+         scroll, because the diagram's wheel handler calls preventDefault
+         unconditionally (truss.js:1360), so a footer below the fold would be
+         unreachable by wheel. Fixed heights keep the sum exact. -->
+    <style>
+      :root { --site-bar-h: 48px; --head-strip-h: 104px; --foot-strip-h: 44px; }
+      /* The whole thing fits one screen; the diagram viewport pans on its own. */
+      html, body { overflow: hidden; }
+      /* Reserve room for the three strips on top of the app's toolbar + footer. */
+      #truss-viewport {
+        height: calc(100vh - 54px - 28px - var(--site-bar-h) - var(--head-strip-h) - var(--foot-strip-h)) !important;
+      }
+      /* dvh, and on this page it is not cosmetic. The other shells put nothing
+         below the dashboard, so an overshoot there costs a strip of diagram.
+         This page puts the removal address in a footer strip, and the body
+         cannot scroll to reach it: overflow is hidden, and the diagram calls
+         preventDefault on every wheel event (truss.js:1360). On iOS Safari
+         100vh is the toolbars-retracted height, so at first paint the layout is
+         taller than the visible viewport and the footer sits under the fold.
+         Declared second rather than in @supports: a browser that does not know
+         dvh discards this rule and keeps the vh line above. */
+      #truss-viewport {
+        height: calc(100dvh - 54px - 28px - var(--site-bar-h) - var(--head-strip-h) - var(--foot-strip-h)) !important;
+      }
+      html, body { height: 100dvh; }
+      /* Anchor the app's absolutely-positioned overlays (the legend) to the app,
+         not the viewport, so the strips above the app cannot drop the legend
+         onto the toolbar. Mirrors the package fix (#truss-app position: relative). */
+      #truss-app { position: relative; }
+      /* One theme control (in the site bar); the app's own button is redundant. */
+      #truss-theme-btn { display: none !important; }
+
+      .site-bar {
+        height: var(--site-bar-h);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; padding: 0 18px;
+        background: var(--bp-panel);
+        border-bottom: 1px solid var(--bp-panel-line);
+        font-family: var(--bp-mono);
+      }
+      .site-bar-logo {
+        display: inline-flex; align-items: center; gap: 9px;
+        text-decoration: none; color: var(--bp-ink);
+      }
+      .site-bar-word { font-weight: 600; font-size: 17px; letter-spacing: -0.05em; }
+      .site-bar-tag { font-family: var(--bp-mono); font-size: 12px; color: var(--bp-muted); letter-spacing: -0.01em; }
+      .site-bar-nav { display: flex; align-items: center; gap: 18px; }
+      .site-bar-nav a {
+        font-size: 13px; color: var(--bp-muted); text-decoration: none; letter-spacing: -0.01em;
+      }
+      .site-bar-nav a:hover { color: var(--bp-fg); }
+      .site-bar-theme {
+        background: transparent; border: 1px solid var(--bp-panel-line); border-radius: 7px;
+        color: var(--bp-muted); width: 32px; height: 28px; cursor: pointer; font-size: 14px; line-height: 1;
+      }
+      .site-bar-theme:hover { color: var(--bp-fg); }
+      /* One cycling icon, three states (light / dark / system). */
+      .site-bar-theme { display: inline-flex; align-items: center; justify-content: center; }
+      .site-bar-theme .ti { display: none; }
+      .site-bar-theme[data-mode='light'] .ti-light { display: inline; }
+      .site-bar-theme[data-mode='dark'] .ti-dark { display: inline; }
+      .site-bar-theme[data-mode='auto'] .ti-system { display: inline; }
+      .site-bar-nav a.gh { display: inline-flex; align-items: center; }
+      .site-bar a:focus-visible, .site-bar-theme:focus-visible {
+        outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px;
+      }
+
+      /* The header strip. Whose schema this is, what it is, and where the real
+         thing lives. The framing rule for this page is that it shows Lunar's
+         structure and does not assess it, so the strip names the project and
+         links it, and carries no finding, score or count of problems. */
+      .app-head {
+        height: var(--head-strip-h); overflow: hidden;
+        display: flex; align-items: center; justify-content: space-between; gap: 20px;
+        padding: 0 18px;
+        background: var(--bp-bg);
+        border-bottom: 1px solid var(--bp-panel-line);
+        font-family: var(--bp-mono);
+      }
+      /* Truncate rather than wrap. The strip's height is fixed because the
+         viewport calc subtracts it, so a line that wraps is not given room, it
+         is cut in half by the overflow. An ellipsis is a visible, deliberate
+         shortening; a clipped second line reads as a rendering bug. The fact
+         line below is the exception and is allowed its two lines, because
+         provenance is the part worth keeping whole. */
+      .app-head h1, .app-head-sub {
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .app-head h1 {
+        margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.03em;
+        color: var(--bp-ink); line-height: 1.2;
+      }
+      .app-head-sub { margin: 5px 0 0; font-size: 13px; color: var(--bp-fg); letter-spacing: -0.01em; }
+      /* The flex child has to be allowed to shrink below its content width, or
+         min-width: auto keeps it at full size and the ellipsis never fires. */
+      .app-head > div:first-child { min-width: 0; }
+      /* Two lines of room, and it uses one at desktop width. The fact line is
+         the part that grows: another application's version string is longer
+         than Lunar's, and a strip that clipped it would drop the provenance
+         rather than the decoration. */
+      .app-head-facts { margin: 4px 0 0; font-size: 12px; line-height: 1.45; color: var(--bp-muted); letter-spacing: -0.01em; }
+      /* The separator belongs to the fact that follows, so a hidden fact takes
+         its own separator with it and no line can start or end on one. */
+      .app-head-facts .fact + .fact::before { content: "/"; opacity: 0.5; padding: 0 5px; }
+      .app-head-side { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; flex: none; }
+      .app-repo {
+        display: inline-flex; align-items: center; gap: 7px;
+        font-size: 13px; text-decoration: none; color: var(--bp-ink);
+        border: 1px solid var(--bp-panel-line); border-radius: 7px; padding: 6px 11px;
+        background: var(--bp-panel); white-space: nowrap;
+      }
+      .app-repo:hover { border-color: var(--bp-cyan); color: var(--bp-cyan); }
+      .app-brand-line { font-size: 12px; color: var(--bp-muted); letter-spacing: -0.01em; white-space: nowrap; }
+
+      /* The footer strip. What this is, how to run it yourself, and how to ask
+         for it to be taken down. The removal line is not boilerplate: this is
+         somebody else's schema and the answer to an objection is to remove it. */
+      .app-foot {
+        height: var(--foot-strip-h); overflow: hidden;
+        display: flex; align-items: center; justify-content: space-between; gap: 18px;
+        padding: 0 18px;
+        background: var(--bp-panel);
+        border-top: 1px solid var(--bp-panel-line);
+        font-family: var(--bp-mono); font-size: 12px; color: var(--bp-muted);
+        letter-spacing: -0.01em;
+      }
+      /* Every item on one line. The strip has a fixed height the viewport calc
+         subtracts, so an item allowed to wrap would be clipped rather than
+         given room. */
+      .app-foot > * { white-space: nowrap; }
+      /* The priority order lives in flex, not in pixel thresholds.
+         It used to live in breakpoints, and they were wrong: the four items
+         measure 1513px together and .app-foot-run only dropped at 1400, so
+         every width from 1401 to 1512 rendered four items in a 1400 box and
+         clipped "How this was measured" off the right edge. 1440 is in that
+         band. Breakpoints cannot survive this, because every wording change
+         moves the numbers and silently re-opens a band, which is how the band
+         got there in the first place.
+         So: the two optional items shrink and ellipsise, and the removal notice
+         and the link never move. Those two are what the strip is for. */
+      .app-foot-snapshot, .app-foot-run {
+        flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+      }
+      .app-foot-remove, .app-foot-nav { flex: none; }
+      .app-foot a { color: var(--bp-muted); text-decoration: underline; text-underline-offset: 2px; }
+      .app-foot a:hover { color: var(--bp-fg); }
+      .app-foot code {
+        font-family: var(--bp-mono); background: var(--bp-bg);
+        border: 1px solid var(--bp-panel-line); border-radius: 5px; padding: 2px 6px;
+      }
+      .app-foot-nav { display: flex; align-items: center; gap: 16px; flex: none; }
+      .app-head a:focus-visible, .app-foot a:focus-visible {
+        outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px;
+      }
+
+      /* Narrow screens drop the optional lines rather than wrapping into a
+         height the viewport calc no longer matches. The strip heights shrink
+         with them, so the diagram keeps the room it gives up. */
+      /* The order things go is the order they matter. The removal notice is the
+         last text to leave the strip, because it is somebody else's schema and
+         the way to object to it is not the part to drop for room. */
+      @media (max-width: 1400px) {
+        .app-foot-run { display: none; }
+      }
+      @media (max-width: 900px) {
+        /* The fact line stays and is given a second line; only its .fact--wide
+           detail goes. The attribution, the licence, the date and the
+           disclaimer are the reasons this page is allowed to exist, so they are
+           not what gets dropped for room. */
+        :root { --head-strip-h: 96px; }
+        .fact--wide { display: none; }
+        .site-bar-tag { display: none; }
+        .app-foot-snapshot { display: none; }
+        /* The removal line does not shrink, so below about 826px it and the
+           link together no longer fit. The link goes, because the removal line
+           is the one that must not. */
+        .app-foot-nav { display: none; }
+      }
+      /* Phone widths. Everything here was measured at 430px (iPhone 14 Pro Max),
+         where the first attempt truncated the heading and ran the removal line
+         off the right edge, because nowrap plus a fixed height clips rather
+         than wraps. */
+      @media (max-width: 720px) {
+        :root { --head-strip-h: 110px; --foot-strip-h: 56px; }
+        .app-head h1 { font-size: 17px; }
+        /* Two lines rather than an ellipsis. At this width the subtitle cannot
+           fit on one, and the half of it that would be cut is the half naming
+           the category the page is positioned on. */
+        .app-head-sub {
+          font-size: 12px; white-space: normal;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        /* "Structure only, never data." goes here, and that is a decision
+           rather than an oversight. R16 wants the brand line on forward-facing
+           surfaces and this is one, but the header strip has a fixed budget and
+           the fact line is spending it: attribution, licence, date and the
+           disclaimer are owed to Lunar, while the brand line is ours to say
+           elsewhere. If the budget ever grows, this is the first thing back. */
+        .app-brand-line { display: none; }
+        /* Icon only. The label is about 130px, which is the whole difference
+           between the heading fitting and being truncated to "Lunar's databa…". */
+        .app-repo-label { display: none; }
+        .app-repo { padding: 7px 9px; }
+        /* By now the removal line is the only text left in the footer, so give
+           it two lines instead of shortening the sentence. It is the last thing
+           that should go: it is how somebody objects to the page existing. */
+        .app-foot { justify-content: center; text-align: center; }
+        .app-foot > * { white-space: normal; }
+      }
+      @media (max-width: 560px) {
+        .site-bar-nav a { display: none; }
+      }
+
+      /* Landscape on a phone: 932x430 never triggers the width queries above,
+         so the full-height strips would leave the diagram a sliver. Short
+         viewports are the case to trade the subtitle for, not the fact line:
+         the subtitle is positioning, the fact line is attribution. */
+      @media (max-height: 520px) {
+        :root { --head-strip-h: 62px; --foot-strip-h: 40px; }
+        .app-head-sub { display: none; }
+        .site-bar-tag { display: none; }
+        .app-foot-run, .app-foot-snapshot { display: none; }
+      }
+    </style>
+
+    <!-- Land focused, before the dashboard reads the URL.
+         truss.js seeds its initial view from window.location.search once at
+         module load (`const urlView = parseQuery(window.location.search)`,
+         truss.js:31), and a module script runs after this classic one. So
+         writing the query here is what decides the first paint.
+
+         Why focus at all: 67 tables drawn whole is slow and unreadable, and it
+         is a poor first impression on a page whose whole job is a first
+         impression. lunar_products at depth 1 draws 8 tables, which is the
+         shape of the thing rather than a wall of it, and products is the table
+         somebody arriving from a search for this schema looks for first.
+
+         Only when the URL carries no query of its own, so a shared or
+         bookmarked link keeps the view it was sharing. replaceState rather than
+         a redirect: no navigation, no history entry, and the canonical tag the
+         build injects still points at the clean directory URL. -->
+    <script>
+      (function () {
+        try {
+          if (window.location.search) return
+          var url = window.location.pathname + '?focus=lunar_products&depth=1'
+          window.history.replaceState(null, '', url)
+        } catch (e) {}
+      })()
+    </script>
+
+    <!-- Reconcile the theme before paint. The app themes via data-theme on
+         <html> from its own `truss-theme` key; the rest of the site uses
+         `starlight-theme`. Seed one from the other so a choice made anywhere
+         carries into the demo, and the app's on-load applyTheme() agrees. -->
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('starlight-theme')
+          var pref = s === 'light' || s === 'dark' ? s : 'auto'
+          if (pref === 'auto') {
+            // App model: no explicit theme, CSS prefers-color-scheme decides.
+            document.documentElement.removeAttribute('data-theme')
+            localStorage.removeItem('truss-theme')
+          } else {
+            document.documentElement.setAttribute('data-theme', pref)
+            localStorage.setItem('truss-theme', pref)
+          }
+        } catch (e) {}
+      })()
+    </script>
+</head>
+<body>
+    <header class="site-bar">
+        <a class="site-bar-logo" href="../../../" aria-label="Laravel Truss home">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="miter" aria-hidden="true">
+                <path d="M16 5 L27 26 H5 Z"/><path d="M16 5 V17"/><path d="M5 26 L16 17"/><path d="M27 26 L16 17"/>
+                <g fill="currentColor" stroke="none"><circle cx="16" cy="5" r="2.3"/><circle cx="5" cy="26" r="2.3"/><circle cx="27" cy="26" r="2.3"/><circle cx="16" cy="17" r="2.3"/></g>
+            </svg>
+            <span class="site-bar-word">truss</span>
+        </a>
+        <span class="site-bar-tag">A real application's schema, in the real dashboard.</span>
+        <nav class="site-bar-nav" aria-label="Site">
+            <a href="../../">Demo</a>
+            <a href="../../your-schema/">Your own schema</a>
+            <a href="../../../getting-started/installation/">Docs</a>
+            <a href="../../../roadmap/">Roadmap</a>
+            <a class="gh" href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82a7.55 7.55 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+            </a>
+            <button class="site-bar-theme" type="button" data-theme-cycle data-mode="auto" aria-label="Theme: system" title="Theme: system (click to change)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <g class="ti ti-light" stroke-linecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></g>
+                    <path class="ti ti-dark" d="M20 14.5A8 8 0 1 1 9.5 4a6.2 6.2 0 0 0 10.5 10.5z" />
+                    <g class="ti ti-system" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="12" rx="1.5" /><path d="M8.5 20.5h7M12 16.5v4" /></g>
+                </svg>
+            </button>
+        </nav>
+    </header>
+
+    <div class="app-head">
+        <div>
+            <h1>Lunar's database structure</h1>
+            <p class="app-head-sub">67 tables and 83 foreign keys, rendered by Truss, an ER diagram (ERD) viewer for Laravel.</p>
+            <!-- The fact line, and what it never stops saying.
+                 Everything marked .fact--wide is detail a narrow screen can do
+                 without. What is left is the part that is owed rather than
+                 useful: whose code this is, the licence, the date, and that we
+                 have nothing to do with them. The first draft dropped this
+                 whole line below 900px, which meant a phone saw a page titled
+                 "Lunar's database structure" carrying no attribution and no
+                 disclaimer, on exactly the devices a link in somebody's Discord
+                 gets opened. -->
+            <!-- One flat span per fact, and the separators come from CSS.
+                 The nesting this replaces (.fact-wide wrappers holding .sep
+                 spans) meant the test that checks what a phone sees had to find
+                 a closing tag by backtracking, and it failed in the direction of
+                 a false pass: a shape change could leave a hidden span
+                 unstripped, and the test would then approve content nobody on a
+                 phone is shown. That is precisely the bug it was written for, so
+                 the markup gives it something it can parse instead. -->
+            <p class="app-head-facts">
+                <span class="fact">Lunar 1.5.0</span><span class="fact fact--wide"><code>d93b23e</code></span><span class="fact fact--wide">Laravel 12.68.0</span><span class="fact">MIT licensed</span><span class="fact">snapshot 02/09/2026</span><span class="fact">not affiliated with Lunar</span><span class="fact fact--wide">Laravel's own scaffolding is not drawn, so 67 here and 75 in the field study</span>
+            </p>
+        </div>
+        <div class="app-head-side">
+            <!-- Named explicitly, because below 720px the label is hidden and
+                 the icon is aria-hidden, which would leave the one link
+                 crediting Lunar with no accessible name at all (WCAG 4.1.2).
+                 The label being visible on a wide screen does not name it for
+                 the width where it is not. -->
+            <a class="app-repo" href="https://github.com/lunarphp/core" target="_blank" rel="noopener"
+               aria-label="Lunar on GitHub">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82a7.55 7.55 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+                <span class="app-repo-label">Lunar on GitHub</span>
+            </a>
+            <span class="app-brand-line">Structure only, never data.</span>
+        </div>
+    </div>
+
+    <!--
+        No `doctor` key in schema.json, and that is the whole mechanism.
+
+        truss.js shows the Health button only when the payload carries one
+        (`state.doctor = payload.doctor ?? null`, then updateDoctorAvailability
+        at truss.js:797), and the passive row flags are gated on the same value.
+        So there is nothing to disable in this markup: omitting the key is what
+        keeps the panel off. data-doctor-flag-tables="0" is belt and braces, and
+        says so out loud.
+
+        This is the plan's framing rule made concrete. "Lunar's database
+        structure, rendered by Truss" is a service to their community. "What
+        Truss found wrong with Lunar" is not, and it is not ours to publish
+        before the maintainers have heard it from a person and answered.
+
+        data-min-zoom stays at 0.7, the same floor the other two demo shells
+        use, and on this page that floor is doing real work rather than sitting
+        unused.
+
+        Measured in a browser rather than reasoned about: the fit scale is set
+        by the TALLEST table in the focused set, not by how many there are.
+        lunar_products pulls in lunar_product_variants at 29 columns, so a true
+        fit of its eight tables lands at 30%, where no column name is legible.
+        The floor clamps that to 70% and centres the view on the focused table,
+        which is the readable landing.
+
+        The trade is deliberate and worth naming: a floor of 0.7 also stops
+        anyone zooming out far enough to take in all 67 tables at once. That is
+        the right way round. A first paint too small to read discourages the
+        reader this page exists for, and the whole-schema view is the one the
+        dashboard already argues against: clear the focus and it says so itself,
+        in a banner offering the filter and the focus instead.
+    -->
+    <div
+        id="truss-app"
+        data-schema-endpoint="./schema.json"
+        data-connections='[]'
+        data-type-labels="native"
+        data-warn-above="60"
+        data-focus-depth="1"
+        data-min-zoom="0.7"
+        data-doctor-flag-tables="0"
+    >
+        <div class="truss-toolbar">
+            <span class="truss-brand">
+                <svg class="truss-mark" width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path d="M16 5 L27 26 H5 Z" stroke-width="1.7" stroke-linejoin="miter"/>
+                    <path d="M16 5 V17" stroke-width="1.7"/><path d="M5 26 L16 17" stroke-width="1.7"/><path d="M27 26 L16 17" stroke-width="1.7"/>
+                    <g fill="currentColor" stroke="none">
+                        <circle cx="16" cy="5" r="2.4"/><circle cx="5" cy="26" r="2.4"/><circle cx="27" cy="26" r="2.4"/><circle cx="16" cy="17" r="2.4"/>
+                    </g>
+                </svg>
+                truss
+            </span>
+
+            <label class="truss-field truss-field--search">
+                <span class="truss-field-label">Filter</span>
+                <input id="truss-search" type="search" placeholder="table name…" autocomplete="off">
+            </label>
+
+            <div class="truss-secondary" id="truss-more">
+                <!-- Mirrors the package's own view: Focus is a combobox rather
+                     than a select, so it can be searched by substring on a large
+                     schema. truss.js wires the picker only when the input and
+                     its listbox are both present. At 67 tables this is the
+                     control the page exists to show working. -->
+                <div class="truss-field truss-combo">
+                    <label class="truss-field-label" for="truss-focus">Focus</label>
+                    <input id="truss-focus" type="text" role="combobox" autocomplete="off"
+                           aria-expanded="false" aria-controls="truss-focus-list"
+                           aria-autocomplete="list" placeholder="none">
+                    <ul class="truss-combo-list" id="truss-focus-list" role="listbox"
+                        aria-label="Tables" hidden></ul>
+                    <span class="truss-sr-only" id="truss-focus-status" role="status" aria-live="polite"></span>
+                </div>
+                <label class="truss-field">
+                    <span class="truss-field-label">Depth</span>
+                    <input id="truss-depth" type="number" min="0" step="1">
+                </label>
+                <label class="truss-field truss-field--check">
+                    <input id="truss-labels" type="checkbox"> <span class="truss-field-label">Laravel types</span>
+                </label>
+            </div>
+
+            <div class="truss-utils">
+                <label class="truss-field truss-field--conn" hidden>
+                    <span class="truss-field-label">Connections</span>
+                    <select id="truss-connection"></select>
+                </label>
+                <button type="button" class="truss-util truss-util--more" id="truss-more-btn" title="More controls" aria-expanded="false">⋯</button>
+                <button type="button" class="truss-util" id="truss-export-btn" title="Export the diagram (PNG or SVG)" aria-expanded="false">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3 v11"/><path d="M7 9 l5 5 5-5"/><path d="M4 20 h16"/>
+                    </svg>
+                </button>
+                <button type="button" class="truss-util" id="truss-diff-btn" title="What changed since the last migration" aria-expanded="false" hidden>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 8 h8 M9 4 v8"/><path d="M11 17 h8"/>
+                    </svg>
+                </button>
+                <button type="button" class="truss-util" id="truss-legend-btn" title="Legend" aria-expanded="false">▤</button>
+                <button type="button" class="truss-util" id="truss-theme-btn" title="Theme">◐</button>
+            </div>
+        </div>
+
+        <div id="truss-banners"></div>
+
+        <main id="truss-viewport">
+            <div id="truss-canvas"></div>
+
+            <div class="truss-zoom" id="truss-zoom">
+                <!-- Not "Fit the whole diagram in view", which is what the
+                     other shells say and what this page cannot do: the 0.7
+                     zoom floor clamps the fit, so pressing this recentres at 70
+                     per cent rather than fitting anything. Keeping the shipped
+                     wording would have been a tooltip promising the one thing
+                     the page's own zoom floor rules out. -->
+                <button type="button" data-fit title="Recentre the diagram">Fit</button>
+                <!-- A title is a tooltip, not an accessible name (WCAG 4.1.2). -->
+                <input id="truss-zoom-range" type="range" min="0.1" max="3" step="0.02" value="1"
+                       aria-label="Zoom" title="Zoom (scroll or pinch over the diagram)">
+                <span id="truss-zoom-pct">100%</span>
+            </div>
+        </main>
+
+        <div class="truss-legend" id="truss-legend" hidden>
+            <div class="truss-legend-head">Legend</div>
+            <dl class="truss-legend-list">
+                <dt>PK</dt><dd>Primary key</dd>
+                <dt>FK</dt><dd>Foreign key</dd>
+                <dt aria-hidden="true">
+                    <svg width="42" height="12" viewBox="0 0 42 12" fill="none" stroke="currentColor" stroke-width="1.3">
+                        <path d="M2 2 V10 M5 2 V10"/><path d="M5 6 H30"/>
+                        <path d="M30 6 L38 2 M30 6 L38 10 M30 6 H38"/><circle cx="35" cy="6" r="2.4"/>
+                    </svg>
+                </dt><dd>One → many</dd>
+            </dl>
+        </div>
+
+        <div class="truss-diff-panel" id="truss-diff-panel" hidden>
+            <div class="truss-diff-head">Changes since last migration</div>
+            <div class="truss-diff-body"></div>
+        </div>
+
+        <div class="truss-popover" id="truss-popover" hidden></div>
+
+        <footer class="truss-footer">
+            <span id="truss-stat-tables">·</span>
+            <span id="truss-stat-conn"></span>
+            <span class="truss-flag" id="truss-stat-fallback" hidden>SQLite&nbsp;fallback</span>
+            <span class="truss-footer-spacer"></span>
+            <span id="truss-stat-updated"></span>
+        </footer>
+    </div>
+
+    <div class="app-foot">
+        <!-- The disclaimer moved up into the fact line, which survives every
+             width, so this is the wider gloss rather than the courtesy itself
+             and can be dropped for room without losing anything owed. -->
+        <span class="app-foot-snapshot">A static snapshot of a public schema, taken 02/09/2026.</span>
+        <span class="app-foot-run">On your own database: <code>php artisan truss:export</code></span>
+        <!-- The removal channel is the one /in-the-wild/ already publishes. The
+             ADDRESS is the same; the sentence deliberately is not.
+             /in-the-wild/ opens "Quoted here and would rather not be?", which
+             names its audience in its first two words. Copying its shape without
+             them left "Rather this page did not exist?", which is addressed to
+             nobody: the Lunar maintainer it exists for cannot tell it is meant
+             for them, while every passing reader is invited to ask. It also
+             reads as an elliptical past subjunctive with the "Would you"
+             removed, which is the hardest shape of English sentence for an
+             audience that is mostly not reading in its first language (R20).
+             Say who it is for, in the plainest tense available. -->
+        <span class="app-foot-remove">If the Lunar team wants this page removed, mail <a href="mailto:hello@albertoarena.it">hello@albertoarena.it</a> and it comes down.</span>
+        <nav class="app-foot-nav" aria-label="About this page">
+            <a href="../../../reference/tested-applications/">How this was measured</a>
+        </nav>
+    </div>
+
+    <!-- Resolve the sample schema against this page's URL, so the fetch works
+         regardless of the deploy base path (loadSchema resolves relative to the
+         origin, not the page). -->
+    <script>
+        document.getElementById('truss-app').dataset.schemaEndpoint =
+            new URL('schema.json', document.baseURI).href;
+    </script>
+    <script type="module" src="../../assets/truss.js"></script>
+
+    <!-- Site-bar theme toggle: flips data-theme on <html> (the app's CSS reacts)
+         and writes both theme keys so the choice sticks across the whole site. -->
+    <script>
+        (function () {
+            var btn = document.querySelector('[data-theme-cycle]');
+            if (!btn) return;
+            var order = ['light', 'dark', 'auto'];
+            function pref() {
+                try { var v = localStorage.getItem('starlight-theme'); if (v === 'light' || v === 'dark') return v; } catch (e) {}
+                return 'auto';
+            }
+            function reflect(p) {
+                // App model: light/dark set data-theme; auto removes it so CSS
+                // prefers-color-scheme drives both the app and this bar live.
+                if (p === 'auto') document.documentElement.removeAttribute('data-theme');
+                else document.documentElement.setAttribute('data-theme', p);
+                btn.dataset.mode = p;
+                btn.setAttribute('aria-label', 'Theme: ' + p);
+                btn.title = 'Theme: ' + p + ' (click to change)';
+            }
+            btn.addEventListener('click', function () {
+                var next = order[(order.indexOf(pref()) + 1) % order.length];
+                try {
+                    if (next === 'auto') { localStorage.setItem('starlight-theme', ''); localStorage.removeItem('truss-theme'); }
+                    else { localStorage.setItem('starlight-theme', next); localStorage.setItem('truss-theme', next); }
+                } catch (e) {}
+                reflect(next);
+            });
+            reflect(pref());
+        })();
+    </script>
+</body>
+</html>

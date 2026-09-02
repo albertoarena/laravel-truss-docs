@@ -91,6 +91,28 @@ argument if you need to point it somewhere else.
 green run against the previous release means nothing. Either wait, or force it
 on the host with `bash ~/bin/server-deploy.sh`.
 
+**`Options -Indexes` needs nothing done on the server.** The docroot
+`.htaccess` already carries `Options +FollowSymLinks -Indexes`, so the host
+plainly permits `Options` in a `.htaccess`: if it did not, the site would
+already be answering 500, because the symlink deploy depends on that same line.
+`public/.htaccess` repeats `-Indexes` so the guarantee ships inside each release
+instead of living only in a file CI does not deploy.
+
+Still worth one check on the release that first carries it, since it costs a
+second:
+
+```
+curl -s -o /dev/null -w '%{http_code}\n' "https://trussphp.com/?nc=1"        # expect 200
+curl -s -o /dev/null -w '%{http_code}\n' "https://trussphp.com/demo/apps/"   # expect 403
+```
+
+A 200 with a file listing on the second means neither file is taking effect, and
+`/demo/apps/` is publishing its contents because it has no index page yet.
+
+**Never write that line without the minus.** A relative `Options` merges with
+what the parent granted; an absolute one (`Options Indexes`, `Options None`)
+replaces it and would drop `+FollowSymLinks`, which is the deploy.
+
 **Nothing in `tests/` can replace this.** Every assertion over the `.htaccess`
 files reads them as text, so they confirm a rule is present and never that it
 works. Both redirect failures this site has had were invisible that way:
