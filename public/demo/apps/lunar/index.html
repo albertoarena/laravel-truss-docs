@@ -137,7 +137,9 @@
          than Lunar's, and a strip that clipped it would drop the provenance
          rather than the decoration. */
       .app-head-facts { margin: 4px 0 0; font-size: 12px; line-height: 1.45; color: var(--bp-muted); letter-spacing: -0.01em; }
-      .app-head-facts .sep { opacity: 0.5; padding: 0 5px; }
+      /* The separator belongs to the fact that follows, so a hidden fact takes
+         its own separator with it and no line can start or end on one. */
+      .app-head-facts .fact + .fact::before { content: "/"; opacity: 0.5; padding: 0 5px; }
       .app-head-side { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; flex: none; }
       .app-repo {
         display: inline-flex; align-items: center; gap: 7px;
@@ -162,8 +164,22 @@
       }
       /* Every item on one line. The strip has a fixed height the viewport calc
          subtracts, so an item allowed to wrap would be clipped rather than
-         given room. Items are dropped whole, by the queries below. */
+         given room. */
       .app-foot > * { white-space: nowrap; }
+      /* The priority order lives in flex, not in pixel thresholds.
+         It used to live in breakpoints, and they were wrong: the four items
+         measure 1513px together and .app-foot-run only dropped at 1400, so
+         every width from 1401 to 1512 rendered four items in a 1400 box and
+         clipped "How this was measured" off the right edge. 1440 is in that
+         band. Breakpoints cannot survive this, because every wording change
+         moves the numbers and silently re-opens a band, which is how the band
+         got there in the first place.
+         So: the two optional items shrink and ellipsise, and the removal notice
+         and the link never move. Those two are what the strip is for. */
+      .app-foot-snapshot, .app-foot-run {
+        flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+      }
+      .app-foot-remove, .app-foot-nav { flex: none; }
       .app-foot a { color: var(--bp-muted); text-decoration: underline; text-underline-offset: 2px; }
       .app-foot a:hover { color: var(--bp-fg); }
       .app-foot code {
@@ -185,14 +201,18 @@
         .app-foot-run { display: none; }
       }
       @media (max-width: 900px) {
-        /* The fact line stays and is given a second line; only its .fact-wide
+        /* The fact line stays and is given a second line; only its .fact--wide
            detail goes. The attribution, the licence, the date and the
            disclaimer are the reasons this page is allowed to exist, so they are
            not what gets dropped for room. */
         :root { --head-strip-h: 96px; }
-        .fact-wide { display: none; }
+        .fact--wide { display: none; }
         .site-bar-tag { display: none; }
         .app-foot-snapshot { display: none; }
+        /* The removal line does not shrink, so below about 826px it and the
+           link together no longer fit. The link goes, because the removal line
+           is the one that must not. */
+        .app-foot-nav { display: none; }
       }
       /* Phone widths. Everything here was measured at 430px (iPhone 14 Pro Max),
          where the first attempt truncated the heading and ran the removal line
@@ -208,6 +228,12 @@
           font-size: 12px; white-space: normal;
           display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
+        /* "Structure only, never data." goes here, and that is a decision
+           rather than an oversight. R16 wants the brand line on forward-facing
+           surfaces and this is one, but the header strip has a fixed budget and
+           the fact line is spending it: attribution, licence, date and the
+           disclaimer are owed to Lunar, while the brand line is ours to say
+           elsewhere. If the budget ever grows, this is the first thing back. */
         .app-brand-line { display: none; }
         /* Icon only. The label is about 130px, which is the whole difference
            between the heading fitting and being truncated to "Lunar's databa…". */
@@ -221,7 +247,6 @@
       }
       @media (max-width: 560px) {
         .site-bar-nav a { display: none; }
-        .app-foot-nav { display: none; }
       }
 
       /* Landscape on a phone: 932x430 never triggers the width queries above,
@@ -316,7 +341,7 @@
             <h1>Lunar's database structure</h1>
             <p class="app-head-sub">67 tables and 83 foreign keys, rendered by Truss, an ER diagram (ERD) viewer for Laravel.</p>
             <!-- The fact line, and what it never stops saying.
-                 Everything marked .fact-wide is detail a narrow screen can do
+                 Everything marked .fact--wide is detail a narrow screen can do
                  without. What is left is the part that is owed rather than
                  useful: whose code this is, the licence, the date, and that we
                  have nothing to do with them. The first draft dropped this
@@ -324,8 +349,16 @@
                  "Lunar's database structure" carrying no attribution and no
                  disclaimer, on exactly the devices a link in somebody's Discord
                  gets opened. -->
+            <!-- One flat span per fact, and the separators come from CSS.
+                 The nesting this replaces (.fact-wide wrappers holding .sep
+                 spans) meant the test that checks what a phone sees had to find
+                 a closing tag by backtracking, and it failed in the direction of
+                 a false pass: a shape change could leave a hidden span
+                 unstripped, and the test would then approve content nobody on a
+                 phone is shown. That is precisely the bug it was written for, so
+                 the markup gives it something it can parse instead. -->
             <p class="app-head-facts">
-                Lunar 1.5.0<span class="fact-wide"> (<code>d93b23e</code>)</span><span class="sep">/</span><span class="fact-wide">Laravel 12.68.0<span class="sep">/</span></span>MIT licensed<span class="sep">/</span>snapshot 02/09/2026<span class="sep">/</span>not affiliated with Lunar<span class="fact-wide"><span class="sep">/</span>Laravel's own scaffolding is not drawn, so 67 here and 75 in the field study</span>
+                <span class="fact">Lunar 1.5.0</span><span class="fact fact--wide"><code>d93b23e</code></span><span class="fact fact--wide">Laravel 12.68.0</span><span class="fact">MIT licensed</span><span class="fact">snapshot 02/09/2026</span><span class="fact">not affiliated with Lunar</span><span class="fact fact--wide">Laravel's own scaffolding is not drawn, so 67 here and 75 in the field study</span>
             </p>
         </div>
         <div class="app-head-side">
@@ -504,10 +537,18 @@
              and can be dropped for room without losing anything owed. -->
         <span class="app-foot-snapshot">A static snapshot of a public schema, taken 02/09/2026.</span>
         <span class="app-foot-run">On your own database: <code>php artisan truss:export</code></span>
-        <!-- The removal channel is the one /in-the-wild/ already publishes, in
-             the same plain words. One address to remember, and a reader who has
-             seen it once on this site recognises it. -->
-        <span class="app-foot-remove">Rather this page did not exist? Mail <a href="mailto:hello@albertoarena.it">hello@albertoarena.it</a> and it comes down.</span>
+        <!-- The removal channel is the one /in-the-wild/ already publishes. The
+             ADDRESS is the same; the sentence deliberately is not.
+             /in-the-wild/ opens "Quoted here and would rather not be?", which
+             names its audience in its first two words. Copying its shape without
+             them left "Rather this page did not exist?", which is addressed to
+             nobody: the Lunar maintainer it exists for cannot tell it is meant
+             for them, while every passing reader is invited to ask. It also
+             reads as an elliptical past subjunctive with the "Would you"
+             removed, which is the hardest shape of English sentence for an
+             audience that is mostly not reading in its first language (R20).
+             Say who it is for, in the plainest tense available. -->
+        <span class="app-foot-remove">If the Lunar team wants this page removed, mail <a href="mailto:hello@albertoarena.it">hello@albertoarena.it</a> and it comes down.</span>
         <nav class="app-foot-nav" aria-label="About this page">
             <a href="../../../reference/tested-applications/">How this was measured</a>
         </nav>

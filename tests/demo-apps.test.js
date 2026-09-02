@@ -22,6 +22,23 @@ const html = (app) => readFileSync(source(app), 'utf8')
 const schemaPath = (app) => join(root, 'public', 'demo', 'apps', app.slug, 'schema.json')
 const schema = (app) => JSON.parse(readFileSync(schemaPath(app), 'utf8'))
 
+/**
+ * One `.fact--wide` span: the detail the narrow-width queries hide.
+ *
+ * "Up to the first closing tag" is only correct while these spans hold no
+ * nested span, which is why the markup was flattened and why the assertion
+ * below enforces it rather than trusting it. The direction this fails matters:
+ * a wide span that survived the strip would leave the courtesy test approving
+ * text a phone never renders, which is the exact bug it exists to catch.
+ */
+const WIDE_FACT = /<span class="fact fact--wide">((?:(?!<\/span>)[\s\S])*)<\/span>/g
+
+const factLine = (app) => {
+  const facts = html(app).match(/<p class="app-head-facts">([\s\S]*?)<\/p>/)?.[1]
+  if (!facts) throw new Error(`${app.slug}: no fact line to read`)
+  return facts
+}
+
 describe('the registry', () => {
   it('has at least one application, or none of this file means anything', () => {
     expect(DEMO_APPS.length).toBeGreaterThan(0)
@@ -289,14 +306,32 @@ describe('the courtesies owed to somebody else\'s schema', () => {
     // So the check is not "is it in the markup" but "is it outside every span
     // the narrow queries hide". .fact-wide is the class those queries drop.
     for (const app of DEMO_APPS) {
-      const facts = html(app).match(/<p class="app-head-facts">([\s\S]*?)<\/p>/)?.[1]
-      expect(facts, `${app.slug}: no fact line`).toBeTruthy()
-      const alwaysShown = facts.replace(/<span class="fact-wide">[\s\S]*?<\/span>\s*(?=<|$)/g, ' ')
+      const facts = factLine(app)
+      const alwaysShown = facts.replace(WIDE_FACT, ' ')
 
       expect(alwaysShown, `${app.slug}: the licence is dropped on narrow screens`).toContain(app.licence)
       expect(alwaysShown, `${app.slug}: the snapshot date is dropped on narrow screens`).toContain(app.snapshot)
       expect(alwaysShown, `${app.slug}: the disclaimer is dropped on narrow screens`).toMatch(/not affiliated/i)
       expect(alwaysShown, `${app.slug}: the version is dropped on narrow screens`).toContain(app.version)
+    }
+  })
+
+  it('keeps the fact spans flat, which is what makes the check above sound', () => {
+    // Guarding the guard. The strip above matches a wide span up to its first
+    // closing tag, so a nested span would end the match early and leave hidden
+    // text in what the test treats as always shown. Rather than write a parser,
+    // the shape it assumes is asserted: every wide span is matched whole, and
+    // none of them contains another span.
+    for (const app of DEMO_APPS) {
+      const facts = factLine(app)
+      const declared = (facts.match(/class="fact fact--wide"/g) ?? []).length
+      const matched = [...facts.matchAll(WIDE_FACT)]
+
+      expect(declared, `${app.slug}: no optional detail in the fact line`).toBeGreaterThan(0)
+      expect(matched.length, `${app.slug}: a wide span was not matched whole`).toBe(declared)
+      for (const [, inner] of matched) {
+        expect(inner, `${app.slug}: a wide fact nests a span, so the strip is unsound`).not.toContain('<span')
+      }
     }
   })
 
@@ -308,6 +343,38 @@ describe('the courtesies owed to somebody else\'s schema', () => {
       const link = html(app).match(/<a class="app-repo"[^>]*>/s)?.[0]
       expect(link, `${app.slug}: no repository link`).toBeTruthy()
       expect(link, `${app.slug}: repository link has no accessible name`).toMatch(/aria-label="[^"]+"/)
+    }
+  })
+})
+
+describe('the footer strip keeps its priority in flex, not in breakpoints', () => {
+  // The third responsive failure on this strip, and the first two were fixed
+  // by moving a pixel threshold, which is why there was a third. The four
+  // items measure 1513px together while the first was dropped at 1400, so
+  // 1401 to 1512 clipped the last item off the right edge; 1440 is in that
+  // band. Any wording change moves those numbers and silently opens a new one.
+  //
+  // So the rule is structural: the removal notice and the link never shrink,
+  // and anything else in the strip must be able to. A breakpoint cannot be
+  // wrong if nothing depends on it being right.
+  const RIGID = ['.app-foot-remove', '.app-foot-nav']
+
+  it('lets the optional items shrink', () => {
+    for (const app of DEMO_APPS) {
+      const css = html(app)
+      expect(css, `${app.slug}`).toMatch(/\.app-foot-snapshot,\s*\.app-foot-run\s*\{[^}]*flex:\s*0 1 auto/)
+      expect(css, `${app.slug}: shrinking without min-width: 0 does nothing in a flex row`)
+        .toMatch(/\.app-foot-snapshot,\s*\.app-foot-run\s*\{[^}]*min-width:\s*0/)
+    }
+  })
+
+  it('holds the removal notice and the link rigid, and nothing else', () => {
+    for (const app of DEMO_APPS) {
+      const rule = html(app).match(/([^{}]*)\{\s*flex:\s*none;?\s*\}/)?.[1] ?? ''
+      const selectors = rule.split(',').map((s) => s.trim()).filter(Boolean)
+
+      expect(selectors.sort(), `${app.slug}: the rigid set is not exactly the two that must not move`)
+        .toEqual([...RIGID].sort())
     }
   })
 })
