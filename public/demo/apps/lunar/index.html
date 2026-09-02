@@ -48,6 +48,19 @@
       #truss-viewport {
         height: calc(100vh - 54px - 28px - var(--site-bar-h) - var(--head-strip-h) - var(--foot-strip-h)) !important;
       }
+      /* dvh, and on this page it is not cosmetic. The other shells put nothing
+         below the dashboard, so an overshoot there costs a strip of diagram.
+         This page puts the removal address in a footer strip, and the body
+         cannot scroll to reach it: overflow is hidden, and the diagram calls
+         preventDefault on every wheel event (truss.js:1360). On iOS Safari
+         100vh is the toolbars-retracted height, so at first paint the layout is
+         taller than the visible viewport and the footer sits under the fold.
+         Declared second rather than in @supports: a browser that does not know
+         dvh discards this rule and keeps the vh line above. */
+      #truss-viewport {
+        height: calc(100dvh - 54px - 28px - var(--site-bar-h) - var(--head-strip-h) - var(--foot-strip-h)) !important;
+      }
+      html, body { height: 100dvh; }
       /* Anchor the app's absolutely-positioned overlays (the legend) to the app,
          not the viewport, so the strips above the app cannot drop the legend
          onto the toolbar. Mirrors the package fix (#truss-app position: relative). */
@@ -172,8 +185,12 @@
         .app-foot-run { display: none; }
       }
       @media (max-width: 900px) {
-        :root { --head-strip-h: 80px; }
-        .app-head-facts { display: none; }
+        /* The fact line stays and is given a second line; only its .fact-wide
+           detail goes. The attribution, the licence, the date and the
+           disclaimer are the reasons this page is allowed to exist, so they are
+           not what gets dropped for room. */
+        :root { --head-strip-h: 96px; }
+        .fact-wide { display: none; }
         .site-bar-tag { display: none; }
         .app-foot-snapshot { display: none; }
       }
@@ -182,7 +199,7 @@
          off the right edge, because nowrap plus a fixed height clips rather
          than wraps. */
       @media (max-width: 720px) {
-        :root { --head-strip-h: 82px; --foot-strip-h: 56px; }
+        :root { --head-strip-h: 110px; --foot-strip-h: 56px; }
         .app-head h1 { font-size: 17px; }
         /* Two lines rather than an ellipsis. At this width the subtitle cannot
            fit on one, and the half of it that would be cut is the half naming
@@ -205,6 +222,17 @@
       @media (max-width: 560px) {
         .site-bar-nav a { display: none; }
         .app-foot-nav { display: none; }
+      }
+
+      /* Landscape on a phone: 932x430 never triggers the width queries above,
+         so the full-height strips would leave the diagram a sliver. Short
+         viewports are the case to trade the subtitle for, not the fact line:
+         the subtitle is positioning, the fact line is attribution. */
+      @media (max-height: 520px) {
+        :root { --head-strip-h: 62px; --foot-strip-h: 40px; }
+        .app-head-sub { display: none; }
+        .site-bar-tag { display: none; }
+        .app-foot-run, .app-foot-snapshot { display: none; }
       }
     </style>
 
@@ -287,12 +315,27 @@
         <div>
             <h1>Lunar's database structure</h1>
             <p class="app-head-sub">67 tables and 83 foreign keys, rendered by Truss, an ER diagram (ERD) viewer for Laravel.</p>
+            <!-- The fact line, and what it never stops saying.
+                 Everything marked .fact-wide is detail a narrow screen can do
+                 without. What is left is the part that is owed rather than
+                 useful: whose code this is, the licence, the date, and that we
+                 have nothing to do with them. The first draft dropped this
+                 whole line below 900px, which meant a phone saw a page titled
+                 "Lunar's database structure" carrying no attribution and no
+                 disclaimer, on exactly the devices a link in somebody's Discord
+                 gets opened. -->
             <p class="app-head-facts">
-                Lunar 1.5.0 (<code>d93b23e</code>)<span class="sep">/</span>Laravel 12.68.0<span class="sep">/</span>MIT licensed<span class="sep">/</span>snapshot 02/09/2026<span class="sep">/</span>Laravel's own scaffolding is not drawn, so 67 here and 75 in the field study
+                Lunar 1.5.0<span class="fact-wide"> (<code>d93b23e</code>)</span><span class="sep">/</span><span class="fact-wide">Laravel 12.68.0<span class="sep">/</span></span>MIT licensed<span class="sep">/</span>snapshot 02/09/2026<span class="sep">/</span>not affiliated with Lunar<span class="fact-wide"><span class="sep">/</span>Laravel's own scaffolding is not drawn, so 67 here and 75 in the field study</span>
             </p>
         </div>
         <div class="app-head-side">
-            <a class="app-repo" href="https://github.com/lunarphp/core" target="_blank" rel="noopener">
+            <!-- Named explicitly, because below 720px the label is hidden and
+                 the icon is aria-hidden, which would leave the one link
+                 crediting Lunar with no accessible name at all (WCAG 4.1.2).
+                 The label being visible on a wide screen does not name it for
+                 the width where it is not. -->
+            <a class="app-repo" href="https://github.com/lunarphp/core" target="_blank" rel="noopener"
+               aria-label="Lunar on GitHub">
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82a7.55 7.55 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
                 <span class="app-repo-label">Lunar on GitHub</span>
             </a>
@@ -411,7 +454,13 @@
             <div id="truss-canvas"></div>
 
             <div class="truss-zoom" id="truss-zoom">
-                <button type="button" data-fit title="Fit the whole diagram in view">Fit</button>
+                <!-- Not "Fit the whole diagram in view", which is what the
+                     other shells say and what this page cannot do: the 0.7
+                     zoom floor clamps the fit, so pressing this recentres at 70
+                     per cent rather than fitting anything. Keeping the shipped
+                     wording would have been a tooltip promising the one thing
+                     the page's own zoom floor rules out. -->
+                <button type="button" data-fit title="Recentre the diagram">Fit</button>
                 <!-- A title is a tooltip, not an accessible name (WCAG 4.1.2). -->
                 <input id="truss-zoom-range" type="range" min="0.1" max="3" step="0.02" value="1"
                        aria-label="Zoom" title="Zoom (scroll or pinch over the diagram)">
@@ -450,7 +499,10 @@
     </div>
 
     <div class="app-foot">
-        <span class="app-foot-snapshot">A static snapshot of a public schema. Not affiliated with Lunar.</span>
+        <!-- The disclaimer moved up into the fact line, which survives every
+             width, so this is the wider gloss rather than the courtesy itself
+             and can be dropped for room without losing anything owed. -->
+        <span class="app-foot-snapshot">A static snapshot of a public schema, taken 02/09/2026.</span>
         <span class="app-foot-run">On your own database: <code>php artisan truss:export</code></span>
         <!-- The removal channel is the one /in-the-wild/ already publishes, in
              the same plain words. One address to remember, and a reader who has
