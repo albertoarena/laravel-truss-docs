@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Laravel Truss: theme builder</title>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+
+    <!-- Reuse the shipped dashboard token layer (the --bp-* custom properties and
+         the IBM Plex Mono @font-face) so the builder chrome matches the app and
+         the docs site, with no extra fonts and no build step. -->
+    <link rel="stylesheet" href="../demo/assets-v1.11.1/truss.css">
+
+    <style>
+      :root { --site-bar-h: 48px; }
+      html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bp-bg); color: var(--bp-fg); }
+      * { box-sizing: border-box; }
+
+      /* ---- site bar (mirrors the demo shell) ---------------------------- */
+      .site-bar {
+        height: var(--site-bar-h);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; padding: 0 18px;
+        background: var(--bp-panel);
+        border-bottom: 1px solid var(--bp-panel-line);
+        font-family: var(--bp-mono);
+      }
+      .site-bar-logo { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; color: var(--bp-ink); }
+      .site-bar-word { font-weight: 600; font-size: 17px; letter-spacing: -0.05em; }
+      .site-bar-nav { display: flex; align-items: center; gap: 18px; }
+      .site-bar-nav a { font-size: 13px; color: var(--bp-muted); text-decoration: none; letter-spacing: -0.01em; }
+      .site-bar-nav a:hover { color: var(--bp-fg); }
+      /* GitHub is a bar control, not a nav link: it stays one tap at every
+         width. Here that was already deliberate, spelled as a :not(.gh) in the
+         rule below; now it is structural instead. */
+      .site-bar-actions a.gh { display: inline-flex; align-items: center; color: var(--bp-muted); }
+      .site-bar-actions a.gh:hover { color: var(--bp-fg); }
+      .site-bar a:focus-visible { outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px; }
+      /* The site menu.
+         At or below the breakpoint this nav is a panel the button opens, and
+         above it the same element lays out inline as it always has. The same
+         menu the demo shells carry, from the same source file.
+         The rule replaced here was this page's own fifth copy of the defect,
+         `@media (max-width: 620px) { .site-bar-nav a:not(.gh) { display: none } }`,
+         at a fifth breakpoint. It left a phone with the logo, an outbound
+         GitHub link and no route to the demos, Docs or Roadmap, on the page
+         whose whole job is to send you to a demo to see your theme. */
+      .site-bar-right { display: flex; align-items: center; gap: 16px; flex: none; }
+      .site-bar-logo { flex: none; }
+      .site-bar-actions { display: flex; align-items: center; gap: 16px; }
+      .site-bar-menu-btn {
+        display: none; align-items: center; justify-content: center;
+        width: 44px; height: 44px; padding: 0;
+        background: none; border: 1px solid transparent; border-radius: 8px;
+        color: var(--bp-muted); cursor: pointer;
+      }
+      .site-bar-menu-btn:hover { color: var(--bp-fg); border-color: var(--bp-panel-line); }
+      .site-bar-menu-btn:focus-visible {
+        outline: 2px solid var(--bp-cyan); outline-offset: 2px;
+      }
+      /* 1024, and it is measured rather than picked: the widest inline bar
+         (/demo/, six links plus the palette row) needs 1014px. MENU_BREAKPOINT
+         in scripts/demo-nav.mjs holds the number for every page that has this
+         bar, and the browser spec asserts nothing overflows at it. */
+      @media (max-width: 1024px) {
+        .site-bar-menu-btn { display: inline-flex; }
+        /* z-index 70: the package tops out at 45 and #demo-config uses 60, and
+           .site-bar precedes #truss-app in the DOM, so without a number the
+           diagram paints over the panel. Fixed rather than absolute: nothing
+           above .site-bar carries transform, filter or will-change, so it
+           resolves against the viewport. */
+        .site-bar-nav {
+          position: fixed; top: var(--site-bar-h); right: 0; z-index: 70;
+          display: none; flex-direction: column; align-items: stretch; gap: 0;
+          min-width: 240px; max-width: min(320px, calc(100vw - 24px)); padding: 6px;
+          background: var(--bp-panel);
+          border: 1px solid var(--bp-panel-line);
+          border-radius: 0 0 0 10px;
+          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+        }
+        .site-bar-nav[data-open] { display: flex; }
+        /* 44px targets, and the panel is measured in rows of them: a phone in
+           landscape (667x375) fits seven, and the panel cannot scroll because
+           the canvas preventDefaults wheel. See PANEL_ROW_CEILING in
+           scripts/demo-nav.mjs, which a test holds. */
+        .site-bar-nav a {
+          display: flex; align-items: center; min-height: 44px; padding: 0 12px;
+          border-radius: 6px;
+        }
+        .site-bar-nav a:hover { background: var(--bp-bg); }
+      }
+
+      /* ---- layout ------------------------------------------------------- */
+      .tb-layout {
+        display: grid; grid-template-columns: 360px 1fr;
+        height: calc(100vh - var(--site-bar-h));
+      }
+      .tb-controls {
+        overflow-y: auto; padding: 16px 18px 28px;
+        border-right: 1px solid var(--bp-panel-line);
+        background: var(--bp-panel);
+        font-family: var(--bp-mono);
+      }
+      .tb-preview { position: relative; background: var(--bp-bg); }
+      .tb-preview iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+      @media (max-width: 820px) {
+        html, body { overflow: auto; }
+        .tb-layout { grid-template-columns: 1fr; height: auto; }
+        .tb-controls { border-right: 0; border-bottom: 1px solid var(--bp-panel-line); }
+        .tb-preview { height: 70vh; }
+      }
+
+      /* ---- controls ----------------------------------------------------- */
+      .tb-intro { margin: 0 0 14px; font-size: 12.5px; line-height: 1.5; color: var(--bp-muted); }
+      .tb-intro strong { color: var(--bp-fg); font-weight: 600; }
+
+      .tb-section { margin: 0 0 20px; }
+      .tb-section > h2 {
+        margin: 0 0 9px; font-size: 10.5px; font-weight: 700; letter-spacing: .09em;
+        text-transform: uppercase; color: var(--bp-muted);
+      }
+      .tb-hint { margin: 6px 0 0; font-size: 11px; line-height: 1.5; color: var(--bp-muted); }
+
+      /* segmented light/dark */
+      .tb-seg { display: inline-flex; border: 1px solid var(--bp-panel-line); border-radius: 8px; overflow: hidden; }
+      .tb-seg button {
+        appearance: none; background: transparent; border: 0; cursor: pointer;
+        font-family: var(--bp-mono); font-size: 12px; color: var(--bp-muted);
+        padding: 6px 14px; line-height: 1;
+      }
+      .tb-seg button + button { border-left: 1px solid var(--bp-panel-line); }
+      .tb-seg button[aria-pressed="true"] { background: var(--bp-ink); color: var(--bp-panel); }
+
+      /* colour rows */
+      .tb-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; margin: 0 0 7px; }
+      .tb-row label { font-size: 12px; color: var(--bp-fg); }
+      .tb-swatch {
+        appearance: none; -webkit-appearance: none; width: 30px; height: 26px; padding: 0;
+        border: 1px solid var(--bp-panel-line); border-radius: 6px; background: none; cursor: pointer;
+      }
+      .tb-swatch::-webkit-color-swatch-wrapper { padding: 2px; }
+      .tb-swatch::-webkit-color-swatch { border: 0; border-radius: 4px; }
+      .tb-hex {
+        width: 82px; font-family: var(--bp-mono); font-size: 12px; padding: 5px 7px;
+        border: 1px solid var(--bp-panel-line); border-radius: 6px;
+        background: var(--bp-field, var(--bp-panel)); color: var(--bp-fg);
+      }
+      .tb-hex[aria-invalid="true"] { border-color: #d1495b; }
+
+      /* font selects */
+      .tb-field { margin: 0 0 10px; }
+      .tb-field > span { display: block; font-size: 12px; color: var(--bp-fg); margin: 0 0 4px; }
+      .tb-select, .tb-custom {
+        width: 100%; font-family: var(--bp-mono); font-size: 12px; padding: 6px 8px;
+        border: 1px solid var(--bp-panel-line); border-radius: 6px;
+        background: var(--bp-field, var(--bp-panel)); color: var(--bp-fg);
+      }
+      .tb-custom { margin-top: 6px; }
+      .tb-custom[aria-invalid="true"] { border-color: #d1495b; }
+      [hidden] { display: none !important; }
+
+      /* presets */
+      .tb-presets { display: flex; flex-wrap: wrap; gap: 7px; }
+      .tb-preset {
+        appearance: none; cursor: pointer; font-family: var(--bp-mono); font-size: 12px;
+        padding: 6px 11px; border: 1px solid var(--bp-panel-line); border-radius: 7px;
+        background: transparent; color: var(--bp-fg); display: inline-flex; align-items: center; gap: 7px;
+      }
+      .tb-preset:hover { border-color: var(--bp-ink); }
+      .tb-dot { width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+
+      /* output */
+      .tb-out-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 8px; }
+      .tb-copy {
+        appearance: none; cursor: pointer; font-family: var(--bp-mono); font-size: 11.5px;
+        padding: 5px 11px; border: 1px solid var(--bp-panel-line); border-radius: 7px;
+        background: transparent; color: var(--bp-muted);
+      }
+      .tb-copy:hover { color: var(--bp-fg); border-color: var(--bp-ink); }
+      .tb-config {
+        margin: 0; padding: 12px 13px; border: 1px solid var(--bp-panel-line); border-radius: 8px;
+        background: var(--bp-bg); color: var(--bp-fg);
+        font-family: var(--bp-mono); font-size: 11.5px; line-height: 1.55;
+        white-space: pre; overflow-x: auto;
+      }
+      button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+        outline: 2px solid var(--bp-cyan); outline-offset: 2px;
+      }
+    </style>
+
+    <!-- Reconcile the builder chrome theme before paint, from the same key the
+         rest of the site uses, so a light/dark choice made elsewhere carries in. -->
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('starlight-theme');
+          if (s === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+          else if (s === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
+  <!-- static page meta -->
+    <meta name="description" content="Build a Truss theme in the browser and copy the config. Dial in colours and fonts against a live dashboard preview.">
+    <link rel="canonical" href="https://trussphp.com/theme-builder/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Laravel Truss: theme builder">
+    <meta property="og:description" content="Build a Truss theme in the browser and copy the config. Dial in colours and fonts against a live dashboard preview.">
+    <meta property="og:url" content="https://trussphp.com/theme-builder/">
+    <meta property="og:image" content="https://trussphp.com/cover-light.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://trussphp.com/cover-light.png">
+  </head>
+<body>
+    <header class="site-bar">
+        <a class="site-bar-logo" href="../" aria-label="Laravel Truss home">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="miter" aria-hidden="true">
+                <path d="M16 5 L27 26 H5 Z"/><path d="M16 5 V17"/><path d="M5 26 L16 17"/><path d="M27 26 L16 17"/>
+                <g fill="currentColor" stroke="none"><circle cx="16" cy="5" r="2.3"/><circle cx="5" cy="26" r="2.3"/><circle cx="27" cy="26" r="2.3"/><circle cx="16" cy="17" r="2.3"/></g>
+            </svg>
+            <span class="site-bar-word">truss</span>
+        </a>
+        <div class="site-bar-right">
+        <!-- One nav, two presentations: inline above the breakpoint, the panel
+             the menu button opens below it. The set comes from
+             scripts/demo-nav.mjs, which is also why this page now links to the
+             three demos it is a companion to rather than only to "Demo". -->
+        <nav class="site-bar-nav" id="site-menu" aria-label="Site">
+            <a href="/demo/">Sample demo</a>
+            <a href="/demo/your-schema/">Your own schema</a>
+            <a href="/demo/multi-connection/">Multiple connections</a>
+            <a href="/demo/apps/lunar/">Lunar&#39;s schema</a>
+            <a href="/getting-started/installation/">Docs</a>
+            <a href="/roadmap/">Roadmap</a>
+        </nav>
+        <div class="site-bar-actions">
+            <a class="gh" href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82a7.55 7.55 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+            </a>
+            <button class="site-bar-menu-btn" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Menu" title="Menu">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+                    <path d="M4 7h16M4 12h16M4 17h16"/>
+                </svg>
+            </button>
+        </div>
+        </div>
+    </header>
+
+    <main class="tb-layout">
+        <aside class="tb-controls" aria-label="Theme controls">
+            <p class="tb-intro">
+                Dial in a <strong>Truss</strong> theme and copy the config. Every value maps to the
+                shipped <code>truss.theme</code> knobs, so what you build here is exactly what the
+                package produces.
+            </p>
+
+            <div class="tb-section">
+                <h2>Editing</h2>
+                <div class="tb-seg" role="group" aria-label="Which mode to edit and preview">
+                    <button type="button" data-mode="light" aria-pressed="true">Light</button>
+                    <button type="button" data-mode="dark" aria-pressed="false">Dark</button>
+                </div>
+                <p class="tb-hint">Colours have a light and a dark value. Switch here to edit and preview each.</p>
+            </div>
+
+            <div class="tb-section">
+                <h2>Fonts <span style="text-transform:none;letter-spacing:0;font-weight:400">(shared across modes)</span></h2>
+                <label class="tb-field">
+                    <span>Monospace (diagram + chrome)</span>
+                    <select class="tb-select" id="tb-font-mono"></select>
+                    <input class="tb-custom" id="tb-font-mono-custom" type="text" placeholder="Custom font-family…" hidden>
+                </label>
+                <label class="tb-field">
+                    <span>Sans (body text)</span>
+                    <select class="tb-select" id="tb-font-sans"></select>
+                    <input class="tb-custom" id="tb-font-sans-custom" type="text" placeholder="Custom font-family…" hidden>
+                </label>
+                <p class="tb-hint">Family names only. Name a font your app already loads or a system font; Truss serves no font files for these.</p>
+            </div>
+
+            <div class="tb-section">
+                <h2>Colours <span id="tb-mode-label" style="text-transform:none;letter-spacing:0;font-weight:400">(light)</span></h2>
+                <div id="tb-colors"></div>
+            </div>
+
+            <div class="tb-section">
+                <h2>Start from</h2>
+                <div class="tb-presets">
+                    <button type="button" class="tb-preset" data-preset="blueprint"><span class="tb-dot" style="background:#12356b"></span>Blueprint</button>
+                    <button type="button" class="tb-preset" data-preset="ember"><span class="tb-dot" style="background:#c2410c"></span>Ember</button>
+                    <button type="button" class="tb-preset" data-preset="contrast"><span class="tb-dot" style="background:#111827"></span>Contrast</button>
+                </div>
+            </div>
+
+            <div class="tb-section">
+                <div class="tb-out-head">
+                    <h2 style="margin:0">config/truss.php</h2>
+                    <button type="button" class="tb-copy" id="tb-copy">Copy</button>
+                </div>
+                <pre class="tb-config" id="tb-config" aria-live="polite"></pre>
+            </div>
+        </aside>
+
+        <div class="tb-preview">
+            <iframe id="tb-preview-frame" title="Live theme preview" src="../demo/index.html"></iframe>
+        </div>
+    </main>
+
+    <script>
+    (function () {
+        // Semantic knob => the internal --bp-* tokens it drives. Mirrors
+        // AlbertoArena\Truss\Theme\ThemeStylesheet::KNOBS exactly.
+        var KNOBS = {
+            'accent':           ['ink', 'focus-border'],
+            'accent-secondary': ['cyan'],
+            'background':       ['bg', 'edge-bg'],
+            'surface':          ['panel', 'entity-bg', 'row-odd', 'field'],
+            'surface-alt':      ['row-even'],
+            'text':             ['fg', 'entity-text'],
+            'muted':            ['muted', 'rel', 'edge'],
+            'border':           ['entity-border', 'hair', 'panel-line', 'field-line']
+        };
+        var ORDER = ['accent', 'accent-secondary', 'background', 'surface', 'surface-alt', 'text', 'muted', 'border'];
+        var LABELS = {
+            'accent': 'Accent', 'accent-secondary': 'Accent secondary', 'background': 'Background',
+            'surface': 'Surface', 'surface-alt': 'Surface alt', 'text': 'Text', 'muted': 'Muted', 'border': 'Border'
+        };
+
+        // Shipped Blueprint defaults, read from truss.css (the representative token
+        // per knob). A knob equal to its default is omitted from the config, so the
+        // snippet stays as small as a real host would write it.
+        var DEFAULTS = {
+            light: { 'accent': '#12356b', 'accent-secondary': '#0e7c9b', 'background': '#eef1f6', 'surface': '#fbfcfe', 'surface-alt': '#e9f0f9', 'text': '#132741', 'muted': '#5f7396', 'border': '#12356b' },
+            dark:  { 'accent': '#5fd0e6', 'accent-secondary': '#7fe0f2', 'background': '#0b1a2b', 'surface': '#0f2338', 'surface-alt': '#16324e', 'text': '#d7e7f4', 'muted': '#7fa2c0', 'border': '#3f7fa0' }
+        };
+
+        // Presets reuse the demo palettes verbatim so the two stay consistent.
+        var PRESETS = {
+            blueprint: { fonts: { mono: '', sans: '' }, light: clone(DEFAULTS.light), dark: clone(DEFAULTS.dark) },
+            ember: {
+                fonts: { mono: '"Courier New", ui-monospace, monospace', sans: 'Georgia, "Times New Roman", serif' },
+                light: { 'accent': '#b45309', 'accent-secondary': '#0f766e', 'background': '#faf6f0', 'surface': '#fffdf8', 'surface-alt': '#f4ebda', 'text': '#3a2a1c', 'muted': '#785a3c', 'border': '#c8873f' },
+                dark:  { 'accent': '#fbbf24', 'accent-secondary': '#5eead4', 'background': '#1b130b', 'surface': '#26190d', 'surface-alt': '#33230f', 'text': '#f5e6d0', 'muted': '#c2a17c', 'border': '#8a6428' }
+            },
+            contrast: {
+                fonts: { mono: '', sans: '' },
+                light: { 'accent': '#111827', 'accent-secondary': '#374151', 'background': '#ffffff', 'surface': '#ffffff', 'surface-alt': '#eef1f4', 'text': '#000000', 'muted': '#3d4453', 'border': '#111827' },
+                dark:  { 'accent': '#ffffff', 'accent-secondary': '#cbd5e1', 'background': '#000000', 'surface': '#0b0b0c', 'surface-alt': '#17181a', 'text': '#ffffff', 'muted': '#aab2c0', 'border': '#e5e7eb' }
+            }
+        };
+
+        // Curated, cross-platform system stacks (no webfonts, honouring no-CDN).
+        // '' means "leave the knob unset" (the shipped default shows through).
+        var FONT_STACKS = {
+            mono: [
+                { label: 'IBM Plex Mono (default)', value: '' },
+                { label: 'System mono', value: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' },
+                { label: 'Courier (typewriter)', value: '"Courier New", ui-monospace, monospace' },
+                { label: 'Menlo / Monaco', value: 'Menlo, Monaco, "Cascadia Mono", monospace' }
+            ],
+            sans: [
+                { label: 'System sans (default)', value: '' },
+                { label: 'Georgia (serif)', value: 'Georgia, "Times New Roman", serif' },
+                { label: 'Segoe / humanist', value: '"Segoe UI", system-ui, sans-serif' },
+                { label: 'Helvetica / Arial', value: 'Helvetica, Arial, sans-serif' }
+            ]
+        };
+
+        // The package's allow-lists, mirrored so the builder never offers a value
+        // the package would silently drop.
+        var FONT_RE = /^[A-Za-z0-9\s,'".\-]+$/;
+        var HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+        function clone(o) { var c = {}; for (var k in o) c[k] = o[k]; return c; }
+        function hexToRgb(v) {
+            if (!/^#([0-9a-f]{6})$/i.test(v || '')) return null;
+            var h = v.slice(1);
+            return parseInt(h.slice(0, 2), 16) + ', ' + parseInt(h.slice(2, 4), 16) + ', ' + parseInt(h.slice(4, 6), 16);
+        }
+
+        var state = { mode: 'light', fonts: { mono: '', sans: '' }, colors: { light: clone(DEFAULTS.light), dark: clone(DEFAULTS.dark) } };
+        // Start in dark if the chrome reconciled to dark.
+        if (document.documentElement.getAttribute('data-theme') === 'dark') state.mode = 'dark';
+
+        var frame = document.getElementById('tb-preview-frame');
+        var themeStyle = null; // the injected <style> inside the iframe
+
+        /* ---- iframe preview ------------------------------------------- */
+        function colorDecls(vals) {
+            var css = '';
+            for (var i = 0; i < ORDER.length; i++) {
+                var knob = ORDER[i], toks = KNOBS[knob], val = vals[knob];
+                if (!val) continue;
+                for (var j = 0; j < toks.length; j++) css += '--bp-' + toks[j] + ':' + val + ';';
+            }
+            // Row hairlines sit below the entity outline: the package derives
+            // --bp-hair as a translucent tint of `border` rather than painting it
+            // flat, so a themed table keeps its hierarchy instead of reading as a
+            // uniform grid. Emitted after the loop so it wins, like the package.
+            var borderRgb = hexToRgb(vals.border);
+            if (borderRgb) css += '--bp-hair:rgba(' + borderRgb + ',0.35);';
+            var rgb = hexToRgb(vals.accent);
+            if (rgb) css += '--bp-grid:rgba(' + rgb + ',0.07);--bp-grid-strong:rgba(' + rgb + ',0.12);';
+            return css;
+        }
+        function fontDecls(fonts) {
+            var css = '';
+            if (fonts.mono) css += '--bp-mono:' + fonts.mono + ';';
+            if (fonts.sans) css += '--bp-sans:' + fonts.sans + ';';
+            return css;
+        }
+        function previewCss() {
+            // Mirror ThemeStylesheet::build: fonts + light on :root, dark on the
+            // media query and the forced-dark selector.
+            return ':root{' + fontDecls(state.fonts) + colorDecls(state.colors.light) + '}'
+                + '@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){' + colorDecls(state.colors.dark) + '}}'
+                + ':root[data-theme="dark"]{' + colorDecls(state.colors.dark) + '}';
+        }
+        function applyPreview() {
+            if (!themeStyle) return;
+            themeStyle.textContent = previewCss();
+            var idoc = themeStyle.ownerDocument;
+            idoc.documentElement.setAttribute('data-theme', state.mode);
+        }
+        function onFrameReady() {
+            var idoc = frame.contentDocument;
+            if (!idoc) return;
+            // Strip the demo's own chrome and any persisted palette so only our
+            // overrides shape the preview.
+            idoc.documentElement.removeAttribute('data-palette');
+            var hide = idoc.createElement('style');
+            hide.textContent = '.site-bar{display:none!important}#demo-config{display:none!important}:root{--site-bar-h:0px!important}';
+            idoc.head.appendChild(hide);
+            themeStyle = idoc.createElement('style');
+            idoc.head.appendChild(themeStyle);
+            applyPreview();
+        }
+        frame.addEventListener('load', onFrameReady);
+
+        /* ---- controls: colours ---------------------------------------- */
+        var colorsEl = document.getElementById('tb-colors');
+        var rows = {};
+        ORDER.forEach(function (knob) {
+            var row = document.createElement('div');
+            row.className = 'tb-row';
+            var id = 'tb-c-' + knob;
+            row.innerHTML = '<label for="' + id + '">' + LABELS[knob] + '</label>'
+                + '<input class="tb-hex" type="text" spellcheck="false" maxlength="7" aria-label="' + LABELS[knob] + ' hex">'
+                + '<input class="tb-swatch" type="color" id="' + id + '" aria-label="' + LABELS[knob] + ' colour">';
+            var hex = row.querySelector('.tb-hex');
+            var swatch = row.querySelector('.tb-swatch');
+            swatch.addEventListener('input', function () { setColor(knob, swatch.value); });
+            hex.addEventListener('input', function () {
+                var v = hex.value.trim();
+                var ok = HEX_RE.test(v);
+                hex.setAttribute('aria-invalid', ok ? 'false' : 'true');
+                if (ok) setColor(knob, v.toLowerCase());
+            });
+            colorsEl.appendChild(row);
+            rows[knob] = { hex: hex, swatch: swatch };
+        });
+        function setColor(knob, value) {
+            state.colors[state.mode][knob] = value;
+            rows[knob].swatch.value = value;
+            rows[knob].hex.value = value;
+            rows[knob].hex.setAttribute('aria-invalid', 'false');
+            applyPreview();
+            renderConfig();
+        }
+        function paintColorInputs() {
+            ORDER.forEach(function (knob) {
+                var v = state.colors[state.mode][knob];
+                rows[knob].swatch.value = v;
+                rows[knob].hex.value = v;
+                rows[knob].hex.setAttribute('aria-invalid', 'false');
+            });
+        }
+
+        /* ---- controls: fonts ------------------------------------------ */
+        function initFontSelect(kind) {
+            var sel = document.getElementById('tb-font-' + kind);
+            FONT_STACKS[kind].forEach(function (o) {
+                var opt = document.createElement('option');
+                opt.value = o.value; opt.textContent = o.label;
+                sel.appendChild(opt);
+            });
+            var custom = document.createElement('option');
+            custom.value = '__custom__'; custom.textContent = 'Custom…';
+            sel.appendChild(custom);
+
+            var customEl = document.getElementById('tb-font-' + kind + '-custom');
+            sel.addEventListener('change', function () {
+                if (sel.value === '__custom__') {
+                    customEl.hidden = false;
+                    customEl.focus();
+                    commitFont(kind, customEl.value.trim(), customEl);
+                } else {
+                    customEl.hidden = true;
+                    state.fonts[kind] = sel.value;
+                    applyPreview(); renderConfig();
+                }
+            });
+            customEl.addEventListener('input', function () { commitFont(kind, customEl.value.trim(), customEl); });
+        }
+        function commitFont(kind, value, customEl) {
+            var ok = value === '' || FONT_RE.test(value);
+            customEl.setAttribute('aria-invalid', ok ? 'false' : 'true');
+            if (!ok) return;
+            state.fonts[kind] = value;
+            applyPreview(); renderConfig();
+        }
+        function paintFontSelect(kind) {
+            var sel = document.getElementById('tb-font-' + kind);
+            var customEl = document.getElementById('tb-font-' + kind + '-custom');
+            var value = state.fonts[kind];
+            var known = FONT_STACKS[kind].some(function (o) { return o.value === value; });
+            if (known) { sel.value = value; customEl.hidden = true; customEl.value = ''; }
+            else { sel.value = '__custom__'; customEl.hidden = false; customEl.value = value; }
+            customEl.setAttribute('aria-invalid', 'false');
+        }
+        initFontSelect('mono');
+        initFontSelect('sans');
+
+        /* ---- controls: mode + presets --------------------------------- */
+        var modeLabel = document.getElementById('tb-mode-label');
+        function setMode(mode) {
+            state.mode = mode;
+            document.querySelectorAll('.tb-seg button').forEach(function (b) {
+                b.setAttribute('aria-pressed', b.dataset.mode === mode ? 'true' : 'false');
+            });
+            modeLabel.textContent = '(' + mode + ')';
+            document.documentElement.setAttribute('data-theme', mode);
+            paintColorInputs();
+            applyPreview();
+        }
+        document.querySelectorAll('.tb-seg button').forEach(function (b) {
+            b.addEventListener('click', function () { setMode(b.dataset.mode); });
+        });
+        document.querySelectorAll('.tb-preset').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var p = PRESETS[b.dataset.preset];
+                state.fonts = clone(p.fonts);
+                state.colors = { light: clone(p.light), dark: clone(p.dark) };
+                paintFontSelect('mono'); paintFontSelect('sans');
+                paintColorInputs();
+                applyPreview(); renderConfig();
+            });
+        });
+
+        /* ---- config snippet ------------------------------------------- */
+        function fontLines() {
+            var lines = [];
+            if (state.fonts.mono) lines.push("        'mono' => '" + state.fonts.mono + "',");
+            if (state.fonts.sans) lines.push("        'sans' => '" + state.fonts.sans + "',");
+            return lines;
+        }
+        function colorLines(mode) {
+            return ORDER.filter(function (k) { return state.colors[mode][k].toLowerCase() !== DEFAULTS[mode][k].toLowerCase(); })
+                .map(function (k) { return "            '" + k + "' => '" + state.colors[mode][k] + "',"; });
+        }
+        function renderConfig() {
+            var fonts = fontLines();
+            var light = colorLines('light');
+            var dark = colorLines('dark');
+            var pre = document.getElementById('tb-config');
+            if (!fonts.length && !light.length && !dark.length) {
+                pre.textContent = '// Blueprint is the shipped default, no theme config needed.';
+                return;
+            }
+            var out = "// config/truss.php\n'theme' => [\n";
+            if (fonts.length) out += "    'fonts' => [\n" + fonts.join('\n') + "\n    ],\n";
+            if (light.length || dark.length) {
+                out += "    'colors' => [\n";
+                if (light.length) out += "        'light' => [\n" + light.join('\n') + "\n        ],\n";
+                if (dark.length) out += "        'dark' => [\n" + dark.join('\n') + "\n        ],\n";
+                out += "    ],\n";
+            }
+            out += "],";
+            pre.textContent = out;
+        }
+
+        /* ---- copy ------------------------------------------------------ */
+        var copyBtn = document.getElementById('tb-copy');
+        copyBtn.addEventListener('click', function () {
+            var text = document.getElementById('tb-config').textContent;
+            var done = function () { copyBtn.textContent = 'Copied'; setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1200); };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () {});
+        });
+
+        /* ---- boot ----------------------------------------------------- */
+        paintFontSelect('mono'); paintFontSelect('sans');
+        setMode(state.mode);
+        renderConfig();
+    })();
+    </script>
+    <!-- The site menu. One source file so `npm run dev` serves a working
+         menu; the build replaces this tag with the file's contents. -->
+    <script>
+/**
+ * The site menu for the hand-authored demo shells.
+ *
+ * One source file, referenced by a real <script src> so `npm run dev` serves a
+ * working menu, and inlined into each built page by siteMenuScript() in
+ * astro.config.mjs. Inlined because the origin serves JavaScript with no
+ * Cache-Control at all, so a separately served file would be heuristically
+ * cached against HTML that PR #28 would make always fresh: new markup, old
+ * script, a renamed id and no menu.
+ *
+ * No focus trap. This is a short menu, not a modal, and trapping focus in it
+ * would be a stronger claim on the reader than it earns.
+ */
+;(function () {
+  var button = document.querySelector('.site-bar-menu-btn')
+  var menu = document.getElementById('site-menu')
+  if (!button || !menu) return
+
+  var isOpen = function () {
+    return menu.hasAttribute('data-open')
+  }
+
+  var close = function (returnFocus) {
+    if (!isOpen()) return
+    menu.removeAttribute('data-open')
+    button.setAttribute('aria-expanded', 'false')
+    if (returnFocus) button.focus()
+  }
+
+  var open = function () {
+    menu.setAttribute('data-open', '')
+    button.setAttribute('aria-expanded', 'true')
+    var first = menu.querySelector('a, button')
+    if (first) first.focus()
+  }
+
+  button.addEventListener('click', function () {
+    if (isOpen()) close(false)
+    else open()
+  })
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') close(true)
+  })
+
+  // pointerdown rather than click: the diagram under the panel handles pointer
+  // events of its own, and closing on the way down means a tap that lands on
+  // the canvas does not also pan it with a menu still open.
+  document.addEventListener('pointerdown', function (event) {
+    if (!isOpen()) return
+    if (menu.contains(event.target) || button.contains(event.target)) return
+    close(false)
+  })
+
+  // A rotate can cross the breakpoint with the panel open, which would leave a
+  // fixed panel hanging over a layout that already shows the links inline.
+  //
+  // 1025 is MENU_BREAKPOINT + 1 from scripts/demo-nav.mjs. This file is served
+  // to a browser and cannot import it, so a test asserts the two agree rather
+  // than a comment asking the next person to check.
+  var wide = window.matchMedia('(min-width: 1025px)')
+  var onChange = function (event) {
+    if (event.matches) close(false)
+  }
+  if (wide.addEventListener) wide.addEventListener('change', onChange)
+  else wide.addListener(onChange)
+})()
+</script>
+
+<style>
+  #cookie-consent {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 2147483000;
+    background: var(--bp-panel, #0f2338);
+    color: var(--bp-fg, #d7e7f4);
+    border-top: 1px solid var(--bp-line-strong, #4681b2);
+    padding: 1rem 24px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  #cookie-consent[hidden] { display: none; }
+  #cookie-consent .consent-inner {
+    max-width: 940px; margin: 0 auto; display: flex; flex-wrap: wrap;
+    align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  #cookie-consent .consent-copy { flex: 1 1 22rem; }
+  #cookie-consent .consent-title { margin: 0 0 .25rem; font-size: .875rem; font-weight: 600; }
+  #cookie-consent p { margin: 0; font-size: .8125rem; line-height: 1.5; }
+  #cookie-consent a { color: var(--bp-cyan, #7fe0f2); }
+  #cookie-consent .consent-actions { display: flex; gap: .75rem; flex-shrink: 0; }
+  /* One class for both controls: refusing must be exactly as easy as agreeing. */
+  #cookie-consent .consent-btn {
+    font: inherit; font-size: .8125rem; line-height: 1; padding: .7rem 1.1rem;
+    border: 1px solid var(--bp-line-strong, #4681b2); border-radius: 8px;
+    background: transparent; color: inherit; cursor: pointer;
+  }
+  /* The text has to flip with --bp-ink, which is a dark navy in light mode and
+     a pale cyan in dark. --bp-bg is the page background on both themes, so it
+     is the one token that always contrasts with the ink. The fallback stays the
+     dark-mode value, matching every other fallback in this block. */
+  #cookie-consent .consent-btn-accept {
+    background: var(--bp-ink, #5fd0e6); border-color: var(--bp-ink, #5fd0e6); color: var(--bp-bg, #0b1a2b);
+  }
+  #cookie-consent .consent-btn:focus-visible { outline: 2px solid var(--bp-cyan, #7fe0f2); outline-offset: 2px; }
+  @media (max-width: 560px) {
+    #cookie-consent .consent-actions { width: 100%; }
+    #cookie-consent .consent-btn { flex: 1; }
+  }
+</style>
+<div id="cookie-consent" role="dialog" aria-labelledby="cookie-consent-title"
+     aria-describedby="cookie-consent-description" hidden>
+  <div class="consent-inner">
+    <div class="consent-copy">
+      <p id="cookie-consent-title" class="consent-title">Analytics, only if you agree</p>
+      <p id="cookie-consent-description">
+        Nothing is loaded until you choose. Accept and Google Analytics helps show which
+        pages are actually useful. No advertising, no profiling, no cross-site tracking.
+        <a href="/privacy/">Privacy</a>
+      </p>
+    </div>
+    <div class="consent-actions">
+      <button type="button" class="consent-btn" data-consent="declined">Decline</button>
+      <button type="button" class="consent-btn consent-btn-accept" data-consent="accepted">Accept analytics</button>
+    </div>
+  </div>
+</div>
+<script>
+  (function () {
+    var KEY = 'truss-consent', ACCEPTED = 'accepted', DECLINED = 'declined', ID = 'G-HFRCM267PG';
+    var banner = document.getElementById('cookie-consent');
+    if (!banner) return;
+
+    function read() {
+      try {
+        var v = localStorage.getItem(KEY);
+        return v === ACCEPTED || v === DECLINED ? v : null;
+      } catch (e) { return null; }
+    }
+    function store(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
+
+    function load() {
+      if (document.querySelector('script[src^="https://www.googletagmanager.com"]')) return;
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { window.dataLayer.push(arguments); }
+      gtag('consent', 'default', {
+        analytics_storage: 'granted',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied'
+      });
+      gtag('js', new Date());
+      gtag('config', ID);
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-HFRCM267PG';
+      document.head.appendChild(s);
+    }
+
+    var stored = read();
+    if (stored === ACCEPTED) load();
+
+    if (stored) {
+      banner.parentNode.removeChild(banner);
+    } else {
+      banner.hidden = false;
+    }
+
+    var buttons = banner.querySelectorAll('[data-consent]');
+    for (var i = 0; i < buttons.length; i++) {
+      (function (button) {
+        button.addEventListener('click', function () {
+          var choice = button.getAttribute('data-consent') === ACCEPTED ? ACCEPTED : DECLINED;
+          store(choice);
+          if (choice === ACCEPTED) load();
+          banner.parentNode.removeChild(banner);
+        });
+      })(buttons[i]);
+    }
+  })();
+</script>
+</body>
+</html>

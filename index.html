@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="en" class="astro-gjphf53z"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Laravel Truss: live database structure viewer and ERD</title><meta name="description" content="A live database structure viewer for Laravel. See your schema as a scrollable, zoomable ER diagram, right inside your app. Structure only, never data."><link rel="canonical" href="https://trussphp.com/"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preload" href="/fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/ibm-plex-mono-500.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/ibm-plex-mono-600.woff2" as="font" type="font/woff2" crossorigin><meta property="og:type" content="website"><meta property="og:title" content="Laravel Truss: live database structure viewer and ERD"><meta property="og:description" content="A live database structure viewer for Laravel. See your schema as a scrollable, zoomable ER diagram, right inside your app. Structure only, never data."><meta property="og:url" content="https://trussphp.com/"><meta property="og:image" content="https://trussphp.com/cover-light.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://trussphp.com/cover-light.png"><script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Person","@id":"https://trussphp.com/#person","name":"Alberto Arena","url":"https://trussphp.com","sameAs":["https://github.com/albertoarena"]},{"@type":"WebSite","@id":"https://trussphp.com/#website","url":"https://trussphp.com","name":"Laravel Truss documentation","publisher":{"@id":"https://trussphp.com/#person"}},{"@type":"SoftwareApplication","@id":"https://trussphp.com/#software","name":"Laravel Truss","applicationCategory":"DeveloperApplication","operatingSystem":"Any","softwareVersion":"1.11.1","codeRepository":"https://github.com/albertoarena/laravel-truss","license":"https://github.com/albertoarena/laravel-truss/blob/main/LICENSE","programmingLanguage":"PHP","url":"https://trussphp.com","sameAs":["https://packagist.org/packages/albertoarena/laravel-truss"],"author":{"@id":"https://trussphp.com/#person"},"offers":{"@type":"Offer","price":0,"priceCurrency":"EUR"}}]}</script><script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('starlight-theme')
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+          document.documentElement.dataset.theme = theme
+        } catch (e) {}
+      })()
+    </script><script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon="{&quot;token&quot;: &quot;7f6eaa0832eb43cc838db8d337590f11&quot;}"></script><link rel="stylesheet" href="/_astro/index.tsQgauKQ.css">
+<link rel="stylesheet" href="/_astro/index.Oa2qv_10.css">
+<link rel="stylesheet" href="/_astro/in-the-wild.Bj5rR5wJ.css"><script type="module" src="/_astro/page.B1D-nYk3.js"></script></head> <body class="astro-gjphf53z">  <a class="skip-link astro-gjphf53z" href="#main">Skip to content</a> <div class="frame astro-gjphf53z"> <header class="site-header astro-gjphf53z"> <a class="home-link astro-gjphf53z" href="/" aria-label="Laravel Truss home"> <span class="logo astro-gjphf53z astro-tvrurpns"> <svg width="29" height="29" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="miter" class="astro-tvrurpns" role="presentation" aria-hidden="true">  <path d="M16 5 L27 26 H5 Z"></path> <path d="M16 5 V17"></path> <path d="M5 26 L16 17"></path> <path d="M27 26 L16 17"></path> <g fill="currentColor" stroke="none"> <circle cx="16" cy="5" r="2.3"></circle> <circle cx="5" cy="26" r="2.3"></circle> <circle cx="27" cy="26" r="2.3"></circle> <circle cx="16" cy="17" r="2.3"></circle> </g> </svg> <span class="wm astro-tvrurpns astro-hhuuaa7r" style="--wm-size:22px">  <span class="wm-word astro-hhuuaa7r">truss</span> </span>  </span>  </a> <nav class="site-nav astro-gjphf53z" aria-label="Primary"> <ul class="astro-gjphf53z"> <li class="astro-gjphf53z"> <a href="/getting-started/installation/" class="astro-gjphf53z">Docs</a> </li><li class="astro-gjphf53z"> <a href="/roadmap/" class="astro-gjphf53z">Roadmap</a> </li><li class="astro-gjphf53z"> <a href="/in-the-wild/" class="astro-gjphf53z">In the wild</a> </li><li class="astro-gjphf53z"> <a href="/demo/" class="astro-gjphf53z">Demo</a> </li> </ul> <a class="cta astro-gjphf53z" href="/getting-started/installation/">Get started</a> <a class="gh-link astro-gjphf53z" href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"> <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" class="astro-gjphf53z"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82a7.55 7.55 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" class="astro-gjphf53z"></path></svg> </a> <button class="theme-toggle astro-gjphf53z" type="button" data-theme-cycle data-mode="auto" aria-label="Theme: system" title="Theme: system (click to change)"> <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" class="astro-gjphf53z"> <g class="ti ti-light astro-gjphf53z" stroke-linecap="round"> <circle cx="12" cy="12" r="4" class="astro-gjphf53z"></circle> <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" class="astro-gjphf53z"></path> </g> <path class="ti ti-dark astro-gjphf53z" d="M20 14.5A8 8 0 1 1 9.5 4a6.2 6.2 0 0 0 10.5 10.5z"></path> <g class="ti ti-system astro-gjphf53z" stroke-linecap="round" stroke-linejoin="round"> <rect x="3" y="4.5" width="18" height="12" rx="1.5" class="astro-gjphf53z"></rect> <path d="M8.5 20.5h7M12 16.5v4" class="astro-gjphf53z"></path> </g> </svg> </button> </nav> </header>  <main class="site-main astro-gjphf53z" id="main" tabindex="-1">   <section class="hero astro-j7pv25f6"> <span class="badge astro-j7pv25f6"> <b class="astro-j7pv25f6">v1.11.1</b><span class="astro-j7pv25f6">MIT</span><span class="astro-j7pv25f6">Laravel 12+</span> </span> <h1 class="astro-j7pv25f6">See your database<br class="astro-j7pv25f6"><span class="accent astro-j7pv25f6">structure</span>, live.</h1> <p class="lede astro-j7pv25f6">
+A scrollable, zoomable ER diagram of your real schema, rendered right inside
+      your Laravel app. Structure only, never data.
+</p> <div class="install astro-j7pv25f6" role="group" aria-label="Install command"> <code class="astro-j7pv25f6"><span class="prompt astro-j7pv25f6">$</span> composer require albertoarena/laravel-truss</code> <button class="copy astro-j7pv25f6" type="button" data-copy="composer require albertoarena/laravel-truss" aria-label="Copy install command">copy</button> </div>  <p class="sr-only astro-j7pv25f6" id="copy-status" role="status" aria-live="polite"></p> <div class="actions astro-j7pv25f6"> <a class="btn primary astro-j7pv25f6" href="/demo/">Live demo <span aria-hidden="true" class="astro-j7pv25f6">→</span></a> <a class="btn ghost astro-j7pv25f6" href="/theme-builder/">Theme builder</a> <a class="btn ghost astro-j7pv25f6" href="/demo/your-schema/">Your own schema</a> <a class="btn ghost astro-j7pv25f6" href="/demo/multi-connection/">Multiple connections</a> <a class="btn ghost astro-j7pv25f6" href="/getting-started/installation/">Get started</a> </div> <p class="proof astro-j7pv25f6"> <a class="proof-pill astro-j7pv25f6" href="https://laraveldaily.com/package/albertoarena-laravel-truss/268" target="_blank" rel="noopener noreferrer" aria-label="Featured in Laravel Daily's Best Packages directory"> <span class="proof-star astro-j7pv25f6" aria-hidden="true">★</span>
+Featured in Laravel Daily's Best Packages
+</a> </p> </section>  <div class="band astro-j7pv25f6"> <svg class="diagram astro-j7pv25f6" viewBox="0 0 780 210" role="img" aria-label="Example entity-relationship diagram: companies, users and posts tables linked by foreign keys"> <!-- relationships: FK row to the referenced PK row.
+           users.company_id -> companies.id ; posts.user_id -> users.id --> <path class="rel astro-j7pv25f6" d="M224 76 C 258 76, 258 122, 290 122"></path> <path class="rel astro-j7pv25f6" d="M490 90 C 523 90, 523 112, 556 112"></path> <circle class="node astro-j7pv25f6" cx="224" cy="76" r="3.4"></circle><circle class="node astro-j7pv25f6" cx="290" cy="122" r="3.4"></circle> <circle class="node astro-j7pv25f6" cx="490" cy="90" r="3.4"></circle><circle class="node astro-j7pv25f6" cx="556" cy="112" r="3.4"></circle> <!-- companies --> <g transform="translate(24,30)" class="astro-j7pv25f6"> <rect class="ent astro-j7pv25f6" x="0" y="0" width="200" height="94" rx="6"></rect> <path class="ent-head astro-j7pv25f6" d="M6 0 h188 a6 6 0 0 1 6 6 v22 h-200 v-22 a6 6 0 0 1 6 -6 z"></path> <text class="ent-title astro-j7pv25f6" x="14" y="19">companies</text> <text class="col astro-j7pv25f6" x="14" y="50">bigint</text><text class="col astro-j7pv25f6" x="90" y="50">id</text><text class="key astro-j7pv25f6" x="186" y="50" text-anchor="end">PK</text> <rect class="even astro-j7pv25f6" x="1" y="62" width="198" height="30"></rect> <text class="col astro-j7pv25f6" x="14" y="82">varchar</text><text class="col astro-j7pv25f6" x="90" y="82">name</text> </g> <!-- users --> <g transform="translate(290,44)" class="astro-j7pv25f6"> <rect class="ent astro-j7pv25f6" x="0" y="0" width="200" height="124" rx="6"></rect> <path class="ent-head astro-j7pv25f6" d="M6 0 h188 a6 6 0 0 1 6 6 v22 h-200 v-22 a6 6 0 0 1 6 -6 z"></path> <text class="ent-title astro-j7pv25f6" x="14" y="19">users</text> <text class="col astro-j7pv25f6" x="14" y="50">bigint</text><text class="col astro-j7pv25f6" x="90" y="50">id</text><text class="key astro-j7pv25f6" x="186" y="50" text-anchor="end">PK</text> <rect class="even astro-j7pv25f6" x="1" y="62" width="198" height="30"></rect> <text class="col astro-j7pv25f6" x="14" y="82">char_36</text><text class="col astro-j7pv25f6" x="90" y="82">company_id</text><text class="key astro-j7pv25f6" x="186" y="82" text-anchor="end">FK</text> <text class="col astro-j7pv25f6" x="14" y="112">varchar</text><text class="col astro-j7pv25f6" x="90" y="112">email</text> </g> <!-- posts --> <g transform="translate(556,34)" class="astro-j7pv25f6"> <rect class="ent astro-j7pv25f6" x="0" y="0" width="200" height="94" rx="6"></rect> <path class="ent-head astro-j7pv25f6" d="M6 0 h188 a6 6 0 0 1 6 6 v22 h-200 v-22 a6 6 0 0 1 6 -6 z"></path> <text class="ent-title astro-j7pv25f6" x="14" y="19">posts</text> <text class="col astro-j7pv25f6" x="14" y="50">bigint</text><text class="col astro-j7pv25f6" x="90" y="50">id</text><text class="key astro-j7pv25f6" x="186" y="50" text-anchor="end">PK</text> <rect class="even astro-j7pv25f6" x="1" y="62" width="198" height="30"></rect> <text class="col astro-j7pv25f6" x="14" y="82">bigint</text><text class="col astro-j7pv25f6" x="90" y="82">user_id</text><text class="key astro-j7pv25f6" x="186" y="82" text-anchor="end">FK</text> </g> </svg> <p class="band-note astro-j7pv25f6">A real introspected schema, drawn in the browser. Structure only.</p> </div>  <section class="features astro-j7pv25f6"> <ul class="astro-j7pv25f6"> <li class="astro-j7pv25f6"> <h2 class="astro-j7pv25f6">Live ER diagram</h2> <p class="astro-j7pv25f6">Your real schema, introspected from the live connection and drawn with Mermaid. No migration parsing, no Doctrine DBAL.</p> </li><li class="astro-j7pv25f6"> <h2 class="astro-j7pv25f6">Focus mode</h2> <p class="astro-j7pv25f6">Click a table to see just it and its foreign-key neighbours, centred and highlighted, so large schemas stay legible.</p> </li><li class="astro-j7pv25f6"> <h2 class="astro-j7pv25f6">Pan and zoom</h2> <p class="astro-j7pv25f6">Drag to pan, scroll or pinch to zoom, like a map. Auto-fits to a readable zoom, and a Fit button frames the whole thing.</p> </li><li class="astro-j7pv25f6"> <h2 class="astro-j7pv25f6">Structure only</h2> <p class="astro-j7pv25f6">Only the CREATE TABLE shape: tables, columns, keys, indexes. No row data is ever read. Safe to gate and run in production.</p> </li><li class="astro-j7pv25f6"> <h2 class="astro-j7pv25f6">Self-contained</h2> <p class="astro-j7pv25f6">Mermaid and fonts are vendored and served from the package. No CDN, so it works offline and under a strict CSP.</p> </li><li class="astro-j7pv25f6"> <h2 class="astro-j7pv25f6">Cached, auto-rebuilt</h2> <p class="astro-j7pv25f6">The snapshot is cached and refreshed automatically after migrations run. A manual rebuild command is there too.</p> </li> </ul> </section>  <section class="signoff astro-j7pv25f6"> <span class="wm astro-j7pv25f6 astro-hhuuaa7r" style="--wm-size:56px">  <span class="wm-word chord astro-hhuuaa7r">truss<span class="wm-chord astro-hhuuaa7r" aria-hidden="true"> <span class="wm-node wm-node-l astro-hhuuaa7r"></span> <span class="wm-node wm-node-c astro-hhuuaa7r"></span> <span class="wm-node wm-node-r astro-hhuuaa7r"></span> </span></span> </span>  <p class="astro-j7pv25f6">Free and open source. If it saves you time, a coffee at
+<a href="https://ko-fi.com/albertoarena" target="_blank" rel="noopener" class="astro-j7pv25f6">ko-fi.com/albertoarena</a>
+or a star on <a href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" class="astro-j7pv25f6">GitHub</a>
+keeps it moving. See where it is headed on the
+<a href="/roadmap/" class="astro-j7pv25f6">roadmap</a>.
+</p> </section>  </main> <footer class="site-footer astro-gjphf53z"> <a class="home-link astro-gjphf53z" href="/" aria-label="Laravel Truss home"> <span class="logo astro-gjphf53z astro-tvrurpns"> <svg width="26" height="26" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="miter" class="astro-tvrurpns" role="presentation" aria-hidden="true">  <path d="M16 5 L27 26 H5 Z"></path> <path d="M16 5 V17"></path> <path d="M5 26 L16 17"></path> <path d="M27 26 L16 17"></path> <g fill="currentColor" stroke="none"> <circle cx="16" cy="5" r="2.3"></circle> <circle cx="5" cy="26" r="2.3"></circle> <circle cx="27" cy="26" r="2.3"></circle> <circle cx="16" cy="17" r="2.3"></circle> </g> </svg> <span class="wm astro-tvrurpns astro-hhuuaa7r" style="--wm-size:20px"> <span class="wm-prefix astro-hhuuaa7r">laravel&#8239;</span> <span class="wm-word astro-hhuuaa7r">truss</span> </span>  </span>  </a> <nav class="footer-nav astro-gjphf53z" aria-label="Footer"> <a href="/getting-started/installation/" class="astro-gjphf53z">Get started</a> <a href="/demo/" class="astro-gjphf53z">Live demo</a> <a href="/demo/your-schema/" class="astro-gjphf53z">Your schema</a> <a href="/help/faq/" class="astro-gjphf53z">FAQ</a> <a href="/roadmap/" class="astro-gjphf53z">Roadmap</a> <a href="/in-the-wild/" class="astro-gjphf53z">In the wild</a> <a href="/credits/" class="astro-gjphf53z">Credits</a> <a href="/privacy/" class="astro-gjphf53z">Privacy</a> <a href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" class="astro-gjphf53z">GitHub</a> <a href="https://www.youtube.com/playlist?list=PLdadt28gT2Qc" target="_blank" rel="noopener" class="astro-gjphf53z">Videos</a> <a href="https://discord.gg/x3Qt9CJkcE" target="_blank" rel="noopener" class="astro-gjphf53z">Discord</a> <a href="https://ko-fi.com/albertoarena" target="_blank" rel="noopener" class="astro-gjphf53z">Support</a> <button type="button" class="consent-settings astro-4xdbmsji" data-consent-reset>Cookie settings</button><script type="module" src="/_astro/ConsentSettings.astro_astro_type_script_index_0_lang.Tdl63ZA6.js"></script> </nav> <p class="colophon astro-gjphf53z">MIT licensed. Structure only, never data.</p> </footer> </div>  <div id="cookie-consent" class="consent astro-garwan2p" role="dialog" aria-labelledby="cookie-consent-title" aria-describedby="cookie-consent-description" hidden><div class="consent-inner astro-garwan2p"><div class="consent-copy astro-garwan2p"><p id="cookie-consent-title" class="consent-title astro-garwan2p">Analytics, only if you agree</p><p id="cookie-consent-description" class="astro-garwan2p">
+Nothing is loaded until you choose. Accept and Google Analytics helps show which
+          pages are actually useful. No advertising, no profiling, no cross-site tracking.
+<a href="/privacy/" class="astro-garwan2p">Privacy</a></p></div><div class="consent-actions astro-garwan2p"><button type="button" class="consent-btn astro-garwan2p" data-consent="declined">Decline</button><button type="button" class="consent-btn consent-btn-accept astro-garwan2p" data-consent="accepted">
+Accept analytics
+</button></div></div></div><script type="module" src="/_astro/CookieConsent.astro_astro_type_script_index_0_lang.dBZK-3Yk.js"></script> <script>
+      (function () {
+        var KEY = 'starlight-theme'
+        var order = ['light', 'dark', 'auto']
+        var btn = document.querySelector('[data-theme-cycle]')
+        if (!btn) return
+        function pref() {
+          try { var v = localStorage.getItem(KEY); if (v === 'light' || v === 'dark') return v } catch (e) {}
+          return 'auto'
+        }
+        function resolved(p) {
+          return p === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : p
+        }
+        function reflect(p) {
+          document.documentElement.dataset.theme = resolved(p)
+          btn.dataset.mode = p
+          btn.setAttribute('aria-label', 'Theme: ' + p)
+          btn.title = 'Theme: ' + p + ' (click to change)'
+        }
+        btn.addEventListener('click', function () {
+          var next = order[(order.indexOf(pref()) + 1) % order.length]
+          try { localStorage.setItem(KEY, next === 'auto' ? '' : next) } catch (e) {}
+          reflect(next)
+        })
+        // In auto, follow the OS while the page is open (tokens are data-theme keyed).
+        matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+          if (pref() === 'auto') reflect('auto')
+        })
+        reflect(pref())
+      })()
+    </script> </body> </html>   <script>
+  document.querySelectorAll('.copy[data-copy]').forEach(function (btn) {
+    var status = document.getElementById('copy-status')
+    function announce(message) {
+      if (status) status.textContent = message
+    }
+    // The command stays selectable on the page, so "copy it manually" is real
+    // advice rather than an apology.
+    var fallback = 'Could not copy. Select the command and copy it manually'
+
+    btn.addEventListener('click', function () {
+      // Not `navigator.clipboard?.writeText(x).then(...)`: when the API is
+      // missing entirely that yields undefined and calling .then on it throws,
+      // so the one case the optional chaining was meant to cover was the one it
+      // broke. Resolve the promise first, then branch.
+      var write = navigator.clipboard && navigator.clipboard.writeText(btn.dataset.copy)
+      if (!write) {
+        announce(fallback)
+        return
+      }
+
+      write
+        .then(function () {
+          var prev = btn.textContent
+          btn.textContent = 'copied'
+          btn.classList.add('copied')
+          // Announced rather than only shown: the button's aria-label wins over
+          // its text, so the visible flip to "copied" is invisible to a screen
+          // reader. Cleared when the button reverts, so a second copy is
+          // announced again rather than read as unchanged.
+          announce('Install command copied')
+          setTimeout(function () {
+            btn.textContent = prev
+            btn.classList.remove('copied')
+            announce('')
+          }, 1600)
+        })
+        .catch(function () {
+          // A refused write (permission, insecure context) used to do nothing
+          // at all: no confirmation, no error, a button that looked broken.
+          announce(fallback)
+        })
+    })
+  })
+</script>
