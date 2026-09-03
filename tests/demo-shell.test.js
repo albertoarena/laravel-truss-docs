@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 import { DEMO_APPS, appPageFile, APP_ASSET_TOKEN } from '../scripts/demo-apps.mjs'
+import { navLinks, PANEL_ROW_CEILING, MENU_BREAKPOINT, MENU_PAGES } from '../scripts/demo-nav.mjs'
 
 // The two demo pages are hand-authored shells around the package's ACTUAL
 // shipped frontend: scripts/copy-demo-assets.mjs fetches resources/ from the
@@ -248,6 +249,168 @@ describe('demo shells preload the face the diagram is measured in', () => {
         ? `href="${APP_ASSET_TOKEN}ibm-plex-mono-400.woff2"`
         : /href="\.{1,2}\/assets\/ibm-plex-mono-400\.woff2"/
       expect(face, path).toMatch(expected)
+    }
+  })
+})
+
+/**
+ * The site menu.
+ *
+ * Below 720px these shells used to drop every text link and put nothing in its
+ * place: `@media (max-width: 560px) { .site-bar-nav a { display: none } }`, in
+ * all four files. What survived was the GitHub link, and only because
+ * `.site-bar-nav a.gh` (0,2,1) outranks `.site-bar-nav a` (0,1,1), which is an
+ * accident rather than a decision. A reader arriving on a phone could read the
+ * diagram and then had nowhere to go: no Docs, no Roadmap, no other demo, and
+ * no menu, on pages whose body cannot scroll.
+ *
+ * The rule these assertions hold: links may be collapsed, never removed, and
+ * the controls that live in the bar stay in the bar.
+ */
+describe('the site menu', () => {
+  /** 'public/demo/apps/lunar/index.html' -> '/demo/apps/lunar/'. */
+  const sitePath = (path) => path.replace(/^public/, '').replace(/index\.html$/, '')
+
+  /**
+   * Every page carrying the site bar, which is the four dashboard shells above
+   * plus the theme builder. SHELLS is about pages that render the dashboard, so
+   * it is the wrong list for a menu that also belongs to a page that does not.
+   */
+  const BARS = MENU_PAGES.map((path) => {
+    const file = `public${path}index.html`
+    return { path: file, html: readFileSync(new URL(`../${file}`, import.meta.url), 'utf8') }
+  })
+
+  /**
+   * The file with its comments removed.
+   *
+   * Written because this assertion caught its own prose: a comment quoting the
+   * rule that was deleted reads exactly like the rule. A test that a sentence
+   * can trip is weak in both directions, since a real rule inside a commented
+   * block would equally have been believed.
+   */
+  const code = (html) => html.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
+
+  const nav = (html) => html.match(/<nav class="site-bar-nav"[^>]*>([\s\S]*?)<\/nav>/)?.[1] ?? ''
+  const actions = (html) => html.match(/<div class="site-bar-actions">([\s\S]*?)<\/div>/)?.[1] ?? ''
+  const hrefs = (fragment) => [...fragment.matchAll(/<a[^>]*href="([^"]+)"/g)].map((m) => m[1])
+
+  it('gives every shell a menu button wired to the nav', () => {
+    for (const { path, html } of BARS) {
+      const btn = html.match(/<button[^>]*class="site-bar-menu-btn"[^>]*>/)?.[0]
+
+      expect(btn, `${path}: no menu button`).toBeTruthy()
+      expect(btn, `${path}: the button must start collapsed`).toMatch(/aria-expanded="false"/)
+      expect(btn, `${path}: the button must point at the nav it opens`).toMatch(/aria-controls="site-menu"/)
+      expect(btn, `${path}: an icon-only button needs an accessible name`).toMatch(/aria-label="[^"]+"/)
+      expect(html.match(/class="site-bar-menu-btn"/g).length, `${path}: more than one menu button`).toBe(1)
+    }
+  })
+
+  it('gives the nav the id the button controls', () => {
+    for (const { path, html } of BARS) {
+      const tag = html.match(/<nav class="site-bar-nav"[^>]*>/)?.[0]
+
+      expect(tag, `${path}: no site nav`).toBeTruthy()
+      expect(tag, `${path}: aria-controls resolves to nothing`).toMatch(/id="site-menu"/)
+      expect(tag, `${path}: the nav lost its landmark label`).toMatch(/aria-label="Site"/)
+    }
+  })
+
+  it('links to every other demo and to the rest of the site, in one order', () => {
+    // The four lists had already drifted before the menu existed: two shells
+    // offered Theme builder and two did not, and neither app-adjacent shell
+    // linked to the multi-connection page. Deriving from the registry means the
+    // second application fails this until every shell links to it.
+    for (const { path, html } of BARS) {
+      const expected = navLinks(sitePath(path)).map((link) => link.path)
+
+      expect(hrefs(nav(html)), `${path}: the nav is not the canonical set`).toEqual(expected)
+    }
+  })
+
+  it('never links a shell to itself', () => {
+    for (const { path, html } of BARS) {
+      expect(hrefs(nav(html)), path).not.toContain(sitePath(path))
+    }
+  })
+
+  it('keeps the bar controls in the bar', () => {
+    // Decision 2: GitHub is one tap today and stays one tap, which it cannot be
+    // from inside a panel. The theme toggle changes what you are looking at
+    // rather than taking you somewhere, so it is not navigation either. Both
+    // live in .site-bar-actions, and the accident that used to keep GitHub
+    // visible is replaced by a rule.
+    for (const { path, html } of BARS) {
+      expect(actions(html), `${path}: GitHub is not a bar control`).toMatch(/class="gh"/)
+      expect(nav(html), `${path}: GitHub is back inside the nav`).not.toMatch(/class="gh"/)
+      // The theme builder has no theme toggle of its own: it previews themes,
+      // so a control cycling the page's own theme would be two things at once.
+      if (!html.includes('site-bar-theme')) continue
+      expect(actions(html), `${path}: the theme toggle is not a bar control`).toMatch(/site-bar-theme/)
+      expect(nav(html), `${path}: the theme toggle is inside the nav`).not.toMatch(/site-bar-theme/)
+    }
+  })
+
+  it('hides no link without offering the menu instead', () => {
+    // The bug itself, in its structural form. A rule that hides the links
+    // outright is the defect whatever width it is scoped to.
+    for (const { path, html } of BARS) {
+      const hides = code(html).match(/\.site-bar-nav a[^{]*\{[^}]*display:\s*none[^}]*\}/g) ?? []
+
+      expect(hides, `${path}: ${hides.join(' ')}`).toEqual([])
+    }
+  })
+
+  it('loads the menu script once, by a path the build can find', () => {
+    for (const { path, html } of BARS) {
+      const tags = html.match(/<script src="\/demo\/site-menu\.js"><\/script>/g) ?? []
+
+      expect(tags.length, `${path}: expected exactly one menu script tag`).toBe(1)
+    }
+  })
+
+  it('collapses at the one measured breakpoint, in every shell and in the script', () => {
+    // Every failure on these strips has been a number chosen against one item
+    // set that later grew: 1400 for the footer, 560 here, and 720 for a moment
+    // during this change, until the canonical set made the widest inline bar
+    // 1014px and reopened the band one pixel above itself. One number, in one
+    // place, checked here.
+    const script = readFileSync(new URL('../public/demo/site-menu.js', import.meta.url), 'utf8')
+
+    for (const { path, html } of BARS) {
+      expect(code(html), `${path}: the panel is not at MENU_BREAKPOINT`)
+        .toContain(`@media (max-width: ${MENU_BREAKPOINT}px)`)
+    }
+    expect(script, 'the script watches a different breakpoint than the CSS')
+      .toContain(`(min-width: ${MENU_BREAKPOINT + 1}px)`)
+  })
+
+  it('lets the caption shrink and nothing else', () => {
+    // The footer's lesson, applied to the bar. The tag is a sentence describing
+    // the page, so it is the one item that may ellipsise; with it rigid, the two
+    // shells that carry one need 1190 and 1214px and overflow everything from
+    // the breakpoint up to there.
+    for (const { path, html } of BARS) {
+      if (!html.includes('class="site-bar-tag"')) continue
+      const rule = html.match(/\.site-bar-tag \{[^}]*flex:[^}]*\}/s)?.[0] ?? ''
+
+      expect(rule, `${path}: the caption cannot shrink`).toMatch(/flex:\s*0 1 auto/)
+      expect(rule, `${path}: shrinking without min-width: 0 does nothing`).toMatch(/min-width:\s*0/)
+    }
+  })
+
+  it('keeps the panel within the rows a landscape phone can show', () => {
+    // 430px tall, less the 48px bar and the panel padding, is about eight rows
+    // at a 44px touch target, and the panel cannot scroll: the canvas
+    // preventDefaults wheel events. /demo/ is the shell that binds, because it
+    // carries the palette row on top of its links. The second application fills
+    // it exactly; the third needs the list grouped or truncated first.
+    for (const { path, html } of BARS) {
+      const rows = hrefs(nav(html)).length + (nav(html).includes('site-bar-palettes') ? 1 : 0)
+
+      expect(rows, `${path}: ${rows} rows, past what a landscape phone shows`)
+        .toBeLessThanOrEqual(PANEL_ROW_CEILING)
     }
   })
 })

@@ -1,4 +1,4 @@
-import { readFile, writeFile, rename } from 'node:fs/promises'
+import { readFile, writeFile, rename, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'astro/config'
@@ -7,6 +7,7 @@ import { consentSnippet } from './scripts/consent-snippet.mjs'
 import { DEMO_APPS, appPageFile, APP_ASSET_TOKEN } from './scripts/demo-apps.mjs'
 import { STATIC_PAGES, metaTags, injectMeta } from './scripts/static-page-meta.mjs'
 import { staticPageUrls, addUrls } from './scripts/static-page-sitemap.mjs'
+import { MENU_PAGES } from './scripts/demo-nav.mjs'
 
 // Cache-bust the live demo's frontend: at build, move the copied assets into a
 // version-stamped folder and repoint the demo HTML at it, so a new package
@@ -119,6 +120,76 @@ function staticPageConsent() {
           }
         }
         logger.info(`Consent banner injected into ${injected} static page(s)`)
+      },
+    },
+  }
+}
+
+// Inline the site menu's script into the demo shells.
+//
+// The shells carry a real <script src="/demo/site-menu.js"> so that
+// `npm run dev` serves a working menu from one file rather than four pasted
+// copies. The build replaces each tag with the file's contents.
+//
+// Inlining is not tidiness. Measured on the origin: text/css comes back with
+// `max-age=604800` and JavaScript comes back with NO Cache-Control at all, so a
+// separately served script gets heuristic caching nobody chose. PR #28 does not
+// change that, since it covers HTML and _astro/ only. An inlined script's
+// lifetime is the page's lifetime, so there is no URL left to go stale, which
+// matters most once that PR makes the HTML always fresh: fresh markup against a
+// stale script is a renamed id and a dead menu.
+//
+// The failure order is deliberate. A tag left un-inlined still works, from a
+// cached file, and fails a test loudly in CI. The source file is deleted only
+// if every page was inlined: deleting after a partial run would leave a dead
+// script tag on the page it missed, which is the no-menu failure this whole
+// arrangement exists to avoid.
+function siteMenuScript() {
+  return {
+    name: 'site-menu-script',
+    hooks: {
+      'astro:build:done': async ({ dir, logger }) => {
+        const root = fileURLToPath(dir)
+        const source = join(root, 'demo', 'site-menu.js')
+        // Every hand-authored page that carries the site bar, from the
+        // registry rather than a path prefix. The theme builder is one of them:
+        // it is not a demo shell, but it has the same bar and had the same
+        // defect, so filtering it by /demo/ would have left it behind.
+        const pages = STATIC_PAGES.filter((page) => MENU_PAGES.includes(page.path))
+        const tag = '<script src="/demo/site-menu.js"></script>'
+
+        let script
+        try {
+          script = (await readFile(source, 'utf8')).trim()
+        } catch (e) {
+          logger.warn(`Menu script not inlined: ${e.message}`)
+          return
+        }
+
+        let inlined = 0
+        for (const page of pages) {
+          const file = join(root, page.file)
+          try {
+            const html = await readFile(file, 'utf8')
+            if (!html.includes(tag)) {
+              logger.warn(`No menu script tag in ${page.file}, left as it is`)
+              continue
+            }
+            await writeFile(file, html.replaceAll(tag, `<script>\n${script}\n</script>`))
+            inlined++
+          } catch (e) {
+            logger.warn(`Skipped menu inlining for ${page.file}: ${e.message}`)
+          }
+        }
+
+        if (inlined === pages.length) {
+          await rm(source, { force: true })
+          logger.info(`Menu script inlined into ${inlined} page(s) with the site bar`)
+        } else {
+          logger.warn(
+            `Menu script inlined into ${inlined} of ${pages.length} demo shell(s), so ${source} stays`,
+          )
+        }
       },
     },
   }
@@ -406,6 +477,7 @@ export default defineConfig({
     }),
     demoAssetVersioning(),
     staticPageConsent(),
+    siteMenuScript(),
     staticPageMeta(),
     staticPageSitemap(),
   ],

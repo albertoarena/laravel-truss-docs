@@ -71,11 +71,79 @@
       .site-bar-theme[data-mode='light'] .ti-light { display: inline; }
       .site-bar-theme[data-mode='dark'] .ti-dark { display: inline; }
       .site-bar-theme[data-mode='auto'] .ti-system { display: inline; }
-      .site-bar-nav a.gh { display: inline-flex; align-items: center; }
+      /* GitHub is a bar control, not a nav link: it stays one tap at every
+         width. It used to survive the phone rule only because
+         .site-bar-nav a.gh (0,2,1) outranked .site-bar-nav a (0,1,1), which
+         was an accident rather than a decision. */
+      .site-bar-actions a.gh { display: inline-flex; align-items: center; color: var(--bp-muted); }
+      .site-bar-actions a.gh:hover { color: var(--bp-fg); }
       .site-bar a:focus-visible, .site-bar-theme:focus-visible {
         outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px;
       }
-      @media (max-width: 560px) { .site-bar-nav a { display: none; } }
+      /* The site menu.
+         At or below the breakpoint this nav is a panel the button opens, and
+         above it the same element lays out inline as it always has. One list, two presentations,
+         because two lists is how the four shells drifted apart in the first
+         place.
+         Why a panel rather than a wrapped or scrolling row: every shell sizes
+         its diagram with calc(100dvh - the strips), so a second row is paid for
+         out of the diagram. An overlay costs nothing.
+         The old rule here hid .site-bar-nav a outright below 560px and offered
+         nothing instead, which left a phone with the logo, an outbound GitHub
+         link and no route to Docs, Roadmap or any other demo. */
+      .site-bar-right { display: flex; align-items: center; gap: 16px; flex: none; }
+      .site-bar-logo { flex: none; }
+      /* The same priority the footer strip learned. The tag is a sentence
+         describing the page, so it is the one item that may shrink and
+         ellipsise; the logo, the nav and the controls never do. Without
+         this, the tag-carrying shells need 1190 and 1214px and overflow
+         everything between the breakpoint and there. */
+      .site-bar-tag {
+        flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .site-bar-actions { display: flex; align-items: center; gap: 16px; }
+      .site-bar-menu-btn {
+        display: none; align-items: center; justify-content: center;
+        width: 44px; height: 44px; padding: 0;
+        background: none; border: 1px solid transparent; border-radius: 8px;
+        color: var(--bp-muted); cursor: pointer;
+      }
+      .site-bar-menu-btn:hover { color: var(--bp-fg); border-color: var(--bp-panel-line); }
+      .site-bar-menu-btn:focus-visible {
+        outline: 2px solid var(--bp-cyan); outline-offset: 2px;
+      }
+      /* 1024, and it is measured rather than picked: the widest inline bar
+         (/demo/, six links plus the palette row) needs 1014px, so the 720 the
+         plan started with would have reopened the overflow band one pixel
+         above itself. MENU_BREAKPOINT in scripts/demo-nav.mjs holds the
+         number, and the browser spec asserts nothing overflows at it. */
+      @media (max-width: 1024px) {
+        .site-bar-menu-btn { display: inline-flex; }
+        /* z-index 70: the package tops out at 45 and #demo-config uses 60, and
+           .site-bar precedes #truss-app in the DOM, so without a number the
+           diagram paints over the panel. Fixed rather than absolute: nothing
+           above .site-bar carries transform, filter or will-change, so it
+           resolves against the viewport. */
+        .site-bar-nav {
+          position: fixed; top: var(--site-bar-h); right: 0; z-index: 70;
+          display: none; flex-direction: column; align-items: stretch; gap: 0;
+          min-width: 240px; max-width: min(320px, calc(100vw - 24px)); padding: 6px;
+          background: var(--bp-panel);
+          border: 1px solid var(--bp-panel-line);
+          border-radius: 0 0 0 10px;
+          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+        }
+        .site-bar-nav[data-open] { display: flex; }
+        /* 44px targets, and the panel is measured in rows of them: a phone in
+           landscape (667x375) fits seven, and the panel cannot scroll because
+           the canvas preventDefaults wheel. See PANEL_ROW_CEILING in
+           scripts/demo-nav.mjs, which a test holds. */
+        .site-bar-nav a {
+          display: flex; align-items: center; min-height: 44px; padding: 0 12px;
+          border-radius: 6px;
+        }
+        .site-bar-nav a:hover { background: var(--bp-bg); }
+      }
 
       /* The paste form is the page's empty state, not a dialog over a diagram:
          until a schema arrives there is no diagram for it to sit over. That is
@@ -208,12 +276,23 @@
             </svg>
             <span class="site-bar-word">truss</span>
         </a>
-        <nav class="site-bar-nav" aria-label="Site">
-            <a href="../">Sample demo</a>
-            <a href="../multi-connection/">Multiple connections</a>
-            <a href="../../theme-builder/">Theme builder</a>
-            <a href="../../getting-started/installation/">Docs</a>
-            <a href="../../roadmap/">Roadmap</a>
+        <div class="site-bar-right">
+        <!-- One nav, two presentations: inline above 720px, the panel the menu
+             button opens below it. Paths are site-absolute and the set is
+             checked against scripts/demo-nav.mjs, because four shells spelling
+             the same destination four ways is how they drifted apart. -->
+        <nav class="site-bar-nav" id="site-menu" aria-label="Site">
+            <a href="/demo/">Sample demo</a>
+            <a href="/demo/multi-connection/">Multiple connections</a>
+            <a href="/demo/apps/lunar/">Lunar&#39;s schema</a>
+            <a href="/theme-builder/">Theme builder</a>
+            <a href="/getting-started/installation/">Docs</a>
+            <a href="/roadmap/">Roadmap</a>
+        </nav>
+        <!-- Bar controls, at every width. GitHub is one tap and stays one tap;
+             the theme toggle changes what you are looking at rather than taking
+             you somewhere, so neither belongs in a navigation panel. -->
+        <div class="site-bar-actions">
             <a class="gh" href="https://github.com/albertoarena/laravel-truss" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.13 0 0 .67-.21 2.2.82a7.55 7.55 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.11.16 1.93.08 2.13.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
             </a>
@@ -224,7 +303,13 @@
                     <g class="ti ti-system" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="12" rx="1.5" /><path d="M8.5 20.5h7M12 16.5v4" /></g>
                 </svg>
             </button>
-        </nav>
+            <button class="site-bar-menu-btn" type="button" aria-expanded="false" aria-controls="site-menu" aria-label="Menu" title="Menu">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true">
+                    <path d="M4 7h16M4 12h16M4 17h16"/>
+                </svg>
+            </button>
+        </div>
+        </div>
     </header>
 
     <main class="paste" id="paste">
@@ -446,5 +531,10 @@
     </script>
 
     <!-- Palette picker wiring: swap data-palette, persist it, and keep the swatch
+    <!-- The site menu. One source file so `npm run dev` serves a working
+         menu; the build replaces this tag with the file's contents, because
+         the origin serves JavaScript with no Cache-Control at all and a
+         separately served script would go stale against fresh HTML. -->
+    <script src="/demo/site-menu.js"></script>
 </body>
 </html>

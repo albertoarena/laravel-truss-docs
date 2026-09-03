@@ -8,3 +8,7 @@ _pkg/
 .DS_Store
 .docs/
 CLAUDE.local.md
+
+# Playwright's run artefacts. The spec itself is committed; these are not.
+test-results/
+playwright-report/
