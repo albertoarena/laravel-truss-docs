@@ -357,11 +357,47 @@ describe('the footer strip keeps its priority in flex, not in breakpoints', () =
   // So the rule is structural: the removal notice and the link never shrink,
   // and anything else in the strip must be able to. A breakpoint cannot be
   // wrong if nothing depends on it being right.
+  //
+  // And the scheme belongs to one layout. Priorities only mean something while
+  // there is more than one item competing for the row; below 720px the other
+  // three are already display: none and the removal line is alone, so a
+  // shrink factor of zero there is not a priority, it is a floor at the
+  // sentence's max-content width (623px) inside a 390px strip that centres and
+  // clips it. That was the fourth failure on this strip: cut at both ends on a
+  // real phone, while every width above 720 was correct.
   const RIGID = ['.app-foot-remove', '.app-foot-nav']
+  const WIDE = '@media (min-width: 721px)'
+
+  /**
+   * The body of an at-rule, by counting braces.
+   *
+   * A block holding whole rules cannot be matched by the lazy `[^}]*` the
+   * tests above use for a declaration list: the first nested `}` ends it.
+   */
+  const atRule = (css, prelude) => {
+    const start = css.indexOf(prelude)
+    if (start === -1) return null
+    const open = css.indexOf('{', start)
+    let depth = 0
+    for (let i = open; i < css.length; i += 1) {
+      if (css[i] === '{') depth += 1
+      else if (css[i] === '}') {
+        depth -= 1
+        if (depth === 0) return css.slice(open + 1, i)
+      }
+    }
+    return null
+  }
+
+  const wideLayout = (app) => {
+    const body = atRule(html(app), WIDE)
+    if (body === null) throw new Error(`${app.slug}: no ${WIDE} block, so the priority scheme is unscoped`)
+    return body
+  }
 
   it('lets the optional items shrink', () => {
     for (const app of DEMO_APPS) {
-      const css = html(app)
+      const css = wideLayout(app)
       expect(css, `${app.slug}`).toMatch(/\.app-foot-snapshot,\s*\.app-foot-run\s*\{[^}]*flex:\s*0 1 auto/)
       expect(css, `${app.slug}: shrinking without min-width: 0 does nothing in a flex row`)
         .toMatch(/\.app-foot-snapshot,\s*\.app-foot-run\s*\{[^}]*min-width:\s*0/)
@@ -370,11 +406,26 @@ describe('the footer strip keeps its priority in flex, not in breakpoints', () =
 
   it('holds the removal notice and the link rigid, and nothing else', () => {
     for (const app of DEMO_APPS) {
-      const rule = html(app).match(/([^{}]*)\{\s*flex:\s*none;?\s*\}/)?.[1] ?? ''
+      const rule = wideLayout(app).match(/([^{}]*)\{\s*flex:\s*none;?\s*\}/)?.[1] ?? ''
       const selectors = rule.split(',').map((s) => s.trim()).filter(Boolean)
 
       expect(selectors.sort(), `${app.slug}: the rigid set is not exactly the two that must not move`)
         .toEqual([...RIGID].sort())
+    }
+  })
+
+  it('holds nothing in the strip rigid outside the wide layout', () => {
+    // Where the phone bug actually lived. `.app-foot > * { white-space: normal }`
+    // at 720px permits wrapping, but an item that cannot shrink below its
+    // max-content width never gets narrow enough to wrap, so the permission is
+    // dead and the sentence overflows a strip that hides its overflow. Any
+    // `flex: none` on a footer item that a phone still reads re-opens it.
+    for (const app of DEMO_APPS) {
+      const css = html(app)
+      const elsewhere = css.replace(atRule(css, WIDE) ?? '', '')
+      const rigidOutside = elsewhere.match(/\.app-foot[^{}]*\{[^}]*flex:\s*none[^}]*\}/g) ?? []
+
+      expect(rigidOutside, `${app.slug}: ${rigidOutside.join(' ')}`).toEqual([])
     }
   })
 })
