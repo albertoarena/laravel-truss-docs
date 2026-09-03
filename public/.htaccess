@@ -107,6 +107,40 @@ RewriteRule ^(.*/)?index\.html$ https://%{HTTP_HOST}/$1 [R=301,L]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^(.*[^/])$ https://%{HTTP_HOST}/$1/ [R=301,L,QSA]
 
+# Response headers. Every directive here is wrapped, because an unguarded
+# Header on a server without mod_headers is a 500, which would take the site
+# down rather than quietly do less.
+<IfModule mod_headers.c>
+  # Never let a browser second-guess a Content-Type we already send correctly.
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Send the full URL to ourselves, the origin only to other sites, and nothing
+  # at all when leaving https. The default varies by browser.
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # HSTS closes the gap where a first visit over http can be intercepted before
+  # the 301 lands. https was only forced on 2026-08-18, so this deliberately
+  # starts at five minutes: HSTS is close to irreversible, since browsers honour
+  # it for the whole max-age whatever the site later says. Raise it to a year in
+  # its own change once this is proven.
+  #
+  # No includeSubDomains, which would bind hosts this site does not control, and
+  # no preload, which is effectively permanent.
+  Header always set Strict-Transport-Security "max-age=300"
+
+  # HTML carries no cache policy at all today, so browsers fall back to
+  # heuristic caching derived from Last-Modified. On a site that redeploys on
+  # every merge, that is how a reader sees yesterday's docs with nothing to
+  # explain it. no-cache still permits a cheap 304 against Last-Modified, it
+  # only forbids serving from cache without asking.
+  #
+  # Fingerprinted assets get the opposite treatment, in a directory-scoped
+  # .htaccess written into _astro/ at build time.
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
 # ErrorDocument resolves its local path against the DOCROOT, not against the
 # directory this file sits in. The docroot has no 404.html of its own, since the
 # built page only exists inside each release, so a plain `/404.html` silently
