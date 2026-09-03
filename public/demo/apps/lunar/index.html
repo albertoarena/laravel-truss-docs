@@ -175,18 +175,30 @@
          moves the numbers and silently re-opens a band, which is how the band
          got there in the first place.
          So: the two optional items shrink and ellipsise, and the removal notice
-         and the link never move. Those two are what the strip is for. */
-      .app-foot-snapshot, .app-foot-run {
-        flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+         and the link never move. Those two are what the strip is for.
+
+         All of it is scoped to the wide layout, because a priority needs more
+         than one item to be a priority. Below 720px the other three are
+         display: none and the removal line has the row to itself, and there
+         flex: none stops meaning "you go last" and starts meaning "never
+         narrower than 623px", inside a 390px strip that centres its content
+         and hides the overflow. That is the takedown address cut off at both
+         ends on a phone, which is what shipped. */
+      @media (min-width: 721px) {
+        .app-foot-snapshot, .app-foot-run {
+          flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+        }
+        .app-foot-remove, .app-foot-nav { flex: none; }
       }
-      .app-foot-remove, .app-foot-nav { flex: none; }
       .app-foot a { color: var(--bp-muted); text-decoration: underline; text-underline-offset: 2px; }
       .app-foot a:hover { color: var(--bp-fg); }
       .app-foot code {
         font-family: var(--bp-mono); background: var(--bp-bg);
         border: 1px solid var(--bp-panel-line); border-radius: 5px; padding: 2px 6px;
       }
-      .app-foot-nav { display: flex; align-items: center; gap: 16px; flex: none; }
+      /* Rigidity is not repeated here: it belongs to the wide layout above, and
+         a second copy at every width is how one of the two got left behind. */
+      .app-foot-nav { display: flex; align-items: center; gap: 16px; }
       .app-head a:focus-visible, .app-foot a:focus-visible {
         outline: 2px solid var(--bp-cyan); outline-offset: 2px; border-radius: 4px;
       }
