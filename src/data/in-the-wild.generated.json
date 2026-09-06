@@ -186,5 +186,23 @@
         "url": "https://www.linkedin.com/posts/maigd-hammoud-822a513a2_laravel-php-backend-share-7497666164010004480-drg-/",
         "date": "2026-08-24",
         "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Need to understand a large Laravel database? Instead of opening dozens of migration files, Truss can generate a live interactive ER diagram.",
+        "author": "Noman Hameed",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/posts/inoman-hameed_laravel-php-laravel13-share-7497690238950154240-OauW/",
+        "date": "2026-08-25",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Instead of looking at the entire database, you can focus on one table and see its foreign-key relationships. That can make understanding an unfamiliar codebase much faster.",
+        "author": "Keyur Dudhagara",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7500481031939174400/",
+        "date": "2026-09-01",
+        "basis": "public-post"
     }
 ]

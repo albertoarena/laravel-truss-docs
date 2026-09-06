@@ -110,11 +110,18 @@ describe('roadmap data', () => {
     }
   })
 
-  it('keeps the accessible structure view and the conformance statement ahead', () => {
-    const ahead = ALL.find((i) => /structure view|conformance/i.test(i.title))
-    expect(ahead, 'remaining accessibility item exists').toBeTruthy()
-    expect(ahead.status).toBe('approved')
-    expect(ahead.version, 'unshipped items carry no version').toBeUndefined()
+  it('keeps the accessible structure view and the conformance statement exploring, as two cards', () => {
+    // One card promised both the feature and the statement under "committed,
+    // building next", while no release slot was ever set aside for either and
+    // the four questions the structure view turns on are all still open. Two
+    // Exploring cards say what is actually true.
+    const view = ALL.find((i) => /structure view/i.test(i.title))
+    const statement = ALL.find((i) => /conformance statement/i.test(i.title))
+    for (const [label, item] of [['structure view', view], ['conformance statement', statement]]) {
+      expect(item, `${label} card exists`).toBeTruthy()
+      expect(item.status, label).toBe('exploring')
+      expect(item.version, 'unshipped items carry no version').toBeUndefined()
+    }
   })
 
   it('ships the searchable Focus picker in v1.9.0, credited to its issue', () => {
@@ -126,10 +133,62 @@ describe('roadmap data', () => {
     expect(picker.issueUrl).toBe('https://github.com/albertoarena/laravel-truss/issues/39')
   })
 
-  it('promotes the remaining schema doctor work to approved next', () => {
-    const doctor = ALL.find((i) => /doctor/i.test(i.title) && i.status !== 'shipped')
-    expect(doctor, 'follow-up doctor item exists').toBeTruthy()
-    expect(doctor.status).toBe('approved')
+  it('splits the remaining schema doctor work into rules and CI formats', () => {
+    // One card promised both halves in one release. The rules have a plan and a
+    // slot; the CI formats have neither, so committing to both together makes
+    // the rules release read as a half delivery on the day it ships.
+    const followUps = ALL.filter((i) => /doctor/i.test(i.title) && i.status !== 'shipped')
+    expect(followUps, 'two follow-up doctor cards').toHaveLength(2)
+
+    const rules = followUps.find((i) => /rule/i.test(i.title))
+    expect(rules, 'rules card exists').toBeTruthy()
+    expect(rules.status).toBe('approved')
+    // Codes above the shipped thirteen are not published anywhere yet, and a
+    // roadmap card is a publication. Naming them here would lock them.
+    expect(rules.blurb, 'rules card publishes no rule codes').not.toMatch(/TRUSS-[A-Z]+-\d+/)
+
+    const formats = followUps.find((i) => /CI/.test(i.title))
+    expect(formats, 'CI formats card exists').toBeTruthy()
+    expect(formats.status).toBe('exploring')
+  })
+
+  it('puts the self-contained HTML export next, since it is the next release', () => {
+    const html = ALL.find((i) => /HTML export/i.test(i.title))
+    expect(html, 'HTML export card exists').toBeTruthy()
+    expect(html.status).toBe('approved')
+    expect(html.version, 'unshipped items carry no version').toBeUndefined()
+    // The point of the format is that the file needs nothing at all to open.
+    expect(html.blurb).toMatch(/single|self-contained/i)
+  })
+
+  it('carries the standalone binary as approved next', () => {
+    const binary = ALL.find((i) => /binary/i.test(i.title))
+    expect(binary, 'standalone binary card exists').toBeTruthy()
+    expect(binary.status).toBe('approved')
+    expect(binary.version, 'unshipped items carry no version').toBeUndefined()
+    // A card shares the concept, not the plan: how it is built and shipped is
+    // an implementation decision that is not committed to in public.
+    expect(binary.blurb, 'no build mechanics in the card').not.toMatch(/phar|box|export-ignore/i)
+  })
+
+  it('files the structural lint hints as shipped, since truss:doctor is what they became', () => {
+    const hints = ALL.find((i) => /lint hints/i.test(i.title))
+    expect(hints, 'structural lint hints card exists').toBeTruthy()
+    expect(hints.status).toBe('shipped')
+    expect(hints.version).toBe('v1.5.0')
+    // It sat under "no timeline" for months describing a feature three cards
+    // above it. A reader has to be able to tell the two cards apart, so it has
+    // to name the thing it turned into.
+    expect(hints.blurb).toMatch(/truss:doctor/)
+  })
+
+  it('keeps the shipped doctor card current with the rule v1.11.0 added', () => {
+    // The reference guide documents every rule; the roadmap card is the only
+    // place a reader sees what a release added without opening the changelog.
+    const doctor = ALL.find((i) => /^Schema doctor$/i.test(i.title))
+    expect(doctor, 'shipped doctor card exists').toBeTruthy()
+    expect(doctor.status).toBe('shipped')
+    expect(doctor.blurb).toMatch(/v1\.11\.0/)
   })
 
   it('moves the Filament plugin from wishlist to exploring', () => {
