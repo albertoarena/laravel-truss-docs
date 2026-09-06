@@ -116,8 +116,11 @@ describe('roadmap data', () => {
     // the four questions the structure view turns on are all still open. Two
     // Exploring cards say what is actually true.
     const view = ALL.find((i) => /structure view/i.test(i.title))
-    const statement = ALL.find((i) => /conformance statement/i.test(i.title))
-    for (const [label, item] of [['structure view', view], ['conformance statement', statement]]) {
+    // Titled "Accessibility conformance review", not "WCAG 2.2 AA conformance
+    // statement": naming a level in the card is close enough to claiming one,
+    // and what gets claimed is decided by the review rather than before it.
+    const review = ALL.find((i) => /conformance review/i.test(i.title))
+    for (const [label, item] of [['structure view', view], ['conformance review', review]]) {
       expect(item, `${label} card exists`).toBeTruthy()
       expect(item.status, label).toBe('exploring')
       expect(item.version, 'unshipped items carry no version').toBeUndefined()
