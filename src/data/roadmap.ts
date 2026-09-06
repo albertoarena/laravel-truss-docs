@@ -201,7 +201,7 @@ export const SECTIONS: RoadmapSection[] = [
           'A toggle that swaps the canvas for the same structure written as ordinary HTML tables, honouring the filter, focus and depth you already set. It is the text alternative a drawn diagram cannot be, and it earns its place beyond that: printable, searchable with the browser\'s own find, copy-pasteable into a ticket or a wiki, and far better on a phone than pan and zoom.',
       },
       {
-        title: 'WCAG 2.2 AA conformance statement',
+        title: 'Accessibility conformance review',
         status: 'exploring',
         blurb:
           'Measure the criteria the keyboard work did not cover, including contrast on control boundaries and inside the diagram itself, fix what fails, and then publish a statement saying exactly what is supported, what is not, how a custom palette changes the answer, and how to report a barrier. Measured first, written second: the statement is worth having only if it is true.',
