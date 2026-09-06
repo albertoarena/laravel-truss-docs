@@ -122,7 +122,14 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'shipped',
         version: 'v1.5.0',
         blurb:
-          'Run truss:doctor to review your schema for problems visible from structure alone: missing primary keys, unindexed foreign keys, duplicate indexes, money stored as float, and more. It runs in the terminal and in CI, failing the build when a migration introduces a new problem, and a dashboard Health panel flags the same findings on the diagram. Deterministic and structure only, with no AI and no query stats. Recalibrated in v1.10.0 against sixteen real Laravel applications, narrowing TRUSS-INT-007 so an entity table with two foreign keys is no longer called a pivot.',
+          'Run truss:doctor to review your schema for problems visible from structure alone: missing primary keys, unindexed foreign keys, duplicate indexes, money stored as float, and more. It runs in the terminal and in CI, failing the build when a migration introduces a new problem, and a dashboard Health panel flags the same findings on the diagram. Deterministic and structure only, with no AI and no query stats. Recalibrated in v1.10.0 against sixteen real Laravel applications, narrowing TRUSS-INT-007 so an entity table with two foreign keys is no longer called a pivot. v1.11.0 added TRUSS-INT-010, which catches a foreign key that points at the wrong table: found on a real schema where cart line ids were being validated against carts, and silent for years because the database accepted every write.',
+      },
+      {
+        title: 'Structural lint hints',
+        status: 'shipped',
+        version: 'v1.5.0',
+        blurb:
+          'The wishlist idea that became truss:doctor. Problems the structure alone can show, a missing primary key or a foreign key with no index behind it, are marked on the diagram itself rather than left for you to notice: a health marker on the table, the finding and its code a click away, and each rule yours to silence or re-grade from config. The markers are on by default, since a finding nobody sees helps nobody, and a single config switch turns them off.',
       },
       {
         title: 'Schema diff',
@@ -155,16 +162,22 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Decided. This is what comes next.',
     items: [
       {
-        title: 'Accessible structure view and a conformance statement',
+        title: 'Self-contained HTML export',
         status: 'approved',
         blurb:
-          'The rest of the accessibility work now that the keyboard is done. A text view of the same structure the diagram draws, since a rendered diagram is not a text alternative, then an audit of the criteria v1.9.0 did not cover, including contrast on control boundaries and inside the diagram itself, and a published statement saying exactly what is supported and what is not.',
+          'Export the whole diagram as a single HTML file that needs nothing to open it: no server, no network, no build step. Commit it next to the migrations, attach it to a pull request, or send it to somebody who has no access to the database, and it opens in any browser exactly as the dashboard drew it. Structure only, as always.',
       },
       {
-        title: 'Schema doctor: more rules and CI formats',
+        title: 'Schema doctor: more rules',
         status: 'approved',
         blurb:
-          'A second pass on truss:doctor: the rest of the rule catalogue, a laravel preset, GitHub and JUnit output for inline CI annotations, a suppression workflow to baseline known findings, and a since-baseline mode that only reports problems a migration newly introduced.',
+          'A second pass on the rule catalogue, aimed at the problems a migration file cannot show you: a collation that silently stops an index being used across a foreign key, a storage engine that accepts a foreign key and then ignores it, a key pointing at a column nothing keeps unique, the same relationship declared twice, and identifiers stored as plain text. Every new rule is measured against a field study of real applications before it ships, because a rule that cries wolf costs more than the one it catches.',
+      },
+      {
+        title: 'Truss as a standalone binary',
+        status: 'approved',
+        blurb:
+          'Run Truss against any database with a connection string, with no framework and no project to install it into: one download, or one line with Homebrew. The diagram, the doctor and the exports, on a plain PHP codebase, in CI, or against a database somebody just handed you. It is a second way in to the same tool, and it changes nothing for anybody installing Truss the usual way.',
       },
       {
         title: 'Lighthouse CI',
@@ -181,6 +194,24 @@ export const SECTIONS: RoadmapSection[] = [
     commitment: 'Investigating, may or may not happen',
     blurb: 'On the table, not yet decided.',
     items: [
+      {
+        title: 'Accessible structure view',
+        status: 'exploring',
+        blurb:
+          'A toggle that swaps the canvas for the same structure written as ordinary HTML tables, honouring the filter, focus and depth you already set. It is the text alternative a drawn diagram cannot be, and it earns its place beyond that: printable, searchable with the browser\'s own find, copy-pasteable into a ticket or a wiki, and far better on a phone than pan and zoom.',
+      },
+      {
+        title: 'WCAG 2.2 AA conformance statement',
+        status: 'exploring',
+        blurb:
+          'Measure the criteria the keyboard work did not cover, including contrast on control boundaries and inside the diagram itself, fix what fails, and then publish a statement saying exactly what is supported, what is not, how a custom palette changes the answer, and how to report a barrier. Measured first, written second: the statement is worth having only if it is true.',
+      },
+      {
+        title: 'Schema doctor: CI formats',
+        status: 'exploring',
+        blurb:
+          'Make the doctor a better citizen of a pull request: GitHub and JUnit output so findings land as inline annotations rather than buried log lines, a preset tuned to Laravel conventions, a suppression workflow to baseline what you already know about, and a mode that reports only what a migration newly introduced.',
+      },
       {
         title: 'Eloquent relations as a schema source',
         status: 'exploring',
@@ -229,12 +260,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'wishlist',
         blurb:
           'An iframe embed of a focused diagram, to drop a live schema view into a wiki or an internal portal.',
-      },
-      {
-        title: 'Structural lint hints',
-        status: 'wishlist',
-        blurb:
-          'Gentle, opt-in flags for a missing primary key or an unindexed foreign key, spotted straight from the structure.',
       },
       {
         title: 'Fewer dependencies',
