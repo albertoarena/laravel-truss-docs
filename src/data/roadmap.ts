@@ -162,6 +162,12 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Decided. This is what comes next.',
     items: [
       {
+        title: 'Filament plugin',
+        status: 'approved',
+        blurb:
+          'Surface the diagram inside a Filament admin panel as a first-class page, built from the panel\'s own components and styled by its own theme rather than dropped in as a frame around another page. It ships as a separate package, so nothing changes for anybody who does not use Filament, and Truss itself stays free of any Filament dependency.',
+      },
+      {
         title: 'Self-contained HTML export',
         status: 'approved',
         blurb:
@@ -225,12 +231,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'exploring',
         blurb:
           'Saved views, domain grouping, and a Cmd-K jump so a hundred-table schema stays navigable.',
-      },
-      {
-        title: 'Filament plugin',
-        status: 'exploring',
-        blurb:
-          'Surface the diagram inside a Filament admin panel as a first-class page, so teams already living in Filament get the schema view where they work.',
       },
       {
         title: 'Tenant-aware snapshot caching',
