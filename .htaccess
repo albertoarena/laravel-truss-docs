@@ -1,0 +1,115 @@
+# Apache rules shipped with the built site.
+#
+# This file is copied into dist/ on every build, and the deploy publishes dist/
+# into releases/<timestamp>/ on the host, with a `current` symlink flipped at
+# the newest one. So these rules land inside every release and apply whether a
+# request arrives via the symlink or a release directory directly.
+#
+# It deliberately lives here rather than in the docroot .htaccess one level
+# above releases/, which is hand-maintained on the host and not deployed by CI.
+# Rules do work there, so anything this repo should be able to change on its own
+# belongs in this file instead.
+#
+# One thing cannot live here: folding www and http into https://trussphp.com.
+# That has to run before the docroot's own rewrite into current/, so the docroot
+# file owns it. A tracked, reference-only copy is in deploy/docroot.htaccess,
+# which explains the ordering trap that kept a redirect dead there for days.
+
+# No directory listings, anywhere in the site.
+#
+# Belt and braces rather than a new rule. The docroot .htaccess already carries
+# `Options +FollowSymLinks -Indexes` (see deploy/docroot.htaccess), and Options
+# inherits into subdirectories, so the tree below it is covered today. But that
+# file is hand-maintained on the host and is not deployed by CI: it can drift,
+# be replaced by a panel, or be restored from a .bak that predates the line.
+# This file ships inside every release, so the guarantee travels with the site.
+#
+# It became worth stating rather than assuming with /demo/apps/, which holds one
+# application page and has no index of its own until there is a second. A
+# listing there would publish the directory's contents as a side effect of a
+# page not being written yet.
+#
+# The `-Indexes` form is required, not stylistic. A relative Options merges with
+# what the parent granted; an absolute one (`Options Indexes`, `Options None`)
+# REPLACES it, which here would drop the +FollowSymLinks the docroot sets, and
+# the whole deploy is a symlink. Never write this line without the minus.
+#
+# Unguarded by <IfModule> on purpose: Options is core Apache, not a module, so a
+# module guard cannot protect it. What could refuse it is AllowOverride, but the
+# host demonstrably permits Options in .htaccess, because the docroot file's own
+# Options line is live and the site would already be answering 500 if it were
+# not.
+Options -Indexes
+
+RewriteEngine On
+
+# The deploy plumbing was reachable from the web: /current/ served the entire
+# site a second time, which split analytics by page path and offered search
+# engines a duplicate of every page. Redirect it to the canonical URL instead.
+#
+# Matching %{THE_REQUEST} (the client's original request line) rather than the
+# rewritten path is what makes this safe: any internal rewrite into current/
+# performed at the docroot leaves THE_REQUEST untouched, so ordinary page views
+# are unaffected and only requests that genuinely target current/ or
+# releases/<ts>/ are caught.
+#
+# ^(.*)$ keeps the remainder of the path, because per-directory rewriting has
+# already stripped the matched prefix: /current/guides/theming/ redirects to
+# /guides/theming/ rather than collapsing to the home page.
+#
+# %{HTTP_HOST} rather than a hardcoded domain, so a preview or staging host
+# redirects to itself instead of bouncing traffic to production.
+RewriteCond %{THE_REQUEST} \s/+(current|releases)(/|\?|\s) [NC]
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# One page, one URL. /demo/index.html and /demo/ served identical bytes, and
+# Search Console listed both. The canonical tag already resolved which one wins,
+# so this is tidiness rather than a fix: it saves a crawler the fetch it would
+# otherwise spend being told the same thing.
+#
+# %{THE_REQUEST} again, for a sharper reason than above. /demo/ is served by
+# internally resolving index.html, so matching the rewritten path would redirect
+# /demo/ to /demo/ forever. The request line only says index.html when the
+# client actually asked for it.
+#
+# ^(.*/)?index\.html$ makes the directory optional, so /index.html folds to /
+# as well. Per-directory rewriting has already stripped the prefix, so $1 is the
+# directory below the site root.
+RewriteCond %{THE_REQUEST} \s/+[^?\s]*index\.html[\s?] [NC]
+RewriteRule ^(.*/)?index\.html$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# Add the trailing slash to a directory URL ourselves, rather than letting
+# Apache's mod_dir do it.
+#
+# By the time this file runs, the docroot .htaccess has already rewritten the
+# request internally to current/$1, preserving whatever trailing-slash-ness the
+# client sent. When the client sent none, mod_dir's DirectorySlash fires and
+# builds its Location from that rewritten path, so every non-trailing-slash URL
+# on the site redirected through a client-visible /current/... URL:
+#
+#   /roadmap -> /current/roadmap/ -> /roadmap/     (two hops, internal path leaked)
+#
+# The current|releases rule above only matches %{THE_REQUEST}, and the client's
+# request line never said current, so it cleaned up the last hop instead of
+# preventing the first. This rule runs before mod_dir gets the chance, and
+# builds the redirect from $1, which per-directory rewriting has already
+# stripped back to the path below the site root.
+#
+# Matching ^(.*[^/])$ rather than testing %{REQUEST_URI} is deliberate: whether
+# REQUEST_URI shows the original or the rewritten path in per-directory context
+# is exactly the ambiguity that produced this bug. The pattern is self
+# contained. It cannot match the empty string, so the site root is untouched and
+# cannot gain a second slash.
+#
+# The -d test, rather than an extension regex, is what keeps static files out:
+# /favicon.svg is not a directory, so it is served rather than redirected, and a
+# path segment containing a dot is still classified correctly.
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^(.*[^/])$ https://%{HTTP_HOST}/$1/ [R=301,L,QSA]
+
+# ErrorDocument resolves its local path against the DOCROOT, not against the
+# directory this file sits in. The docroot has no 404.html of its own, since the
+# built page only exists inside each release, so a plain `/404.html` silently
+# fails and Apache serves its own generic error page. Point it through the
+# symlink instead.
+ErrorDocument 404 /current/404.html

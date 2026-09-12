@@ -1,0 +1,679 @@
+/* Truss dashboard — "Blueprint" look. Served same-origin via the asset route
+   (not inlined), so a strict CSP needs only style-src 'self' for this sheet.
+   Theme-reactive via prefers-color-scheme; a data-theme="light|dark" on <html>
+   can force a theme. The Mermaid diagram is themed here too (see bottom), so it
+   adapts to light/dark with no re-render — Mermaid's own theme is left neutral.
+
+   Fonts are system stacks (no CDN, no bundled font files): a monospace for the
+   technical/blueprint feel, a system sans for longer copy. */
+
+/* IBM Plex Mono, self-hosted (woff2 served by the asset route; the relative
+   URLs resolve against this stylesheet's own {prefix}/assets/ path). No CDN. */
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("ibm-plex-mono-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap;
+  src: url("ibm-plex-mono-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("ibm-plex-mono-600.woff2") format("woff2");
+}
+
+:root {
+  color-scheme: light dark;
+
+  --bp-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --bp-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Light (default) */
+  --bp-bg: #eef1f6;
+  --bp-grid: rgba(18, 53, 107, .07);
+  --bp-grid-strong: rgba(18, 53, 107, .12);
+  --bp-panel: #fbfcfe;
+  --bp-panel-line: #c9d4e6;
+  --bp-ink: #12356b;
+  --bp-cyan: #0e7c9b;
+  --bp-fg: #132741;
+  --bp-muted: #5f7396;
+  --bp-field: #ffffff;
+  --bp-field-line: #c9d4e6;
+
+  --bp-entity-bg: #ffffff;
+  --bp-row-odd: #ffffff;
+  --bp-row-even: #e9f0f9;
+  --bp-entity-border: #12356b;
+  --bp-hair: #c4d5ec;
+  --bp-entity-text: #12263c;
+  --bp-rel: #6f8fbf;
+  --bp-edge: #5f7396;
+  --bp-edge-bg: #eef1f6;
+  --bp-focus-border: #0e7c9b; --bp-focus-bg: #e6f7fc;
+  --bp-diff-added-border: #1f9d55; --bp-diff-added-bg: #e3f7ea;
+  --bp-diff-changed-border: #b5791f; --bp-diff-changed-bg: #fbeeda;
+
+  --bp-info-bg: #e5eefb; --bp-info-fg: #12356b;
+  --bp-warn-bg: #fbeeda; --bp-warn-fg: #8a5a00;
+  --bp-error-bg: #f7dede; --bp-error-fg: #a11;
+}
+
+/* Dark — applied on OS-dark (unless forced light) and on forced dark. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bp-bg: #0b1a2b;
+    --bp-grid: rgba(120, 200, 230, .055);
+    --bp-grid-strong: rgba(120, 200, 230, .11);
+    --bp-panel: #0f2338;
+    --bp-panel-line: #22496b;
+    --bp-ink: #5fd0e6;
+    --bp-cyan: #7fe0f2;
+    --bp-fg: #d7e7f4;
+    --bp-muted: #7fa2c0;
+    --bp-field: #0e2135;
+    --bp-field-line: #22496b;
+
+    --bp-entity-bg: #10273f;
+    --bp-row-odd: #10273f;
+    --bp-row-even: #16324e;
+    --bp-entity-border: #3f7fa0;
+    --bp-hair: #274a6b;
+    --bp-entity-text: #d7e7f4;
+    --bp-rel: #4a7d99;
+    --bp-edge: #9fb8d0;
+    --bp-edge-bg: #0b1a2b;
+    --bp-focus-border: #7fe0f2; --bp-focus-bg: #103a4a;
+    --bp-diff-added-border: #6fd08a; --bp-diff-added-bg: #16351f;
+    --bp-diff-changed-border: #e6b877; --bp-diff-changed-bg: #3a2f16;
+
+    --bp-info-bg: #10314a; --bp-info-fg: #8fd4e6;
+    --bp-warn-bg: #3a2f16; --bp-warn-fg: #e6b877;
+    --bp-error-bg: #40201f; --bp-error-fg: #f0a0a0;
+  }
+}
+:root[data-theme="dark"] {
+  --bp-bg: #0b1a2b;
+  --bp-grid: rgba(120, 200, 230, .055);
+  --bp-grid-strong: rgba(120, 200, 230, .11);
+  --bp-panel: #0f2338;
+  --bp-panel-line: #22496b;
+  --bp-ink: #5fd0e6;
+  --bp-cyan: #7fe0f2;
+  --bp-fg: #d7e7f4;
+  --bp-muted: #7fa2c0;
+  --bp-field: #0e2135;
+  --bp-field-line: #22496b;
+
+  --bp-entity-bg: #10273f;
+  --bp-row-odd: #10273f;
+  --bp-row-even: #16324e;
+  --bp-entity-border: #3f7fa0;
+  --bp-hair: #274a6b;
+  --bp-entity-text: #d7e7f4;
+  --bp-rel: #4a7d99;
+  --bp-edge: #9fb8d0;
+  --bp-edge-bg: #0b1a2b;
+  --bp-focus-border: #7fe0f2; --bp-focus-bg: #103a4a;
+  --bp-diff-added-border: #6fd08a; --bp-diff-added-bg: #16351f;
+  --bp-diff-changed-border: #e6b877; --bp-diff-changed-bg: #3a2f16;
+
+  --bp-info-bg: #10314a; --bp-info-fg: #8fd4e6;
+  --bp-warn-bg: #3a2f16; --bp-warn-fg: #e6b877;
+  --bp-error-bg: #40201f; --bp-error-fg: #f0a0a0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--bp-fg);
+  font-family: var(--bp-sans);
+  background:
+    linear-gradient(var(--bp-grid-strong) 1px, transparent 1px) 0 0 / 96px 96px,
+    linear-gradient(90deg, var(--bp-grid-strong) 1px, transparent 1px) 0 0 / 96px 96px,
+    linear-gradient(var(--bp-grid) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, var(--bp-grid) 1px, transparent 1px) 0 0 / 24px 24px,
+    var(--bp-bg);
+}
+
+/* The app is the positioning context for its absolutely-positioned overlays
+   (the legend). Without this they anchor to the viewport and land over the
+   toolbar when the dashboard is embedded below other chrome (an iframe, or the
+   docs demo's site bar). */
+#truss-app { position: relative; }
+
+/* ---- toolbar ---------------------------------------------------------- */
+
+.truss-toolbar {
+  display: flex; align-items: center; gap: 18px; height: 54px; padding: 0 18px;
+  background: var(--bp-panel); border-bottom: 2px solid var(--bp-ink);
+  box-shadow: 0 1px 0 var(--bp-panel-line); position: sticky; top: 0; z-index: 5;
+}
+
+.truss-brand {
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: var(--bp-mono); font-weight: 600; font-size: 16px;
+  letter-spacing: -.05em; text-transform: none; color: var(--bp-ink);
+}
+.truss-mark { flex: none; display: block; color: var(--bp-ink); }
+
+.truss-secondary { display: inline-flex; align-items: center; gap: 18px; }
+
+.truss-field {
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+}
+.truss-field[hidden] { display: none; }
+.truss-field--search { min-width: 0; } /* let the search field shrink under pressure */
+.truss-field--search input { width: 150px; min-width: 0; }
+.truss-field-label {
+  font-family: var(--bp-mono); font-size: 11px; letter-spacing: .01em;
+  color: var(--bp-muted);
+}
+
+.truss-toolbar input[type="search"],
+.truss-toolbar input[type="text"],
+.truss-toolbar select,
+.truss-toolbar input[type="number"] {
+  font-family: var(--bp-mono); font-size: 12.5px; letter-spacing: 0; color: var(--bp-fg);
+  background: var(--bp-field); border: 1px solid var(--bp-field-line); border-radius: 2px; padding: 6px 9px;
+}
+.truss-toolbar input[type="number"] { width: 52px; }
+/* Cap the selects so a long connection name cannot grow the bar without bound
+   and push the rest of the toolbar off-screen. */
+.truss-toolbar select { max-width: 180px; }
+.truss-toolbar input:focus, .truss-toolbar select:focus {
+  outline: none; border-color: var(--bp-ink);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--bp-ink) 22%, transparent);
+}
+
+/* Focus combobox: a text input with a listbox popup (see focus-combobox.js).
+   The popup is absolutely positioned against the field, so the toolbar row keeps
+   its height whether the list is open or shut. */
+.truss-combo { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+/* A text input sizes itself from a default character count, so the cap the
+   select it replaced carried has to be restated as a width here. */
+.truss-combo input { width: 150px; min-width: 0; }
+.truss-combo-list {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 45;
+  margin: 0; padding: 4px 0; list-style: none;
+  min-width: 200px; max-width: 320px; max-height: 260px; overflow-y: auto;
+  background: var(--bp-panel); border: 1px solid var(--bp-panel-line); border-radius: 4px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .2);
+  font-family: var(--bp-mono); font-size: 12px; color: var(--bp-fg);
+}
+.truss-combo-list[hidden] { display: none; }
+.truss-combo-opt { padding: 4px 10px; cursor: pointer; white-space: nowrap; }
+/* The active option is tracked with aria-activedescendant, so it is never the
+   focused element and cannot be styled with :focus. */
+.truss-combo-opt.is-active { background: var(--bp-info-bg); color: var(--bp-info-fg); }
+.truss-combo-opt[aria-selected="true"] { font-weight: 600; }
+.truss-combo-opt--clear { color: var(--bp-muted); border-bottom: 1px solid var(--bp-panel-line); }
+.truss-combo-opt mark { background: none; color: var(--bp-cyan); font-weight: 600; }
+/* The active row puts its own highlight under the mark, and the accent measures
+   4.10:1 on it, under the 4.5:1 that 1.4.3 asks of text. Taking the row's own
+   foreground keeps the ratio the row already guarantees; the match stays legible
+   as the only bold span in the line. */
+.truss-combo-opt.is-active mark { color: var(--bp-info-fg); }
+
+/* Available to assistive technology, absent from the visual layout: used for the
+   live region that announces how many tables matched while you type. */
+.truss-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* right-hand utility cluster */
+.truss-utils { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; }
+.truss-util {
+  width: 32px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 15px; line-height: 1; color: var(--bp-ink);
+  background: var(--bp-field); border: 1px solid var(--bp-field-line); border-radius: 2px; cursor: pointer;
+}
+.truss-util:hover { border-color: var(--bp-ink); }
+.truss-util[aria-expanded="true"] { background: var(--bp-ink); color: var(--bp-panel); border-color: var(--bp-ink); }
+.truss-util--more { display: none; } /* only on phone */
+
+/* zoom control, floated over the canvas (bottom-right) */
+.truss-zoom {
+  position: absolute; right: 16px; bottom: 16px; z-index: 15;
+  display: inline-flex; align-items: center; gap: 11px; padding: 7px 11px;
+  background: var(--bp-panel); border: 1px solid var(--bp-panel-line); border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .14);
+}
+.truss-zoom button {
+  font-family: var(--bp-mono); font-size: 11px; letter-spacing: .01em;
+  color: var(--bp-ink); background: var(--bp-field); border: 1.5px solid var(--bp-ink);
+  border-radius: 2px; padding: 5px 11px; cursor: pointer;
+}
+.truss-zoom button:hover { background: var(--bp-ink); color: var(--bp-panel); }
+.truss-zoom input[type="range"] { width: 120px; accent-color: var(--bp-cyan); }
+#truss-zoom-pct {
+  font-family: var(--bp-mono); font-size: 12px; color: var(--bp-muted);
+  min-width: 40px; text-align: right; font-variant-numeric: tabular-nums;
+}
+
+/* legend popover */
+.truss-legend {
+  position: absolute; top: 62px; right: 14px; z-index: 20; width: 210px;
+  background: var(--bp-panel); border: 1px solid var(--bp-panel-line); border-radius: 4px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .18); padding: 12px 14px; color: var(--bp-fg);
+}
+.truss-legend[hidden] { display: none; }
+.truss-legend-head {
+  font-family: var(--bp-mono); font-size: 11px; letter-spacing: .01em;
+  color: var(--bp-muted); margin-bottom: 10px;
+}
+.truss-legend-list { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; }
+.truss-legend-list dt { font-family: var(--bp-mono); font-weight: 600; font-size: 12px; color: var(--bp-ink); }
+.truss-legend-list dd { margin: 0; font-size: 12.5px; color: var(--bp-fg); }
+.truss-legend-list svg { color: var(--bp-rel); display: block; }
+
+/* schema diff ("Changes") panel: mirrors the legend popover */
+.truss-diff-panel {
+  position: absolute; top: 62px; right: 14px; z-index: 20; width: 280px; max-height: 60vh; overflow-y: auto;
+  background: var(--bp-panel); border: 1px solid var(--bp-panel-line); border-radius: 4px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .18); padding: 12px 14px; color: var(--bp-fg);
+}
+.truss-diff-panel[hidden] { display: none; }
+#truss-diff-btn[hidden] { display: none; }
+.truss-diff-head {
+  font-family: var(--bp-mono); font-size: 11px; letter-spacing: .01em;
+  color: var(--bp-muted); margin-bottom: 10px;
+}
+.truss-diff-empty { margin: 0; font-size: 12.5px; color: var(--bp-muted); }
+.truss-diff-item { font-size: 12.5px; margin-bottom: 8px; color: var(--bp-fg); }
+.truss-diff-item:last-child { margin-bottom: 0; }
+.truss-diff-badge {
+  font-family: var(--bp-mono); font-size: 10px; letter-spacing: .02em; text-transform: capitalize;
+  padding: 1px 5px; border-radius: 3px; border: 1px solid currentColor;
+}
+.truss-diff-item--added .truss-diff-badge { color: var(--bp-diff-added-border); }
+.truss-diff-item--removed .truss-diff-badge { color: var(--bp-error-fg); }
+.truss-diff-item--changed .truss-diff-badge { color: var(--bp-diff-changed-border); }
+.truss-diff-details { margin: 4px 0 0; padding-left: 18px; }
+.truss-diff-details li { font-family: var(--bp-mono); font-size: 11.5px; color: var(--bp-muted); }
+.truss-diff-focus {
+  font: inherit; color: var(--bp-cyan); background: none; border: 0; padding: 0; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.truss-diff-focus:hover, .truss-diff-focus:focus-visible { color: var(--bp-focus-border); }
+
+/* structure health ("Health") panel: mirrors the Changes panel */
+.truss-health-panel {
+  position: absolute; top: 62px; right: 14px; z-index: 20; width: 300px; max-height: 60vh; overflow-y: auto;
+  background: var(--bp-panel); border: 1px solid var(--bp-panel-line); border-radius: 4px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .18); padding: 12px 14px; color: var(--bp-fg);
+}
+.truss-health-panel[hidden] { display: none; }
+/* Maximized: a large centred overlay for reading a long report. */
+.truss-health-panel.is-maximized {
+  position: fixed; inset: 6vh 8vw; width: auto; height: auto; max-height: 88vh; z-index: 40;
+}
+#truss-health-btn[hidden] { display: none; }
+#truss-health-btn[data-severity="error"] { color: var(--bp-error-fg); }
+#truss-health-btn[data-severity="warning"] { color: var(--bp-warn-fg); }
+#truss-health-btn[data-severity="clean"] { color: var(--bp-diff-added-border); }
+/* When selected, the button fills with --bp-ink, so nudge the heart's colour toward
+   the panel colour (the opposite luminance to --bp-ink) to keep proper contrast on
+   the fill in both themes, while staying recognisably the severity hue. */
+#truss-health-btn[aria-expanded="true"][data-severity="error"] { color: color-mix(in srgb, var(--bp-error-fg), var(--bp-panel) 60%); }
+#truss-health-btn[aria-expanded="true"][data-severity="warning"] { color: color-mix(in srgb, var(--bp-warn-fg), var(--bp-panel) 60%); }
+#truss-health-btn[aria-expanded="true"][data-severity="clean"] { color: color-mix(in srgb, var(--bp-diff-added-border), var(--bp-panel) 60%); }
+/* The icon must not shrink in the flex button, and the count rides the corner as
+   an out-of-flow badge, so neither squeezes the heart to a sliver. */
+#truss-health-btn { position: relative; }
+.truss-health-icon { transform-origin: center; flex: none; }
+/* A gentle heartbeat, only while there is something to look at. */
+@keyframes truss-health-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+#truss-health-btn[data-severity="error"] .truss-health-icon,
+#truss-health-btn[data-severity="warning"] .truss-health-icon { animation: truss-health-pulse 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { #truss-health-btn .truss-health-icon { animation: none !important; } }
+.truss-health-count {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 13px; height: 13px; box-sizing: border-box; padding: 0 3px;
+  font-family: var(--bp-mono); font-size: 8.5px; font-weight: 700; line-height: 13px;
+  border-radius: 7px; text-align: center;
+  color: var(--bp-panel); background: var(--bp-muted);
+}
+/* The badge fills with the severity colour; the digit uses the panel colour, which
+   is the opposite luminance to every severity fg, so it reads in both themes. The
+   count only shows when there are findings, so error/warning are the live cases. */
+#truss-health-btn[data-severity="error"] .truss-health-count { background: var(--bp-error-fg); }
+#truss-health-btn[data-severity="warning"] .truss-health-count { background: var(--bp-warn-fg); }
+#truss-health-btn[data-severity="clean"] .truss-health-count { background: var(--bp-diff-added-border); }
+.truss-health-count[hidden] { display: none; }
+.truss-health-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-family: var(--bp-mono); font-size: 11px; letter-spacing: .01em;
+  color: var(--bp-muted); margin-bottom: 10px;
+}
+.truss-health-max {
+  font: inherit; font-size: 13px; line-height: 1; color: var(--bp-muted);
+  background: none; border: 0; padding: 2px 4px; cursor: pointer; border-radius: 3px;
+}
+.truss-health-max:hover, .truss-health-max:focus-visible { color: var(--bp-ink); background: var(--bp-info-bg); }
+.truss-health-empty { margin: 0; font-size: 12.5px; color: var(--bp-muted); }
+.truss-health-group { margin-bottom: 8px; }
+.truss-health-group:last-child { margin-bottom: 0; }
+.truss-health-group-head {
+  display: flex; align-items: center; gap: 7px; cursor: pointer; list-style: none;
+  font-family: var(--bp-mono); font-size: 12.5px; color: var(--bp-ink); font-weight: 600;
+}
+.truss-health-group-head::-webkit-details-marker { display: none; }
+.truss-health-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.truss-health-dot--error { background: var(--bp-error-fg); }
+.truss-health-dot--warning { background: var(--bp-warn-fg); }
+.truss-health-dot--info { background: var(--bp-info-fg); }
+.truss-health-table { flex: 1 1 auto; overflow-wrap: anywhere; }
+.truss-health-count-inline {
+  font-size: 10px; color: var(--bp-muted); border: 1px solid var(--bp-panel-line);
+  border-radius: 3px; padding: 0 5px;
+}
+.truss-health-focus {
+  font: inherit; font-size: 11px; color: var(--bp-cyan); background: none; border: 0; padding: 4px 0 6px; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.truss-health-focus:hover, .truss-health-focus:focus-visible { color: var(--bp-focus-border); }
+.truss-health-items { margin: 0; padding: 0 0 0 15px; list-style: none; }
+.truss-health-item { font-size: 12px; margin-bottom: 7px; color: var(--bp-fg); }
+.truss-health-item:last-child { margin-bottom: 0; }
+.truss-health-item-head { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.truss-health-badge {
+  font-family: var(--bp-mono); font-size: 10px; letter-spacing: .02em; text-transform: capitalize;
+  padding: 1px 5px; border-radius: 3px; border: 1px solid currentColor;
+}
+.truss-health-item--error .truss-health-badge { color: var(--bp-error-fg); }
+.truss-health-item--warning .truss-health-badge { color: var(--bp-warn-fg); }
+.truss-health-item--info .truss-health-badge { color: var(--bp-info-fg); }
+.truss-health-code { font-family: var(--bp-mono); font-size: 11px; color: var(--bp-muted); }
+.truss-health-loc { font-family: var(--bp-mono); font-size: 11.5px; color: var(--bp-ink); }
+.truss-health-heuristic {
+  font-family: var(--bp-mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: .03em;
+  color: var(--bp-muted); border: 1px dashed var(--bp-panel-line); border-radius: 3px; padding: 0 4px;
+}
+.truss-health-msg { margin-top: 2px; font-size: 12px; color: var(--bp-muted); }
+
+/* enum/set label turned into a clickable accent (opens the value popover).
+   The high-specificity selectors beat Mermaid's inherited label colour. */
+#truss-canvas svg .nodeLabel.truss-enum-type,
+#truss-canvas svg .nodeLabel.truss-enum-type p {
+  color: var(--bp-cyan) !important;
+  text-decoration: underline dotted; text-underline-offset: 2px;
+  cursor: pointer; pointer-events: auto;
+}
+#truss-canvas svg .nodeLabel.truss-enum-type:hover,
+#truss-canvas svg .nodeLabel.truss-enum-type:hover p { color: var(--bp-ink) !important; }
+
+/* One cap, and it governs one shared element with four different contents: the
+   enum value list (truss.js:331), the table menu (:376), the Export view menu
+   (:640) and the column detail (:980). Raising it therefore reaches real
+   installations and not only the server-less demo, which is a decision rather
+   than a side effect. It is a safe one because the change is monotone: every
+   content shows more before it scrolls and none shows less. The only content
+   with no natural bound is the enum list, one row per value, which scrolled at
+   280 and simply scrolls later now. Scoping per content would need :has(),
+   which costs more browser floor than the whole fix.
+
+   The size clears the tallest thing the popover ships: a menu carrying the "no
+   export route" note, which measures 264px under Playwright's Chromium and 294
+   under Chrome against this same stylesheet, a 30px spread from text metrics.
+   A flat 280 sat inside that spread, so the note explaining why four items were
+   dimmed scrolled off the bottom in some browsers and not others. Both the
+   table menu and the Export view menu carry that note (truss.js:384 and :648),
+   so the defect had two entry points.
+
+   The viewport term is not belt and braces. placePopover flips the menu above
+   its anchor when it will not fit below and pins it to 8px, so it cannot shrink
+   what it is given, and a taller flat cap would trade a clipped menu for one
+   running off the bottom of a short window. dvh is declared second because on
+   iOS Safari 100vh is the toolbars-retracted height, which would reintroduce
+   exactly that failure on the device a demo link is most often opened on; a
+   browser that does not know dvh keeps the vh line above it.
+
+   min() needs no fallback. A browser that cannot parse it drops the whole
+   declaration, which leaves no cap at all: nothing clips, and the only cost is
+   the short-window overrun that this change removes. The degradation is
+   benign, which is why the older syntax is not worth carrying. */
+.truss-popover {
+  position: fixed; z-index: 40; min-width: 120px; max-width: 260px;
+  max-height: min(360px, calc(100vh - 16px));
+  max-height: min(360px, calc(100dvh - 16px)); overflow: auto;
+  background: var(--bp-panel); border: 1px solid var(--bp-panel-line); border-radius: 4px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .2); padding: 10px 12px;
+  font-family: var(--bp-mono); font-size: 12px; color: var(--bp-fg);
+}
+.truss-popover[hidden] { display: none; }
+.truss-popover-head { font-size: 10px; letter-spacing: .01em; color: var(--bp-muted); margin-bottom: 8px; }
+.truss-popover ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.truss-popover li { white-space: nowrap; }
+.truss-popover li::before { content: "•"; color: var(--bp-cyan); margin-right: 7px; }
+
+/* table name as the per-table export/focus trigger. Kept subtle so headers stay
+   clean: it only reveals itself as clickable on hover. */
+#truss-canvas svg .nodeLabel.truss-table-name { cursor: pointer; pointer-events: auto; }
+#truss-canvas svg .nodeLabel.truss-table-name:hover,
+#truss-canvas svg .nodeLabel.truss-table-name:hover p {
+  color: var(--bp-cyan) !important;
+  text-decoration: underline dotted; text-underline-offset: 3px;
+}
+
+/* WCAG 2.4.7 (Focus Visible). The three in-diagram triggers carry role="button"
+   and tabindex="0" (see truss.js), so they are reachable by Tab and need an
+   indicator that is a shape change, not a recolour: hover already uses colour,
+   and colour alone excludes anyone who cannot distinguish the two. Mermaid
+   renders these labels as HTML inside a foreignObject, so `outline` applies. */
+#truss-canvas svg .nodeLabel.truss-table-name:focus-visible,
+#truss-canvas svg .nodeLabel.truss-enum-type:focus-visible,
+#truss-canvas svg .nodeLabel.truss-health-marker:focus-visible {
+  outline: 2px solid var(--bp-focus-border);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* action menu inside the shared popover */
+.truss-menu { display: flex; flex-direction: column; gap: 2px; min-width: 150px; }
+.truss-menu button {
+  all: unset; box-sizing: border-box; display: block; width: 100%;
+  font-family: var(--bp-mono); font-size: 12px; color: var(--bp-fg);
+  padding: 7px 9px; border-radius: 3px; cursor: pointer;
+}
+.truss-menu button:hover, .truss-menu button:focus-visible { background: var(--bp-info-bg); color: var(--bp-info-fg); }
+
+/* An action this dashboard cannot perform: no export route, or a diagram too
+   large to rasterise. Still focusable (aria-disabled, not disabled) so it can be
+   read and its reason heard, so it needs a focus ring like any other item. The
+   note below the menu carries the reason in words: the dimming is a second
+   signal, never the only one. */
+.truss-menu button[aria-disabled='true'] { color: var(--bp-muted); cursor: not-allowed; }
+.truss-menu button[aria-disabled='true']:hover { background: none; color: var(--bp-muted); }
+.truss-menu button[aria-disabled='true']:focus-visible { background: none; color: var(--bp-muted); }
+.truss-menu-note {
+  margin: 8px 0 0; padding-top: 8px; max-width: 240px;
+  border-top: 1px solid var(--bp-panel-line);
+  font-family: var(--bp-mono); font-size: 11px; line-height: 1.5; color: var(--bp-muted);
+}
+
+/* status footer */
+.truss-footer {
+  height: 28px; display: flex; align-items: center; gap: 14px; padding: 0 16px;
+  background: var(--bp-panel); border-top: 1px solid var(--bp-panel-line);
+  font-family: var(--bp-mono); font-size: 11px; letter-spacing: .04em; color: var(--bp-muted);
+}
+.truss-footer-spacer { margin-left: auto; }
+.truss-footer .truss-flag { color: var(--bp-warn-fg); }
+#truss-stat-conn:not(:empty)::before { content: "· "; }
+
+/* ---- banners ---------------------------------------------------------- */
+
+#truss-banners { display: flex; flex-direction: column; }
+.truss-banner {
+  font-family: var(--bp-mono); font-size: 11.5px; letter-spacing: .03em;
+  padding: 8px 18px; border-bottom: 1px solid var(--bp-panel-line);
+  display: flex; align-items: center; gap: 9px;
+}
+.truss-banner::before { content: "◧"; opacity: .8; }
+/* the way out of an empty diagram, e.g. "Clear focus" */
+.truss-banner-action {
+  font: inherit; letter-spacing: inherit; color: inherit;
+  background: none; border: 0; border-bottom: 1px solid currentColor;
+  padding: 0; cursor: pointer; opacity: .85;
+}
+.truss-banner-action:hover { opacity: 1; }
+.truss-banner--info { background: var(--bp-info-bg); color: var(--bp-info-fg); }
+.truss-banner--warn { background: var(--bp-warn-bg); color: var(--bp-warn-fg); }
+.truss-banner--error { background: var(--bp-error-bg); color: var(--bp-error-fg); }
+
+/* ---- diagram viewport (pan/zoom) -------------------------------------- */
+
+#truss-viewport {
+  position: relative; overflow: hidden; height: calc(100vh - 54px - 28px);
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+#truss-viewport.is-panning { cursor: grabbing; }
+/* No `will-change: transform`: it would pin the canvas to a GPU layer rasterised
+   once at promotion scale and bitmap-upscaled, blurring text past ~1x. Without
+   it the browser re-rasterises the vector SVG on each scale change (crisp deep
+   zoom); panning only changes `translate`, which keeps the raster valid. */
+#truss-canvas { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+
+/* ---- Mermaid ER theming ----------------------------------------------- */
+/* Mermaid draws entity/row fills as SVG presentation attributes, which any CSS
+   rule overrides. Repainting them here (rather than via Mermaid's theme) makes
+   the diagram follow light/dark with no re-render, and fixes the pale odd-rows
+   Mermaid's v11 renderer produces in dark mode. */
+
+#truss-canvas svg { color: var(--bp-entity-text); }
+
+#truss-canvas svg .outer-path path[fill]:not([fill="none"]) { fill: var(--bp-entity-bg) !important; }
+#truss-canvas svg .outer-path path[stroke]:not([stroke="none"]) { stroke: var(--bp-entity-border) !important; stroke-width: 1.3px !important; }
+
+#truss-canvas svg .row-rect-odd path[fill]:not([fill="none"]) { fill: var(--bp-row-odd) !important; }
+#truss-canvas svg .row-rect-even path[fill]:not([fill="none"]) { fill: var(--bp-row-even) !important; }
+#truss-canvas svg .row-rect-odd path[stroke]:not([stroke="none"]),
+#truss-canvas svg .row-rect-even path[stroke]:not([stroke="none"]) { stroke: var(--bp-hair) !important; }
+
+#truss-canvas svg .divider path { fill: var(--bp-hair) !important; stroke: var(--bp-hair) !important; }
+
+/* Backgrounds/decorations take no pointer events, so the injected enum eye
+   (an HTML button in a label cell, painted on top) reliably receives clicks
+   instead of the row-rect behind it. Panning still works — events over these
+   fall through to the label cells / viewport, which bubble to the pan handler. */
+#truss-canvas svg .row-rect-odd path,
+#truss-canvas svg .row-rect-even path,
+#truss-canvas svg .outer-path path,
+#truss-canvas svg .divider path { pointer-events: none; }
+
+/* the focused table: accent border, tinted header, bold accent name */
+#truss-canvas svg g.node.truss-focused .outer-path path[fill]:not([fill="none"]) { fill: var(--bp-focus-bg) !important; }
+#truss-canvas svg g.node.truss-focused .outer-path path[stroke]:not([stroke="none"]) { stroke: var(--bp-focus-border) !important; stroke-width: 2.4px !important; }
+#truss-canvas svg g.node.truss-focused g.label.name .nodeLabel { color: var(--bp-focus-border) !important; font-weight: 600; }
+
+/* schema diff tints: added and changed tables (removed tables are list-only) */
+#truss-canvas svg g.node.truss-diff-added .outer-path path[fill]:not([fill="none"]) { fill: var(--bp-diff-added-bg) !important; }
+#truss-canvas svg g.node.truss-diff-added .outer-path path[stroke]:not([stroke="none"]) { stroke: var(--bp-diff-added-border) !important; stroke-width: 2.4px !important; }
+#truss-canvas svg g.node.truss-diff-added g.label.name .nodeLabel { color: var(--bp-diff-added-border) !important; font-weight: 600; }
+#truss-canvas svg g.node.truss-diff-changed .outer-path path[fill]:not([fill="none"]) { fill: var(--bp-diff-changed-bg) !important; }
+#truss-canvas svg g.node.truss-diff-changed .outer-path path[stroke]:not([stroke="none"]) { stroke: var(--bp-diff-changed-border) !important; stroke-width: 2.4px !important; }
+#truss-canvas svg g.node.truss-diff-changed g.label.name .nodeLabel { color: var(--bp-diff-changed-border) !important; font-weight: 600; }
+
+/* Health view: mark the offending column's *name* as clickable for the finding
+   detail. A dotted underline in the severity colour signals it is a control (the
+   same cue the enum values use), and does not add width, so it is never clipped
+   by Mermaid's fixed-width cells the way an injected icon would be. High-specificity
+   selectors beat Mermaid's inherited label colour. */
+#truss-canvas svg .nodeLabel.truss-health-marker,
+#truss-canvas svg .nodeLabel.truss-health-marker p {
+  cursor: pointer; pointer-events: auto; font-weight: 600;
+  text-decoration: underline dotted; text-underline-offset: 2px; text-decoration-thickness: 1.5px;
+}
+#truss-canvas svg .nodeLabel.truss-health-marker--error,
+#truss-canvas svg .nodeLabel.truss-health-marker--error p { color: var(--bp-error-fg) !important; }
+#truss-canvas svg .nodeLabel.truss-health-marker--warning,
+#truss-canvas svg .nodeLabel.truss-health-marker--warning p { color: var(--bp-warn-fg) !important; }
+#truss-canvas svg .nodeLabel.truss-health-marker--info,
+#truss-canvas svg .nodeLabel.truss-health-marker--info p { color: var(--bp-info-fg) !important; }
+
+/* finding detail popover (shared popover, reused for a column's findings) */
+.truss-health-pop { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; max-width: 260px; }
+.truss-health-pop-item { white-space: normal; }
+.truss-health-hint { margin-top: 3px; font-size: 11.5px; color: var(--bp-muted); font-style: italic; }
+
+/* Passive always-on flag: a small severity dot with the finding count on the
+   corner of any flagged table. The digit uses the panel colour (opposite
+   luminance to every severity fg), so it reads in both themes. */
+/* High-specificity + !important to beat Mermaid's own node/circle/text styling. */
+#truss-canvas svg .truss-health-flag { pointer-events: none; }
+#truss-canvas svg .truss-health-flag circle { stroke: var(--bp-panel) !important; stroke-width: 1.5 !important; }
+#truss-canvas svg .truss-health-flag text { font-family: var(--bp-mono); font-size: 10px; font-weight: 700; fill: var(--bp-panel) !important; }
+#truss-canvas svg .truss-health-flag--error circle { fill: var(--bp-error-fg) !important; }
+#truss-canvas svg .truss-health-flag--warning circle { fill: var(--bp-warn-fg) !important; }
+#truss-canvas svg .truss-health-flag--info circle { fill: var(--bp-info-fg) !important; }
+
+/* Health view: badge tables with findings, tinted by their worst severity. */
+#truss-canvas svg g.node.truss-health-error .outer-path path[fill]:not([fill="none"]) { fill: var(--bp-error-bg) !important; }
+#truss-canvas svg g.node.truss-health-error .outer-path path[stroke]:not([stroke="none"]) { stroke: var(--bp-error-fg) !important; stroke-width: 2.4px !important; }
+#truss-canvas svg g.node.truss-health-error g.label.name .nodeLabel { color: var(--bp-error-fg) !important; font-weight: 600; }
+#truss-canvas svg g.node.truss-health-warning .outer-path path[fill]:not([fill="none"]) { fill: var(--bp-warn-bg) !important; }
+#truss-canvas svg g.node.truss-health-warning .outer-path path[stroke]:not([stroke="none"]) { stroke: var(--bp-warn-fg) !important; stroke-width: 2.4px !important; }
+#truss-canvas svg g.node.truss-health-warning g.label.name .nodeLabel { color: var(--bp-warn-fg) !important; font-weight: 600; }
+#truss-canvas svg g.node.truss-health-info .outer-path path[fill]:not([fill="none"]) { fill: var(--bp-info-bg) !important; }
+#truss-canvas svg g.node.truss-health-info .outer-path path[stroke]:not([stroke="none"]) { stroke: var(--bp-info-fg) !important; stroke-width: 2.4px !important; }
+#truss-canvas svg g.node.truss-health-info g.label.name .nodeLabel { color: var(--bp-info-fg) !important; font-weight: 600; }
+
+#truss-canvas svg .nodeLabel,
+#truss-canvas svg .nodeLabel p { color: var(--bp-entity-text) !important; font-family: var(--bp-mono) !important; }
+
+#truss-canvas svg .relationshipLine { stroke: var(--bp-rel) !important; }
+#truss-canvas svg marker path { stroke: var(--bp-rel) !important; }
+
+#truss-canvas svg .edgeLabel,
+#truss-canvas svg .edgeLabel p { color: var(--bp-edge) !important; font-family: var(--bp-mono) !important; font-size: 11px; }
+#truss-canvas svg .edgeLabel .labelBkg,
+#truss-canvas svg .labelBkg { background: var(--bp-edge-bg) !important; opacity: .9; }
+
+/* ---- responsive ------------------------------------------------------- */
+
+/* Small desktop: fold the secondary controls (focus, depth, type labels) behind
+   the ⋯ button as a dropdown panel, so a fully-featured toolbar (every control
+   active, long table names) never overflows the viewport. The bar is sticky and
+   pins vertically only, so an overflow would otherwise let a horizontal drag
+   slide the whole header and clip the brand. The phone block below layers on
+   mark-only branding and a full-width search. */
+@media (max-width: 1024px) {
+  .truss-util--more { display: inline-flex; }
+
+  .truss-secondary {
+    display: none; position: absolute; top: 100%; right: 8px; margin-top: 6px;
+    flex-direction: column; align-items: flex-start; gap: 14px; padding: 14px 16px;
+    background: var(--bp-panel); border: 1px solid var(--bp-panel-line); border-radius: 4px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .18); z-index: 25;
+  }
+  .truss-secondary.is-open { display: flex; }
+  .truss-secondary .truss-field-label { display: inline; } /* labels back inside the panel */
+}
+
+/* Tablet: drop the field labels to reclaim horizontal room; inputs stay. */
+@media (max-width: 900px) {
+  .truss-toolbar { gap: 12px; }
+  .truss-secondary { gap: 12px; }
+  .truss-field-label { display: none; }
+  .truss-field--search input { width: 130px; }
+}
+
+/* Phone: collapse the secondary controls behind the ⋯ button as a panel;
+   the top bar keeps the mark, filter, and the utility cluster. */
+@media (max-width: 560px) {
+  .truss-toolbar { gap: 10px; padding: 0 12px; }
+  .truss-brand { font-size: 0; gap: 0; } /* mark only, hide the wordmark */
+  .truss-field--search { flex: 1; min-width: 0; }
+  .truss-field--search input { width: 100%; }
+  /* The ⋯ button and the secondary dropdown are already set up at <=1024px. The
+     legend stays a top-right dropdown here too, matching the changes and health
+     panels, rather than becoming a full-width bottom sheet. */
+
+  .truss-footer { gap: 10px; font-size: 10px; }
+  #truss-stat-updated { display: none; }
+  .truss-zoom { right: 10px; bottom: 10px; padding: 6px 8px; gap: 8px; }
+  .truss-zoom input[type="range"] { width: 84px; }
+}
