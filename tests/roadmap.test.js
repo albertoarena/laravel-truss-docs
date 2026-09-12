@@ -155,7 +155,7 @@ describe('roadmap data', () => {
     expect(formats.status).toBe('exploring')
   })
 
-  it('puts the self-contained HTML export next, since it is the next release', () => {
+  it('carries the self-contained HTML export as approved next', () => {
     const html = ALL.find((i) => /HTML export/i.test(i.title))
     expect(html, 'HTML export card exists').toBeTruthy()
     expect(html.status).toBe('approved')
@@ -194,10 +194,19 @@ describe('roadmap data', () => {
     expect(doctor.blurb).toMatch(/v1\.11\.0/)
   })
 
-  it('moves the Filament plugin from wishlist to exploring', () => {
+  it('carries the Filament plugin as approved next, having been decided', () => {
     const filament = ALL.find((i) => /filament/i.test(i.title))
     expect(filament, 'Filament item exists').toBeTruthy()
-    expect(filament.status).toBe('exploring')
+    // Wishlist, then exploring, and approved once the shape was settled: a
+    // native panel page in a package of its own, not the diagram in a frame.
+    expect(filament.status).toBe('approved')
+    expect(filament.version, 'unshipped items carry no version').toBeUndefined()
+    // A card shares the concept, not the plan. How the page reaches the schema
+    // and how the panel's theme is consumed are implementation decisions that
+    // are not committed to in public.
+    expect(filament.blurb, 'no build mechanics in the card').not.toMatch(
+      /payload|facade|livewire|mermaid|css custom propert/i
+    )
   })
 
   it('keeps private strategy items out of the public roadmap', () => {
