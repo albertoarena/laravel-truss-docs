@@ -441,6 +441,7 @@ export default defineConfig({
           items: [
             { label: 'Accessibility', link: '/guides/accessibility/', badge: 'New' },
             { label: 'Authorization', link: '/guides/authorization/' },
+            { label: 'Embedding', link: '/guides/embedding/', badge: 'New' },
             { label: 'Focus & filter', link: '/guides/focus-and-filter/' },
             { label: 'Schema diff', link: '/guides/schema-diff/' },
             { label: 'Schema doctor', link: '/guides/schema-doctor/' },

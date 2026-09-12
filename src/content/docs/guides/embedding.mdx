@@ -1,0 +1,102 @@
+---
+title: Embedding
+description: Get the dashboard's data in PHP with Truss::payload(), and hand it to the diagram in the page so it draws without calling your own application over HTTP
+---
+
+Truss renders its own page at `/truss`, and the client asks your application for the schema over HTTP. That is the right design for a standalone dashboard and the wrong one for a page you are building yourself: if you are already inside the application, making an HTTP request to it is a round trip to fetch something you were holding all along.
+
+Two pieces make that unnecessary. `Truss::payload()` hands you the array the dashboard runs on, in PHP. A `<script type="application/json">` block hands that array to the frontend in the page, so no schema endpoint is requested and none needs to exist.
+
+Structure only on both, as everywhere else in Truss. No export, no payload, and no embed has ever contained row data.
+
+## In PHP: `Truss::payload()`
+
+```php
+use AlbertoArena\Truss\Facades\Truss;
+
+$payload = Truss::payload();              // the app's default connection
+$payload = Truss::payload('reporting');   // a specific one
+```
+
+You get an array with the tables, plus everything the dashboard draws on top of them:
+
+| Key | What it holds |
+|---|---|
+| `tables` | The snapshot, with the tables your config excludes already removed |
+| `diff` | The structural diff against the recorded baseline, or `null` |
+| `doctor` | The `truss:doctor` findings, or `null` when the panel is off |
+| `generated_at` | When the snapshot was built |
+| `fallback` | Whether the snapshot came from the replay fallback |
+| `cache_unavailable` | Present and `true` only when the cache store could not be read |
+| `diff_unavailable` | Present and `true` only when the baseline disk could not be read |
+
+The two `_unavailable` flags appear only when the thing they describe actually happened, so code written against an older payload keeps working.
+
+### It is not `Truss::snapshot()`
+
+[`Truss::snapshot()`](/guides/ai-context/#in-code-the-truss-facade) returns an export builder for producing DBML, JSON, Markdown and the rest. It is the right tool for exports and the wrong one here: it carries no diff, no findings and no unavailability flags, because an export does not need them.
+
+`Truss::payload()` returns a plain array, already filtered, with all of it. It is what `GET {prefix}/api/schema` serves, built by the same code, which the test suite asserts rather than assumes.
+
+Asking for a connection Truss does not manage throws an `InvalidArgumentException`. The HTTP endpoint answers the same case with a 404, since an endpoint must not confirm which connections exist, but in PHP that is a programming error and worth hearing about.
+
+## Authorization is yours now
+
+:::caution
+**`Truss::payload()` runs no authorization at all.** It is a data method. Whatever you put it behind is what protects the schema.
+:::
+
+This is the one that costs you if it is missed. The `/truss` routes sit behind middleware doing three things in order, and a page of your own passes through none of it:
+
+1. **404 unless `truss.enabled`.** The deploy switch, checked before anything else.
+2. Then, **only when the environment is not `local`**, 404 unless the `viewTruss` gate allows the current user.
+
+So `local` is open unconditionally, and the gate is the whole story everywhere else. See [Authorization](/guides/authorization/) for how that gate is defined and overridden.
+
+Two ways to get this wrong, and neither is exotic:
+
+- **Check nothing but your own page's permission** and you render the schema in an application where the operator switched Truss off. The kill switch failing in the one place a reader would assume it holds.
+- **Check only the gate** and your page is stricter than the dashboard in `local`, where the dashboard is open. Against the shipped email allow-list, a developer working locally finds the page mysteriously missing. Not a security bug, and exactly the sort that gets reported as one.
+
+The rule worth writing down is not "run two checks". It is that **your page gives the same answer the dashboard route would give the same user**, in the same order. That stays true if the middleware ever grows a fourth condition.
+
+## In the page: the embedded payload
+
+The frontend looks for one element inside the app container:
+
+```html
+<script type="application/json" data-truss-payload>{ ... }</script>
+```
+
+When it is there, the diagram is drawn from it and **no schema request is made**. When it is not, the client fetches `data-schema-endpoint` exactly as before. Truss's own dashboard embeds nothing and still fetches, so nothing changes for a normal install.
+
+In Blade, with the view published (`php artisan vendor:publish --tag=truss-views`), that is one line inside the `#truss-app` element:
+
+```blade
+<script type="application/json" data-truss-payload>@json(\AlbertoArena\Truss\Facades\Truss::payload(), JSON_HEX_TAG)</script>
+```
+
+:::caution
+Use `JSON_HEX_TAG`. A column default or a table comment containing `</script>` would otherwise close the block early and break the page. Truss reads comments as structure, so this is not hypothetical.
+:::
+
+Everything downstream is untouched. The filter, the focus picker, the depth control and the type-label toggle all still run in the browser against what you handed over, which is the difference between embedding the diagram and rendering a picture of it.
+
+A script block rather than an attribute for two reasons: a schema envelope is large, and `type="application/json"` is never executed, so this stays safe under the same strict Content-Security-Policy the rest of the package is built for.
+
+### It fails in two directions on purpose
+
+- **A partial or empty payload degrades.** The envelope has grown optional keys across releases, so a missing `diff` or `doctor` gives you a working diagram without them rather than a crash. A crash in the loader would leave the page on its loading banner for ever, which tells a reader nothing.
+- **A payload that is not valid JSON throws.** It does not quietly fall back to fetching, because on a page with no schema endpoint that fallback would produce a 404 and report *that*, sending you after a routing problem you do not have instead of the typo you do.
+
+## What still goes over HTTP
+
+Embedding removes the schema request. It does not remove the assets: the stylesheet, the JavaScript modules and Mermaid still load from `{prefix}/assets/{file}`.
+
+**Those routes are gated too**, with everything else, so they never confirm Truss exists to someone who may not see it. The practical consequence is worth knowing before you debug it: if your page is visible to a user who does not pass the `viewTruss` gate, the page renders and the assets 404, and you get a blank frame rather than a permission error. Keeping your page's check identical to the dashboard's, as above, makes that impossible by construction.
+
+## What this does not cover yet
+
+The container markup is **not a public contract**. The frontend expects the elements the shipped Blade view provides, and several of them are required rather than optional, so a page that keeps only a canvas will not boot.
+
+What is supported today is the shipped view, or a copy of it, running on a payload you provide instead of on a fetch. Building a page with its own chrome around the Truss canvas is possible but undocumented, and the markup it depends on may change in any release. If that is what you are doing, pin your Truss version, and say so in an issue: it is the case that would justify making the contract explicit.
