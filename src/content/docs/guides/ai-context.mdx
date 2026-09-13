@@ -54,6 +54,8 @@ $context = Truss::snapshot()
 
 The builder is immutable, so a base builder is safe to share and branch. It offers `only()`, `except()`, `focus()`, `compact()`, `withoutAnnotations()`, `fresh()`, and `connection()`, with a terminal per format: `toDbml()`, `toJson()`, `toCsv()`, `toMarkdown()`, `toMermaid()`, `toLlm()`, and `toArray()`. It produces exactly the same bytes as `truss:export` for the same filters.
 
+`Truss::snapshot()` is built for exports, so it carries no schema diff and no doctor findings. If you are rendering the dashboard's own view rather than exporting, `Truss::payload()` returns the array it draws from, including both. See [Embedding](/guides/embedding/).
+
 ## Over HTTP: the gated route
 
 The dashboard download button and any HTTP client share one route, `GET {prefix}/export/{format}`, behind the `viewTruss` gate. It accepts the same filters as query parameters (`only`, `except`, `focus`, `depth`, `compact`, `connection`), so the command, the facade, and the dashboard all produce identical output from one source of truth.
