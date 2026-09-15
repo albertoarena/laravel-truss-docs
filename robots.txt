@@ -1,0 +1,27 @@
+# Laravel Truss documentation. Crawl freely.
+#
+# Content signals below follow the Cloudflare content-signals proposal:
+#   search:   building a search index and returning links and short excerpts
+#   ai-input: taking content as input to a model at answer time, e.g. RAG
+#   ai-train: training or fine-tuning models
+#
+# All three are granted. The package is MIT licensed and its documentation is
+# meant to be found, quoted and learned from.
+
+User-agent: *
+Disallow:
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+
+# The group below is not a site preference. These three bulk training crawlers
+# are blocked account-wide by the hosting provider's WAF, which returns 403 to
+# them whatever this file says. Declaring it is more honest than letting them
+# collect an unexplained error on every request, and a crawler given a clean
+# Disallow stops cleanly instead of retrying. No answer engine depends on any of
+# them, so nothing about search or AI answers is affected.
+
+User-agent: ClaudeBot
+User-agent: Amazonbot
+User-agent: Bytespider
+Disallow: /
+
+Sitemap: https://trussphp.com/sitemap-index.xml
