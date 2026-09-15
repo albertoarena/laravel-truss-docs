@@ -27,10 +27,13 @@ You get an array with the tables, plus everything the dashboard draws on top of 
 | `doctor` | The `truss:doctor` findings, or `null` when the panel is off |
 | `generated_at` | When the snapshot was built |
 | `fallback` | Whether the snapshot came from the replay fallback |
+| `excluded` | `{ "count": N }`, how many tables `excluded_tables` removed from this connection |
 | `cache_unavailable` | Present and `true` only when the cache store could not be read |
 | `diff_unavailable` | Present and `true` only when the baseline disk could not be read |
 
 The two `_unavailable` flags appear only when the thing they describe actually happened, so code written against an older payload keeps working.
+
+`excluded.count` is always present, including as `0`, so a page rendering the payload never has to tell "nothing was excluded" apart from "a payload that predates this". It is a count and never the names, which is enough to say the diagram is a view of a larger schema without disclosing what was left out. Hand-build a payload without the key and the diagram treats it as zero.
 
 ### It is not `Truss::snapshot()`
 

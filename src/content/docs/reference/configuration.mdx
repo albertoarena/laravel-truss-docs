@@ -69,6 +69,8 @@ Only listed connections are visualizable; a request for any other connection ret
 
 Applied **server-side at serve time**, so their structure never reaches the browser and toggling the list needs no rebuild. The defaults cover framework and infrastructure tables (`migrations`, `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`).
 
+The response does say **how many** tables the list removed, which is what lets the dashboard footer read `24 of 32 tables` instead of presenting a filtered diagram as the whole schema. A count only: the names of excluded tables are never sent. `truss:show` reports the same way in the terminal.
+
 ### `diagram.type_labels`
 
 `native` shows the exact database type (`varchar(255)`, `bigint unsigned`), which is the source of truth. `laravel` shows a best-effort short label (`string`, `integer`), computed in the browser. The mode is also toggleable live in the UI; this key sets the default.
