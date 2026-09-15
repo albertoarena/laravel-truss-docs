@@ -7,114 +7,555 @@
     {
       "name": "users",
       "columns": [
-        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "name", "type": "varchar(255)", "nullable": false, "default": null },
-        { "name": "email", "type": "varchar(255)", "nullable": false, "default": null },
-        { "name": "email_verified_at", "type": "timestamp", "nullable": true, "default": null },
-        { "name": "created_at", "type": "timestamp", "nullable": true, "default": null }
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "email",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "email_verified_at",
+          "type": "timestamp",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true,
+          "default": null
+        }
       ],
-      "primary_key": ["id"], "indexes": [], "foreign_keys": []
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [],
+      "foreign_keys": []
     },
     {
       "name": "roles",
       "columns": [
-        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "name", "type": "varchar(255)", "nullable": false, "default": null }
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null
+        }
       ],
-      "primary_key": ["id"], "indexes": [], "foreign_keys": []
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [],
+      "foreign_keys": []
     },
     {
       "name": "role_user",
       "columns": [
-        { "name": "role_id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "user_id", "type": "bigint unsigned", "nullable": false, "default": null }
+        {
+          "name": "role_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        }
       ],
-      "primary_key": ["role_id", "user_id"], "indexes": [],
+      "primary_key": [
+        "role_id",
+        "user_id"
+      ],
+      "indexes": [],
       "foreign_keys": [
-        { "name": "role_user_role_id_foreign", "columns": ["role_id"], "references_table": "roles", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" },
-        { "name": "role_user_user_id_foreign", "columns": ["user_id"], "references_table": "users", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" }
+        {
+          "name": "role_user_role_id_foreign",
+          "columns": [
+            "role_id"
+          ],
+          "references_table": "roles",
+          "references_columns": [
+            "id"
+          ],
+          "on_update": null,
+          "on_delete": "cascade"
+        },
+        {
+          "name": "role_user_user_id_foreign",
+          "columns": [
+            "user_id"
+          ],
+          "references_table": "users",
+          "references_columns": [
+            "id"
+          ],
+          "on_update": null,
+          "on_delete": "cascade"
+        }
       ]
     },
     {
       "name": "categories",
       "columns": [
-        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "parent_id", "type": "bigint unsigned", "nullable": true, "default": null },
-        { "name": "name", "type": "varchar(255)", "nullable": false, "default": null }
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "parent_id",
+          "type": "bigint unsigned",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null
+        }
       ],
-      "primary_key": ["id"], "indexes": [],
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [],
       "foreign_keys": [
-        { "name": "categories_parent_id_foreign", "columns": ["parent_id"], "references_table": "categories", "references_columns": ["id"], "on_update": null, "on_delete": "set null" }
+        {
+          "name": "categories_parent_id_foreign",
+          "columns": [
+            "parent_id"
+          ],
+          "references_table": "categories",
+          "references_columns": [
+            "id"
+          ],
+          "on_update": null,
+          "on_delete": "set null"
+        }
       ]
     },
     {
       "name": "posts",
       "columns": [
-        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "user_id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "category_id", "type": "bigint unsigned", "nullable": true, "default": null },
-        { "name": "title", "type": "varchar(255)", "nullable": false, "default": null },
-        { "name": "status", "type": "enum('draft','published','archived')", "nullable": false, "default": "draft" },
-        { "name": "published_at", "type": "timestamp", "nullable": true, "default": null }
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "category_id",
+          "type": "bigint unsigned",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "title",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "status",
+          "type": "enum('draft','published','archived')",
+          "nullable": false,
+          "default": "draft"
+        },
+        {
+          "name": "published_at",
+          "type": "timestamp",
+          "nullable": true,
+          "default": null
+        }
       ],
-      "primary_key": ["id"], "indexes": [],
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [],
       "foreign_keys": [
-        { "name": "posts_user_id_foreign", "columns": ["user_id"], "references_table": "users", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" },
-        { "name": "posts_category_id_foreign", "columns": ["category_id"], "references_table": "categories", "references_columns": ["id"], "on_update": null, "on_delete": "set null" }
+        {
+          "name": "posts_user_id_foreign",
+          "columns": [
+            "user_id"
+          ],
+          "references_table": "users",
+          "references_columns": [
+            "id"
+          ],
+          "on_update": null,
+          "on_delete": "cascade"
+        },
+        {
+          "name": "posts_category_id_foreign",
+          "columns": [
+            "category_id"
+          ],
+          "references_table": "categories",
+          "references_columns": [
+            "id"
+          ],
+          "on_update": null,
+          "on_delete": "set null"
+        }
       ]
     },
     {
       "name": "comments",
       "columns": [
-        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "post_id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "user_id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "body", "type": "text", "nullable": false, "default": null },
-        { "name": "created_at", "type": "timestamp", "nullable": true, "default": null }
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "post_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "body",
+          "type": "text",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "nullable": true,
+          "default": null
+        }
       ],
-      "primary_key": ["id"], "indexes": [],
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [],
       "foreign_keys": [
-        { "name": "comments_post_id_foreign", "columns": ["post_id"], "references_table": "posts", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" },
-        { "name": "comments_user_id_foreign", "columns": ["user_id"], "references_table": "users", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" }
+        {
+          "name": "comments_post_id_foreign",
+          "columns": [
+            "post_id"
+          ],
+          "references_table": "posts",
+          "references_columns": [
+            "id"
+          ],
+          "on_update": null,
+          "on_delete": "cascade"
+        },
+        {
+          "name": "comments_user_id_foreign",
+          "columns": [
+            "user_id"
+          ],
+          "references_table": "users",
+          "references_columns": [
+            "id"
+          ],
+          "on_update": null,
+          "on_delete": "cascade"
+        }
       ]
     },
     {
       "name": "tags",
       "columns": [
-        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "name", "type": "varchar(255)", "nullable": false, "default": null }
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "name",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null
+        }
       ],
-      "primary_key": ["id"], "indexes": [], "foreign_keys": []
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [],
+      "foreign_keys": []
     },
     {
       "name": "post_tag",
       "columns": [
-        { "name": "post_id", "type": "bigint unsigned", "nullable": false, "default": null },
-        { "name": "tag_id", "type": "bigint unsigned", "nullable": false, "default": null }
+        {
+          "name": "post_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "tag_id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        }
       ],
-      "primary_key": ["post_id", "tag_id"], "indexes": [],
+      "primary_key": [
+        "post_id",
+        "tag_id"
+      ],
+      "indexes": [],
       "foreign_keys": [
-        { "name": "post_tag_post_id_foreign", "columns": ["post_id"], "references_table": "posts", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" },
-        { "name": "post_tag_tag_id_foreign", "columns": ["tag_id"], "references_table": "tags", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" }
+        {
+          "name": "post_tag_post_id_foreign",
+          "columns": [
+            "post_id"
+          ],
+          "references_table": "posts",
+          "references_columns": [
+            "id"
+          ],
+          "on_update": null,
+          "on_delete": "cascade"
+        },
+        {
+          "name": "post_tag_tag_id_foreign",
+          "columns": [
+            "tag_id"
+          ],
+          "references_table": "tags",
+          "references_columns": [
+            "id"
+          ],
+          "on_update": null,
+          "on_delete": "cascade"
+        }
       ]
+    },
+    {
+      "name": "migrations",
+      "columns": [
+        {
+          "name": "id",
+          "type": "int unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "migration",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "batch",
+          "type": "int",
+          "nullable": false,
+          "default": null
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "excluded": true
+    },
+    {
+      "name": "sessions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "user_id",
+          "type": "bigint unsigned",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "ip_address",
+          "type": "varchar(45)",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "user_agent",
+          "type": "text",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "payload",
+          "type": "longtext",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "last_activity",
+          "type": "int",
+          "nullable": false,
+          "default": null
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "excluded": true
+    },
+    {
+      "name": "cache",
+      "columns": [
+        {
+          "name": "key",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "value",
+          "type": "mediumtext",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "expiration",
+          "type": "int",
+          "nullable": false,
+          "default": null
+        }
+      ],
+      "primary_key": [
+        "key"
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "excluded": true
+    },
+    {
+      "name": "jobs",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "queue",
+          "type": "varchar(255)",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "payload",
+          "type": "longtext",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "attempts",
+          "type": "tinyint unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "reserved_at",
+          "type": "int unsigned",
+          "nullable": true,
+          "default": null
+        },
+        {
+          "name": "available_at",
+          "type": "int unsigned",
+          "nullable": false,
+          "default": null
+        },
+        {
+          "name": "created_at",
+          "type": "int unsigned",
+          "nullable": false,
+          "default": null
+        }
+      ],
+      "primary_key": [
+        "id"
+      ],
+      "indexes": [],
+      "foreign_keys": [],
+      "excluded": true
     }
   ],
+  "excluded": {
+    "count": 4
+  },
   "diff": {
     "tables_added": [
-      { "name": "comments" }
+      {
+        "name": "comments"
+      }
     ],
     "tables_removed": [
-      { "name": "legacy_imports" }
+      {
+        "name": "legacy_imports"
+      }
     ],
     "tables_changed": [
       {
         "name": "posts",
         "columns_added": [
-          { "name": "published_at", "type": "timestamp", "nullable": true, "default": null }
+          {
+            "name": "published_at",
+            "type": "timestamp",
+            "nullable": true,
+            "default": null
+          }
         ],
         "columns_removed": [],
         "columns_changed": [
-          { "name": "title", "changes": { "type": { "before": "varchar(200)", "after": "varchar(255)" } } }
+          {
+            "name": "title",
+            "changes": {
+              "type": {
+                "before": "varchar(200)",
+                "after": "varchar(255)"
+              }
+            }
+          }
         ],
         "indexes_added": [],
         "indexes_removed": [],
