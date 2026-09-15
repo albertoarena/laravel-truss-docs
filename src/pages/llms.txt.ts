@@ -10,6 +10,7 @@ import type { APIRoute } from 'astro'
 import { getCollection } from 'astro:content'
 
 import { groupIntoSections, renderLlmsTxt } from '../scripts/llms-txt.js'
+import { DEMO_APPS, appPagePath } from '../../scripts/demo-apps.mjs'
 import { PACKAGE_NAME } from '../config/package.js'
 
 const SUMMARY =
@@ -49,6 +50,23 @@ const TRY_IT = [
     path: '/theme-builder/',
     description: 'Build a palette against a live preview and copy the config it produces',
   },
+  // One per application in /demo/apps/: a real open-source Laravel schema drawn
+  // in the dashboard, from a static snapshot.
+  //
+  // Listed because this file holds every built route bar the landing and the
+  // roadmap, and a test asserts it (llms-txt-output). That invariant is the
+  // point: a page an agent cannot find in the index may as well not be there,
+  // and a page deliberately absent from it is a claim that needs its own
+  // reason. Derived from the registry, so the twentieth application arrives
+  // here without anyone remembering this file.
+  ...DEMO_APPS.map((app) => ({
+    title: `${app.name}'s database structure`,
+    path: appPagePath(app),
+    description:
+      `${app.tables} tables and ${app.foreignKeys} foreign keys of the open-source ${app.name} `
+      + `codebase, drawn as an ER diagram. A snapshot taken ${app.snapshot} from ${app.repository}, `
+      + `which is ${app.licence} licensed. Structure only: no row data is read or shown`,
+  })),
 ]
 
 /**

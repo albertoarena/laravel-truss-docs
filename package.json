@@ -17,7 +17,8 @@
     "test:ci": "vitest run",
     "check:redirects": "node scripts/check-redirects.mjs",
     "check:machine-access": "node scripts/check-machine-access.mjs",
-    "sample:machine-access": "node scripts/sample-machine-access.mjs"
+    "sample:machine-access": "node scripts/sample-machine-access.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.32.0",
@@ -25,6 +26,7 @@
     "sharp": "^0.35.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "vitest": "^4.1.10"
   },
   "overrides": {

@@ -43,3 +43,18 @@ jobs:
       # nothing: a green tick meant only that it built.
       - name: Test
         run: npm run test:ci
+
+      # The suite above reads markup and cannot see a rendered box. Four layout
+      # failures shipped on the four demo shells without it noticing, and two of
+      # those were caught by eye on a phone, which is not a process. This step
+      # opens the built pages and measures them.
+      #
+      # Chromium only. These are layout and keyboard assertions, not a
+      # cross-engine matrix, and one engine catches the class of defect that has
+      # actually shipped here. It runs against dist/ through `astro preview`,
+      # which is why it follows the build rather than rebuilding.
+      - name: Install Chromium for the browser tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser tests
+        run: npm run test:e2e

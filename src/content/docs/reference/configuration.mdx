@@ -22,6 +22,7 @@ Every key has a sensible default and, where relevant, an `env()` override.
 | `cache.ttl` | `TRUSS_CACHE_TTL` | `3600` | Seconds a schema snapshot is cached |
 | `connections` | | `[]` | Which DB connections are visualizable (defaults to the app's default) |
 | `excluded_tables` | | framework tables | Tables filtered out server-side, never sent to the browser |
+| `reveal_excluded` | `TRUSS_REVEAL_EXCLUDED` | on in local | Send excluded tables flagged and undrawn, so the viewer can show them |
 | `annotations.source` | | `['config', 'database']` | Ordered precedence for resolving an annotation; first match wins |
 | `annotations.notes` | | `[]` | Global notes rendered in a header block by the formats that have one |
 | `annotations.tables` | | `[]` | Per-table annotations, keyed by table name |
@@ -68,6 +69,20 @@ Only listed connections are visualizable; a request for any other connection ret
 ### `excluded_tables`
 
 Applied **server-side at serve time**, so their structure never reaches the browser and toggling the list needs no rebuild. The defaults cover framework and infrastructure tables (`migrations`, `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`).
+
+The response does say **how many** tables the list removed, which is what lets the dashboard footer read `24 of 32 tables` instead of presenting a filtered diagram as the whole schema. A count only: the names of excluded tables are never sent. `truss:show` reports the same way in the terminal.
+
+### `reveal_excluded`
+
+Whether excluded tables reach the browser at all.
+
+**Off**, they are removed server-side and the response reports only how many there were. **On**, they are sent flagged and undrawn, and the dashboard offers a **Show hidden tables** toggle that draws them muted.
+
+It defaults to **on in local** and off everywhere else, the same shape as `enabled` and the `viewTruss` gate: local is already open to whoever is looking, so you get the toggle while you work without configuring anything, and a production dashboard has to ask for it.
+
+This is the operator's decision and never the viewer's. **There is no query parameter for it**, so excluding a table to keep it off a shared dashboard keeps working no matter who opens the page.
+
+Revealing never changes the schema diff or the doctor findings, which always run on the filtered set. A revealed table therefore carries no change marks and no health badges, and is drawn muted to say so.
 
 ### `diagram.type_labels`
 

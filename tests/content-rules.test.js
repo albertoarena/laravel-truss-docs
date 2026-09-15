@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 
 import { VERBATIM_FIELDS } from '../src/data/in-the-wild.ts'
 import { verbatimFieldLine } from '../src/scripts/in-the-wild.js'
+import { DEMO_APPS, appPageFile } from '../scripts/demo-apps.mjs'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 
@@ -30,6 +31,12 @@ function walk(dir) {
 // are third-party and gitignored, so they are not scanned).
 const DEMO_WRAPPER = join(root, 'public/demo/index.html')
 
+// The per-application demo pages carry real prose: a heading, a subtitle, a
+// fact line and a footer strip saying how to ask for the page to be removed.
+// Only the top-level demo wrapper was ever scanned, so that prose would have
+// been the one visible copy on the site outside these rules.
+const APP_SHELLS = DEMO_APPS.map((app) => join(root, 'public', appPageFile(app)))
+
 // Hand-authored plain-text files under public/ that are served to readers and
 // to crawlers. They are prose too, and until robots.txt arrived nothing under
 // public/ except the demo wrapper was scanned, so the style rules simply did not
@@ -41,6 +48,7 @@ const PUBLIC_TEXT = ['public/robots.txt', 'public/.well-known/ai.txt'].map((path
 const files = [
   ...CONTENT_DIRS.flatMap((d) => walk(join(root, d))),
   DEMO_WRAPPER,
+  ...APP_SHELLS,
   ...PUBLIC_TEXT,
 ]
 

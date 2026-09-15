@@ -5,7 +5,9 @@ description: Artisan commands and asset publishing
 
 ## `truss:show`
 
-Print the database structure as a table in the terminal: one row per table, with its column count and foreign-key count. It is the text counterpart to the visual dashboard, reading the same cached, exclusion-filtered snapshot, and like everything in Truss it shows structure only, never row data.
+Print the database structure as a table in the terminal: one row per table, with its column count and foreign-key count. It is the text counterpart to the visual dashboard, applying the same `excluded_tables` filter over the same cached snapshot, and like everything in Truss it shows structure only, never row data.
+
+It closes with how much of the connection it printed, `24 of 32 tables on mysql` when config hid some and a plain `32 tables on mysql` when it did not, so nothing goes missing without being accounted for.
 
 ```bash
 # Show the default connection

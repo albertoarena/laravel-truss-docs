@@ -8,6 +8,7 @@ let landing = ''
 let roadmap = ''
 let inTheWild = ''
 let docsPage = ''
+let notFound = ''
 // Whitespace-collapsed copies for prose checks (Astro keeps source line breaks
 // inside text, so raw substring matches on multi-word phrases are brittle).
 let landingText = ''
@@ -20,7 +21,12 @@ beforeAll(() => {
   const inTheWildPath = dist('in-the-wild/index.html')
   // A Starlight docs page: it uses the Footer override, not the SiteLayout footer.
   const docsPath = dist('getting-started/installation/index.html')
-  for (const path of [landingPath, roadmapPath, inTheWildPath, docsPath]) {
+  // The 404 renders through Starlight with no sidebar, so it has no mobile menu
+  // of its own: whatever its footer carries is the whole of its navigation on a
+  // phone. That makes it the page where a missing footer link actually strands
+  // somebody, which is why it is read here rather than assumed to match docs.
+  const notFoundPath = dist('404.html')
+  for (const path of [landingPath, roadmapPath, inTheWildPath, docsPath, notFoundPath]) {
     if (!existsSync(path)) {
       throw new Error('dist not built. Run `npm run build` (or astro build) before the page tests.')
     }
@@ -29,6 +35,7 @@ beforeAll(() => {
   roadmap = readFileSync(roadmapPath, 'utf8')
   inTheWild = readFileSync(inTheWildPath, 'utf8')
   docsPage = readFileSync(docsPath, 'utf8')
+  notFound = readFileSync(notFoundPath, 'utf8')
   landingText = collapse(landing)
   roadmapText = collapse(roadmap)
 })
@@ -135,6 +142,29 @@ describe('site footer', () => {
     ]) {
       expect(html, label).toContain(playlist)
       expect(html, label).toContain('>Videos<')
+    }
+  })
+
+  it('reaches the live demo from every footer', () => {
+    // Below 720px SiteLayout hides its header nav, and below 800px the Starlight
+    // header hides its right group, so on a phone the footer IS the navigation
+    // on these pages. Neither footer linked the demo, so from the landing page,
+    // the roadmap, in-the-wild or a 404, a phone reader could not reach the one
+    // thing the site is for. Docs pages were the exception, by way of the
+    // sidebar, which is why this went unnoticed.
+    const footerNav = (html) => html.match(/<nav[^>]*class="[^"]*footer-nav[^"]*"[\s\S]*?<\/nav>/)?.[0] ?? ''
+
+    for (const [label, html] of [
+      ['landing', landing],
+      ['roadmap', roadmap],
+      ['in the wild', inTheWild],
+      ['docs page', docsPage],
+      ['404', notFound],
+    ]) {
+      const nav = footerNav(html)
+      expect(nav, `${label} has a footer nav`).toBeTruthy()
+      expect(nav, `${label} footer links the demo`).toContain('href="/demo/"')
+      expect(nav, `${label} footer links the paste-your-own page`).toContain('href="/demo/your-schema/"')
     }
   })
 
