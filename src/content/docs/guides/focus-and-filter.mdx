@@ -56,4 +56,12 @@ Framework and infrastructure tables (`migrations`, `sessions`, `cache`, `jobs`, 
 
 The footer reads `24 of 32 tables` whenever the diagram is showing less than the whole connection, and a plain `32 tables` when it is showing all of it. Both halves of this page narrow the view, and so does `excluded_tables`, so the count answers the question a short-looking diagram raises: Truss saw thirty-two and is drawing twenty-four.
 
-Two numbers, never three. A filter or a focus counts against what the browser received, so a filtered diagram reads `3 of 24 tables` rather than stacking the exclusions on top. The names of excluded tables are never sent to the browser, so the footer reports how many there are and nothing more.
+Two numbers, never three. A filter or a focus counts against what the browser received, so a filtered diagram reads `3 of 24 tables` rather than stacking the exclusions on top.
+
+## Showing the hidden tables
+
+Where [`reveal_excluded`](/reference/configuration/#reveal_excluded) allows it, a **Show hidden tables** toggle appears in the toolbar and draws the tables `excluded_tables` hides. Toggle it off and they are gone again. It is on by default in local, so you have it while you work, and off elsewhere unless the application asks for it.
+
+Revealed tables are drawn **muted, with a dashed outline**. That is deliberate: the schema diff and the doctor always run on the filtered set, so a revealed table carries no change marks and no health badges, and drawing it like an ordinary table would suggest it had been checked and found clean.
+
+Where revealing is not allowed the toggle does not appear at all, and the excluded tables never reach the browser. The footer still reports how many there are, because a count says the diagram is partial without disclosing what was left out.

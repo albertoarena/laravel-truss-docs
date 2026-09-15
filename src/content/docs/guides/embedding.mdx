@@ -33,6 +33,8 @@ You get an array with the tables, plus everything the dashboard draws on top of 
 
 The two `_unavailable` flags appear only when the thing they describe actually happened, so code written against an older payload keeps working.
 
+With [`reveal_excluded`](/reference/configuration/#reveal_excluded) on, the excluded tables are in `tables` as well, each carrying `"excluded": true`. They are yours to draw or not: Truss's own dashboard leaves them out until the viewer asks for them, and a page rendering the payload itself can filter on the flag. The count is the same either way.
+
 `excluded.count` is always present, including as `0`, so a page rendering the payload never has to tell "nothing was excluded" apart from "a payload that predates this". It is a count and never the names, which is enough to say the diagram is a view of a larger schema without disclosing what was left out. Hand-build a payload without the key and the diagram treats it as zero.
 
 ### It is not `Truss::snapshot()`
