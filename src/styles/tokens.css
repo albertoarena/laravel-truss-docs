@@ -52,6 +52,14 @@
 }
 
 :root {
+  /* Auto: the OS decides, and the palette below follows through the media
+     query. The two forced themes override this, because a checkbox, a
+     scrollbar, a focus ring and a colour picker are painted by the browser from
+     `color-scheme` alone. Declared nowhere it computes `normal`, which paints
+     them light on a page that may be dark; that is how the custom pages
+     shipped, while Starlight's own pages were already right. */
+  color-scheme: light dark;
+
   /* Type */
   --truss-font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
   --truss-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -106,6 +114,7 @@
    the custom pages honor the same attribute). These must override the media
    query in both directions. */
 :root[data-theme='light'] {
+  color-scheme: light;
   --truss-bg: #eef1f6;
   --truss-grid: rgba(18, 53, 107, .07);
   --truss-grid-strong: rgba(18, 53, 107, .12);
@@ -124,6 +133,7 @@
 }
 
 :root[data-theme='dark'] {
+  color-scheme: dark;
   --truss-bg: #0b1a2b;
   --truss-grid: rgba(120, 200, 230, .055);
   --truss-grid-strong: rgba(120, 200, 230, .11);
