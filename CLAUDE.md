@@ -30,7 +30,11 @@ demo picks up the newly released frontend.
 
 **To review an unreleased package frontend, use `PACKAGE_PATH`**, which copies
 from a local checkout and skips the clone:
-`PACKAGE_PATH=../laravel-truss npm run build`. Such a build is stamped `local`
+`PACKAGE_PATH=../laravel-truss npm run build`, or `npm run dev:local` for the
+dev server. **The variable has to be passed to the npm call that fires the hook**,
+since `predev`, `prebuild` and `prepreview` all run the copy script: exporting it
+earlier in a different shell, or running `astro dev` directly, both leave you
+reading released assets while believing they are local. Such a build is stamped `local`
 rather than a version, so its asset folder is `assets-local` and it cannot be
 mistaken for a release; the suite fails while those assets are in place and says
 to run `npm run copy-demo-assets` to restore them. Do not deploy a local build.

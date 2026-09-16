@@ -10,6 +10,7 @@ published at **[trussphp.com](https://trussphp.com)**. Built with
 npm ci
 npm run dev      # http://localhost:4321
 npm run build    # static output in dist/
+npm run dev:local # dev against a local package checkout, see below
 ```
 
 ## The live demo
@@ -25,6 +26,7 @@ build at a local checkout instead:
 
 ```bash
 PACKAGE_PATH=../laravel-truss npm run build
+npm run dev:local   # the same thing for the dev server
 ```
 
 That skips the clone entirely and stamps the build `local`, so its asset folder

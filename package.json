@@ -6,6 +6,7 @@
     "copy-demo-assets": "node scripts/copy-demo-assets.mjs",
     "predev": "node scripts/copy-demo-assets.mjs",
     "dev": "astro dev",
+    "dev:local": "PACKAGE_PATH=../laravel-truss npm run dev",
     "prebuild": "node scripts/copy-demo-assets.mjs",
     "build": "astro build",
     "prepreview": "node scripts/copy-demo-assets.mjs",
