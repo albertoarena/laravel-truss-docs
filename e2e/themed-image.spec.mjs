@@ -16,7 +16,7 @@ import { test, expect } from '@playwright/test'
  * hero paint.
  */
 
-const PAGE = '/guides/filament/'
+const PAGE = '/filament/'
 
 /** Preset the shared theme key before any page script runs, then load. */
 async function open(page, { machine, stored }) {
@@ -39,11 +39,21 @@ async function open(page, { machine, stored }) {
   return requested
 }
 
+/**
+ * Which screenshot actually renders.
+ *
+ * Deliberately measured from the box rather than from a computed display value.
+ * The first version read getComputedStyle on the img, which reports the img's
+ * own display whatever an ancestor does, so when each variant gained a wrapping
+ * link to its full-size file every image counted as visible and all four state
+ * tests went red. getClientRects is empty for anything in a display:none
+ * subtree, so it cannot be fooled by where in the tree the rule is applied.
+ */
 const shown = (page) =>
   page.evaluate(() =>
     [...document.querySelectorAll('.themed-image img')]
-      .filter((img) => getComputedStyle(img).display !== 'none')
-      .map((img) => (img.className.includes('__dark') ? 'dark' : 'light')),
+      .filter((img) => img.getClientRects().length > 0)
+      .map((img) => (img.closest('a').className.includes('__dark') ? 'dark' : 'light')),
   )
 
 const CASES = [

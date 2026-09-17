@@ -449,8 +449,17 @@ export default defineConfig({
             { label: 'Truss as AI context', link: '/guides/ai-context/', badge: 'New' },
             { label: 'MCP server', link: '/guides/mcp-server/', badge: 'New' },
             { label: 'Laravel Boost', link: '/guides/laravel-boost/', badge: 'New' },
-            { label: 'Filament panel', link: '/guides/filament/', badge: 'New' },
             { label: 'Theming', link: '/guides/theming/' },
+          ],
+        },
+        {
+          label: 'Filament panel',
+          badge: 'New',
+          items: [
+            { label: 'Overview', link: '/filament/' },
+            { label: 'Installation', link: '/filament/installation/' },
+            { label: 'Open the diagram on a table', link: '/filament/open-on-a-table/' },
+            { label: 'Configuration', link: '/filament/configuration/' },
           ],
         },
         {

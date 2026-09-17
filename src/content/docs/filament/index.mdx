@@ -1,0 +1,54 @@
+---
+title: Filament panel
+description: A live ER diagram of your real database as a native page inside a Filament panel, themed by the panel and gated by Truss's own rules
+---
+
+import ThemedImage from '../../../components/ThemedImage.astro'
+import panelLight from '../../../assets/filament/panel-light.jpg'
+import panelDark from '../../../assets/filament/panel-dark.jpg'
+
+[`albertoarena/filament-truss`](https://github.com/albertoarena/filament-truss) adds a **Database schema** page to a Filament panel: the same live ER diagram Truss draws, as a page of the panel rather than a frame around something else.
+
+:::caution[Not released yet]
+The first tag will be `v0.1.0`, and until it exists `composer require` will not find the package. Everything in this section describes what that release installs.
+:::
+
+<ThemedImage
+
+  light={panelLight}
+  dark={panelDark}
+  alt="The Database schema page in a Filament panel, showing an ER diagram of a bookshop database with filter, focus and depth controls above it and a table count in the footer"
+/>
+
+**Structure only, never row data.** Tables, columns, indexes, foreign keys and column defaults. That is Truss's promise unchanged: living inside an admin panel does not relax it, and the plugin has no write path of any kind.
+
+## What it is
+
+**A Filament page**, built from the panel's own components and styled by the panel's own theme, so it reads as part of the admin rather than a visitor in it. The diagram takes its colours and radii from the panel's own CSS custom properties, so a custom theme needs no configuration and light and dark follow the panel with no reload.
+
+## What it is not
+
+**Not the Truss dashboard in an iframe.** That was considered and rejected: a frame around another page inherits none of the panel's chrome, breaks its dark mode, and reads as a bolted-on tab. If a frame is all you want, Truss already ships a dashboard and you can link to it.
+
+**Not a second renderer.** The page calls `Truss::payload()`, the facade method, and hands the array to Truss's own frontend embedded in the page. There is no schema endpoint of its own and no reimplementation of the diagram, so nothing here can drift from what Truss draws everywhere else.
+
+**Not a way in.** It exposes nothing Truss does not already expose, and it gains no write path by living inside an admin panel.
+
+## Requirements
+
+| | |
+| --- | --- |
+| PHP | `^8.2` |
+| Laravel | `^12.0 \| ^13.0` |
+| Filament | `^5.0` |
+| Laravel Truss | `^1.13` |
+
+Filament 4 is deliberately not supported.
+
+Laravel Truss is where the schema, the diff and the structural findings come from, and it comes with the plugin as a regular dependency. Truss itself stays free of any Filament dependency, which is why these are two packages rather than one.
+
+## Next
+
+- [Installation](/filament/installation/), including who can see the page
+- [Open the diagram on a table](/filament/open-on-a-table/), the button a resource can offer
+- [Configuration](/filament/configuration/), hidden tables and the one option this plugin adds

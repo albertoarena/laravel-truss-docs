@@ -1,0 +1,54 @@
+---
+title: Installation
+description: Install the Filament Truss plugin, register it on a panel, and understand who can see the Database schema page
+---
+
+:::caution[Not released yet]
+The first tag will be `v0.1.0`, and until it exists `composer require` will not find the package.
+:::
+
+```bash
+composer require albertoarena/filament-truss
+```
+
+Laravel Truss comes with it as a regular dependency, so there is nothing else to install and no asset to publish.
+
+## Register the plugin
+
+```php
+use AlbertoArena\FilamentTruss\FilamentTrussPlugin;
+use Filament\Panel;
+use Filament\PanelProvider;
+
+class AdminPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            // ...
+            ->plugin(FilamentTrussPlugin::make());
+    }
+}
+```
+
+The page appears in the panel navigation as **Database schema**, at `/database-schema` under your panel's path. There is nothing to configure for the diagram itself: it follows Truss's config and the panel's theme.
+
+## Who can see the page
+
+**A Filament page never passes through Truss's middleware**, so the plugin asks the same questions itself. The page is visible exactly when the Truss dashboard would be visible to the same user, and in the same order.
+
+1. **`truss.enabled`**, which defaults to **on in `local` and off everywhere else**. Set `TRUSS_ENABLED=true` to run it anywhere else.
+2. **In `local`, that is all.** Truss leaves the dashboard open there and so does this page.
+3. **Everywhere else, the `viewTruss` gate.** Truss ships a default that admits the emails in `TRUSS_ALLOWED_EMAILS`, and an application can define its own instead:
+
+   ```php
+   Gate::define('viewTruss', fn ($user) => $user->isAdmin());
+   ```
+
+:::note[Installed it and see nothing in staging?]
+That is configuration rather than a bug, and almost always the first rule. `truss.enabled` is off outside `local` until you turn it on.
+:::
+
+Being allowed into the panel is not the same as being allowed to read the database structure, and the plugin never treats it as such. Both switches are Truss's, so a viewer who can see the Truss dashboard can see this page, and a viewer who cannot, cannot.
+
+See [Authorization](/guides/authorization/) for how the gate works and what to put in it.

@@ -55,17 +55,42 @@ const {
   widths = [720, 1080, 1440],
   sizes = '(min-width: 50rem) 45rem, 100vw',
 } = Astro.props
+
+/**
+ * A screenshot of a whole user interface cannot be read at prose width, so each
+ * one links to its own full-resolution file.
+ *
+ * Breaking the figure out of the prose column was tried first and measured at
+ * five viewport widths from 1152 to 1920. Starlight leaves a 24px gutter each
+ * side, so the honest gain is 24px, and anything past that runs under the
+ * contents column: the first attempt overran it at every width. Eight percent
+ * wider does not make an unreadable screenshot readable, so the break-out was
+ * dropped rather than tuned. The crop is the other half of this problem and it
+ * belongs to whoever takes the shot.
+ */
+const full = { light: light.src, dark: dark.src }
 ---
 
 <figure class="themed-image">
-  <Image src={light} alt={alt} widths={widths} sizes={sizes} format="webp" class="themed-image__light" />
-  <Image src={dark} alt={alt} widths={widths} sizes={sizes} format="webp" class="themed-image__dark" />
+  <a href={full.light} class="themed-image__light" aria-label={`Open the full-size screenshot: ${alt}`}>
+    <Image src={light} alt={alt} widths={widths} sizes={sizes} format="webp" />
+  </a>
+  <a href={full.dark} class="themed-image__dark" aria-label={`Open the full-size screenshot: ${alt}`}>
+    <Image src={dark} alt={alt} widths={widths} sizes={sizes} format="webp" />
+  </a>
   {caption && <figcaption>{caption}</figcaption>}
 </figure>
 
 <style>
   .themed-image {
     margin: 1.5rem 0;
+  }
+
+  /* Each variant is an anchor to its own full-resolution file, so the block
+     rules below toggle the link rather than the image inside it. */
+  .themed-image__light,
+  .themed-image__dark {
+    text-decoration: none;
   }
 
   .themed-image :global(img) {
@@ -75,9 +100,12 @@ const {
     border-radius: 0.375rem;
   }
 
-  /* The base case, which is what answers a page with no data-theme stamped on
-     it: follow the operating system. Written as a pair of explicit rules rather
-     than one, so that neither variant is left visible by default. */
+  /* The base case, which answers a context that stamps no data-theme: follow
+     the operating system. Written as an explicit pair rather than one rule, so
+     that neither variant is left visible by default. */
+  .themed-image__light {
+    display: block;
+  }
   .themed-image__dark {
     display: none;
   }
