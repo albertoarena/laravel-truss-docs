@@ -46,6 +46,13 @@ const CASES = [
   { path: '/in-the-wild', hops: 1, status: 200, endsAt: `${base}/in-the-wild/` },
   { path: '/demo', hops: 1, status: 200, endsAt: `${base}/demo/` },
 
+  // The vanity redirect for the one URL people guess. /docs has never existed
+  // here and is served entirely by public/.htaccess, so it is exactly the shape
+  // of rule the two failures above were: present in the file, and provable only
+  // from outside.
+  { path: '/docs', hops: 1, status: 200, endsAt: `${base}/getting-started/installation/` },
+  { path: '/docs/', hops: 1, status: 200, endsAt: `${base}/getting-started/installation/` },
+
   // Host normalisation is owned by the docroot .htaccess, which runs before the
   // rewrite into current/. Two hops is the floor for a non-canonical host on a
   // non-slashed path: one to fix the host, one to add the slash. They cannot be

@@ -82,7 +82,7 @@ ln -sfn releases/<previous-ts> ~/<docroot>/current
 npm run check:redirects
 ```
 
-15 cases. It asserts hop counts, final URLs, and on every hop of every case that
+17 cases. It asserts hop counts, final URLs, and on every hop of every case that
 neither `/current/` nor `/releases/` reaches a `Location` header. Exits non-zero
 on the first problem, so it can gate a deploy. It takes a base URL as an
 argument if you need to point it somewhere else.
