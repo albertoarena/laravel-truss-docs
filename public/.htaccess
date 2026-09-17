@@ -78,6 +78,36 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 RewriteCond %{THE_REQUEST} \s/+[^?\s]*index\.html[\s?] [NC]
 RewriteRule ^(.*/)?index\.html$ https://%{HTTP_HOST}/$1 [R=301,L]
 
+# /docs was a dead link on albertoarena.it, and outlived being fixed there.
+#
+# The blog's Truss promo box linked https://trussphp.com/docs from its home
+# page between 09/08/2026 and 28/08/2026, when the blog commit "fix: dead Truss
+# docs link" repointed it at the quick start page. The path has never existed
+# here. Nineteen days was long enough to be crawled: this site's access log
+# shows PetalBot arriving with the blog's home page as its referrer, then
+# bingbot three times, and AhrefsBot, DotBot, SeznamBot, Barkrowler and CCBot
+# behind it. Search Console reported the 404 on 14/09/2026, a fortnight after
+# the link itself was gone.
+#
+# The source is fixed, so this rule is for what outlived it: the backlink
+# databases, Common Crawl and whatever was grounded on it, plus everyone who
+# read the box while it was wrong. It is also the path a person guesses for a
+# documentation site, which the report cannot tell apart from the above.
+#
+# A 404 is the correct answer to a URL that does not exist, and Search Console
+# drops it unprompted, so this rule is for the person who typed it rather than
+# for the report. The target is the first documentation page because / is the
+# landing page, which is marketing copy rather than documentation.
+#
+# Exactly /docs and /docs/, never ^docs/(.*)$. A catch-all would send every
+# wrong guess below it to a page that does not answer the request, which is
+# the soft-404 pattern, and would hide a genuinely broken link behind a 301.
+# One reported URL, one rule.
+#
+# %{HTTP_HOST} rather than the domain, for the reason the rules above use it:
+# a preview host must redirect to itself.
+RewriteRule ^docs/?$ https://%{HTTP_HOST}/getting-started/installation/ [R=301,L]
+
 # Add the trailing slash to a directory URL ourselves, rather than letting
 # Apache's mod_dir do it.
 #

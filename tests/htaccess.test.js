@@ -137,6 +137,33 @@ describe('the deployed .htaccess', () => {
     expect(rule).toMatch(/QSA/)
   })
 
+  it('sends /docs to the first documentation page', () => {
+    // /docs has never existed here. It was linked from the Truss promo box on
+    // albertoarena.it's home page for nineteen days in August 2026, long enough
+    // for PetalBot, bingbot, Ahrefs, Moz and Common Crawl to record it. The
+    // source link is fixed; this catches what outlived it.
+    //
+    // As everywhere in this file, this proves the line is present and never
+    // that it fires: npm run check:redirects answers that.
+    expect(htaccess).toMatch(
+      /RewriteRule\s+\^docs\/\?\$\s+https:\/\/%\{HTTP_HOST\}\/getting-started\/installation\/\s+\[R=301,L\]/,
+    )
+  })
+
+  it('anchors that redirect on a page the build still produces', () => {
+    // The target is a literal path in an Apache rule, which no rename of the
+    // installation page can follow. Without this, moving the page turns the
+    // redirect into a 301 to a 404, which is worse than the 404 it replaced.
+    expect(existsSync(dist('getting-started/installation/index.html'))).toBe(true)
+  })
+
+  it('redirects only /docs itself, never everything beneath it', () => {
+    // A catch-all under /docs would send every wrong guess to a page that does
+    // not answer it, which is the soft-404 pattern, and would hide a genuinely
+    // broken link behind a 301.
+    expect(htaccess).not.toMatch(/RewriteRule\s+\^docs\/\(/)
+  })
+
   it('points the 404 at a path that exists from the docroot', () => {
     // ErrorDocument resolves against the docroot, not the directory holding the
     // .htaccess. The docroot has no 404.html of its own: it only exists inside
