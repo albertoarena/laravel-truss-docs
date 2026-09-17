@@ -1,0 +1,115 @@
+---
+/**
+ * A screenshot that exists in a light and a dark variant, showing whichever
+ * matches the theme in force.
+ *
+ * The `data-theme` rules are the operative ones, and they are what this site
+ * already does for colour in tokens.css. Starlight writes `data-theme="dark"`
+ * into the static HTML and its inline head script corrects it before paint,
+ * resolving `auto` against the machine, so on a Starlight page the attribute is
+ * always present. Starlight's own `.light:sl-hidden` and `.dark:sl-hidden` would
+ * work here for that reason, checked rather than assumed; this component exists
+ * to wrap Astro's `<Image>`, so the pair gets one srcset, one figure, one
+ * caption and one border, and to keep the page off Starlight internals.
+ *
+ * The `prefers-color-scheme` block below is a fallback and not the main event.
+ * It answers a context where nothing stamps the attribute, which the
+ * hand-authored pages under public/ do not, so the component can never render
+ * both screenshots one above the other wherever it is dropped. The `data-theme`
+ * rules have to override it in BOTH directions, because light chosen on a dark
+ * machine is exactly the case a media query alone gets wrong.
+ *
+ * With JavaScript off nothing corrects the attribute, so the page stays on
+ * Starlight's built-in dark and this shows the dark screenshot. That is the
+ * whole page's behaviour rather than this component's, and matching it is
+ * correct: a light screenshot on a dark page would be the bug.
+ *
+ * Both variants are in the DOM and one is `display: none`, which takes it out
+ * of the accessibility tree as well, so a screen reader is told about the
+ * visible one only. That is also why both carry the same alt text rather than
+ * one carrying an empty string: which of the two is hidden is a question about
+ * the reader's theme and cannot be answered at build time.
+ */
+import { Image } from 'astro:assets'
+
+interface Props {
+  light: ImageMetadata
+  dark: ImageMetadata
+  /** Describes what the screenshot shows. Both variants show the same thing. */
+  alt: string
+  caption?: string
+  /**
+   * Widths to generate. The default covers the Starlight content column (about
+   * 45rem) at 1x and 2x, which is every case this site has; a wider shot that
+   * breaks out of the column should say so rather than inheriting it.
+   */
+  widths?: number[]
+  sizes?: string
+}
+
+const {
+  light,
+  dark,
+  alt,
+  caption,
+  widths = [720, 1080, 1440],
+  sizes = '(min-width: 50rem) 45rem, 100vw',
+} = Astro.props
+---
+
+<figure class="themed-image">
+  <Image src={light} alt={alt} widths={widths} sizes={sizes} format="webp" class="themed-image__light" />
+  <Image src={dark} alt={alt} widths={widths} sizes={sizes} format="webp" class="themed-image__dark" />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .themed-image {
+    margin: 1.5rem 0;
+  }
+
+  .themed-image :global(img) {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--truss-hair, #c4d5ec);
+    border-radius: 0.375rem;
+  }
+
+  /* The base case, which is what answers a page with no data-theme stamped on
+     it: follow the operating system. Written as a pair of explicit rules rather
+     than one, so that neither variant is left visible by default. */
+  .themed-image__dark {
+    display: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .themed-image__light {
+      display: none;
+    }
+    .themed-image__dark {
+      display: block;
+    }
+  }
+
+  /* An explicit choice wins over the machine, in both directions. These cannot
+     move inside the media query above: light chosen on a dark machine is the
+     case that would otherwise show the wrong screenshot. */
+  :global(:root[data-theme='light']) .themed-image__light {
+    display: block;
+  }
+  :global(:root[data-theme='light']) .themed-image__dark {
+    display: none;
+  }
+  :global(:root[data-theme='dark']) .themed-image__light {
+    display: none;
+  }
+  :global(:root[data-theme='dark']) .themed-image__dark {
+    display: block;
+  }
+
+  figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--truss-muted, #56698a);
+  }
+</style>

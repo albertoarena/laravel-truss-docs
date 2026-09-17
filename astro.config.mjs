@@ -449,6 +449,7 @@ export default defineConfig({
             { label: 'Truss as AI context', link: '/guides/ai-context/', badge: 'New' },
             { label: 'MCP server', link: '/guides/mcp-server/', badge: 'New' },
             { label: 'Laravel Boost', link: '/guides/laravel-boost/', badge: 'New' },
+            { label: 'Filament panel', link: '/guides/filament/', badge: 'New' },
             { label: 'Theming', link: '/guides/theming/' },
           ],
         },
