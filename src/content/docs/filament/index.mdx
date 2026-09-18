@@ -36,11 +36,13 @@ import panelDark from '../../../assets/filament/panel-dark.jpg'
 | PHP | `^8.2` |
 | Laravel | `^12.0 \| ^13.0` |
 | Filament | `^5.0` |
-| Laravel Truss | `^1.13` |
+| Laravel Truss | `^1.13.1` |
 
 Filament 4 is deliberately not supported.
 
 Laravel Truss is where the schema, the diff and the structural findings come from, and it comes with the plugin as a regular dependency. Truss itself stays free of any Filament dependency, which is why these are two packages rather than one.
+
+The floor is a patch above that line's first release for a reason that belongs to this page: Truss v1.13.1 sizes the toolbar by the toolbar rather than by the window, and a panel is always narrower than the window it sits in. On v1.13.0 a panel with an expanded sidebar could leave the toolbar too little room while the responsive steps still believed they had the whole window, and the **Filter** field, the one control with no minimum width, absorbed the difference.
 
 ## Next
 
