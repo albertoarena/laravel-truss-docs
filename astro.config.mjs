@@ -432,22 +432,22 @@ export default defineConfig({
             { label: 'Installation', link: '/getting-started/installation/' },
             { label: 'Quick start', link: '/getting-started/quick-start/' },
             { label: 'Live demo', link: '/demo/', attrs: { target: '_blank' }, badge: 'Live' },
-            { label: 'Your own schema', link: '/demo/your-schema/', attrs: { target: '_blank' }, badge: 'New' },
-            { label: 'Theme builder', link: '/theme-builder/', attrs: { target: '_blank' }, badge: 'New' },
+            { label: 'Your own schema', link: '/demo/your-schema/', attrs: { target: '_blank' } },
+            { label: 'Theme builder', link: '/theme-builder/', attrs: { target: '_blank' } },
           ],
         },
         {
           label: 'Guides',
           items: [
-            { label: 'Accessibility', link: '/guides/accessibility/', badge: 'New' },
+            { label: 'Accessibility', link: '/guides/accessibility/' },
             { label: 'Authorization', link: '/guides/authorization/' },
-            { label: 'Embedding', link: '/guides/embedding/', badge: 'New' },
+            { label: 'Embedding', link: '/guides/embedding/' },
             { label: 'Focus & filter', link: '/guides/focus-and-filter/' },
             { label: 'Schema diff', link: '/guides/schema-diff/' },
             { label: 'Schema doctor', link: '/guides/schema-doctor/' },
             { label: 'Schema export', link: '/guides/schema-export/' },
-            { label: 'Truss as AI context', link: '/guides/ai-context/', badge: 'New' },
-            { label: 'MCP server', link: '/guides/mcp-server/', badge: 'New' },
+            { label: 'Truss as AI context', link: '/guides/ai-context/' },
+            { label: 'MCP server', link: '/guides/mcp-server/' },
             { label: 'Laravel Boost', link: '/guides/laravel-boost/', badge: 'New' },
             { label: 'Theming', link: '/guides/theming/' },
           ],
@@ -468,7 +468,7 @@ export default defineConfig({
           items: [
             { label: 'Configuration', link: '/reference/configuration/' },
             { label: 'Commands', link: '/reference/commands/' },
-            { label: 'Tested applications', link: '/reference/tested-applications/', badge: 'New' },
+            { label: 'Tested applications', link: '/reference/tested-applications/' },
           ],
         },
         {
@@ -483,7 +483,7 @@ export default defineConfig({
         // no affordance in this sidebar that says "this link changes the shell",
         // and the reader who came from the docs is one click from being back via
         // the header. Drop the badge once the page is no longer new.
-        { label: 'In the wild', link: '/in-the-wild/', badge: 'New' },
+        { label: 'In the wild', link: '/in-the-wild/' },
         { label: 'Credits', link: '/credits/' },
       ],
     }),
