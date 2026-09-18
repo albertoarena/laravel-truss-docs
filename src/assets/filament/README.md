@@ -39,12 +39,26 @@ Here the panel chrome is the evidence for what the page claims, so nothing is
 removed and the real heading stays. The two sets answer different questions and
 both are correct for the place they appear.
 
-## Known, and visible in nothing here
+## Why 1440, and why that is now history
 
-The schema page is shot at a 1440 viewport because the toolbar's Filter input
-collapses below roughly 1400 and is 24px wide, an empty box, from 1280 down to
-1100. Shooting at 1440 avoids documenting that, which is a reason to fix it
-rather than a reason to keep shooting around it.
+The schema page is shot at a 1440 viewport. It had to be: until Truss v1.13.1
+the toolbar's Filter input collapsed to a 24px empty box in a Filament panel,
+anywhere from roughly 1280 down to 1100, while the Focus input beside it kept
+its full width.
+
+**Fixed in v1.13.1**, and the cause was deeper than it looked from here. The
+toolbar's responsive steps were media queries keyed on the window, so a 1280px
+window with a panel sidebar taking 470px left the bar about 810px and no step
+fired. Every child but the Filter field is floored at its min-content width, so
+that field absorbed the whole shortfall. `toolbar-layout.js` now measures the
+bar itself, and an embedded 810px bar behaves the way an 810px window always
+did.
+
+**The screenshots here were taken before that**, against a demo panel running
+v1.13.0, so they are unaffected either way: 1440 was always above the range
+where it bit. A re-shoot could now use a narrower viewport and get a larger,
+more legible diagram, which is worth doing next time these are re-taken rather
+than on its own.
 
 ## The theming pair
 
