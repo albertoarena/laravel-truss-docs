@@ -3,13 +3,37 @@ title: Theming
 description: The Database schema page reads your panel's own CSS custom properties at runtime, so it follows the panel it is installed in with no configuration and no build step
 ---
 
+import ThemedImage from '../../../components/ThemedImage.astro'
+import amberLight from '../../../assets/filament/accent-amber-light.jpg'
+import amberDark from '../../../assets/filament/accent-amber-dark.jpg'
+import tealLight from '../../../assets/filament/accent-teal-light.jpg'
+import tealDark from '../../../assets/filament/accent-teal-dark.jpg'
+
 The diagram **reads the panel's own CSS custom properties at runtime**. It follows the panel it is installed in, including one it has never seen, with no configuration, no build step and no palette to keep in step.
 
 There is nothing to do, which is the point of the page.
 
 :::note[Checked rather than reasoned about]
-Everything below was verified in a browser on **17/09/2026**, against Truss v1.13.0, Filament 5.8.1, Laravel 13 and Chrome.
+Every claim below was verified in a browser on **17/09/2026**, against Truss v1.13.0, Filament 5.8.1, Laravel 13 and Chrome. The screenshots were taken from the same panel on 18/09/2026.
 :::
+
+The same page, twice, with one line of the panel changed and nothing else touched:
+
+<ThemedImage
+  light={amberLight}
+  dark={amberDark}
+  alt="The diagram focused on the books table, with the rule under the toolbar, the focused table's border and the zoom control all in amber"
+  caption="The demo panel on its own primary, Amber."
+/>
+
+<ThemedImage
+  light={tealLight}
+  dark={tealDark}
+  alt="The same view after the panel's primary is changed to teal, with the same rule, border and zoom control now teal, and the health badge still red"
+  caption="The same page after ->colors(['primary' => Color::Teal]). No configuration, no rebuild, no palette kept in step."
+/>
+
+**The health badge is red in both**, which is the second half of the story and is covered below.
 
 ## What follows the panel
 

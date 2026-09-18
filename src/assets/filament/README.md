@@ -18,6 +18,8 @@ once taken.
 | `panel-dark.jpg` | The same, in the panel's dark mode | 2880x1800 |
 | `focus-button-light.jpg` | The View in schema button on a resource header | 2208x184 |
 | `focus-button-dark.jpg` | The same, dark | 2208x184 |
+| `accent-amber-*.jpg` | The diagram focused on books, panel primary Amber | 2112x1280 |
+| `accent-teal-*.jpg` | The same view, panel primary Teal | 2112x1280 |
 
 ## Two rules, neither optional
 
@@ -44,8 +46,25 @@ collapses below roughly 1400 and is 24px wide, an empty box, from 1280 down to
 1100. Shooting at 1440 avoids documenting that, which is a reason to fix it
 rather than a reason to keep shooting around it.
 
-## Still wanted
+## The theming pair
 
-The theming page argues that the diagram follows the panel's own palette and
-has no image at all. The shot that would prove it is the same page in two
-different panel primaries, which needs `->colors()` changed in the demo app.
+`--accent=<name>` takes only that pair, cropped to the diagram box with
+`?focus=books` applied. Focus is what puts an accent border and a focus ring on
+screen, and it shrinks the diagram so the crop stays legible at prose width,
+where two full panel screenshots would not be.
+
+It is run twice, with the demo app's `->colors()` changed in between:
+
+```sh
+node scripts/shoot-filament.mjs src/assets/filament --accent=amber
+# change 'primary' => Color::Teal in the demo app's AdminPanelProvider
+node scripts/shoot-filament.mjs src/assets/filament --accent=teal
+# change it back
+```
+
+**The name is passed in rather than detected.** The script cannot know what the
+panel was configured with, and reading it back off a rendered pixel would be
+worse than being told.
+
+The demo app was returned to Amber after the teal pair was taken, and its
+working tree was checked clean afterwards.
