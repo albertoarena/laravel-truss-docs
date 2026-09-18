@@ -194,13 +194,24 @@ describe('roadmap data', () => {
     expect(doctor.blurb).toMatch(/v1\.11\.0/)
   })
 
-  it('carries the Filament plugin as approved next, having been decided', () => {
+  it('ships the Filament plugin at its own v1.0.0, not Truss\'s', () => {
     const filament = ALL.find((i) => /filament/i.test(i.title))
     expect(filament, 'Filament item exists').toBeTruthy()
-    // Wishlist, then exploring, and approved once the shape was settled: a
-    // native panel page in a package of its own, not the diagram in a frame.
-    expect(filament.status).toBe('approved')
-    expect(filament.version, 'unshipped items carry no version').toBeUndefined()
+    // Wishlist, then exploring, then approved once the shape was settled, and
+    // shipped on 18/09/2026: a native panel page in a package of its own, not
+    // the diagram in a frame.
+    expect(filament.status).toBe('shipped')
+    expect(filament.version).toBe('v1.0.0')
+
+    // The version is the plugin's and every other version on this page is
+    // Truss's, which at v1.13.0 is far ahead of it. Unlabelled, a v1.0.0 sat
+    // among them reads as a Truss release and therefore as a regression. The
+    // tag is what stops that, so it is asserted rather than left to taste.
+    expect(filament.tag).toBe('separate package')
+    expect(filament.blurb, 'the card names the package it ships as').toContain(
+      'albertoarena/filament-truss',
+    )
+
     // A card shares the concept, not the plan. How the page reaches the schema
     // and how the panel's theme is consumed are implementation decisions that
     // are not committed to in public.
@@ -244,6 +255,19 @@ describe('try-it links', () => {
   it('only appear on shipped items, since you cannot try what is not built', () => {
     for (const item of withTry) {
       expect(item.status, item.title).toBe('shipped')
+    }
+  })
+
+  it('say what the link leads to, when it is not something to try', () => {
+    // The demo and the theme builder are tried in a browser. A package you have
+    // to install is not, so the Filament card links to its documentation under
+    // its own label rather than promising a hands-on the destination cannot
+    // give. Everything else keeps the default.
+    const filament = ALL.find((i) => /filament/i.test(i.title))
+    expect(filament.linkLabel).toBe('Read the docs')
+
+    for (const item of withTry.filter((i) => !/filament/i.test(i.title))) {
+      expect(item.linkLabel, `${item.title} should use the default label`).toBeUndefined()
     }
   })
 
