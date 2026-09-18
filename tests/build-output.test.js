@@ -128,6 +128,20 @@ describe('site header', () => {
   })
 })
 
+describe('roadmap link labels', () => {
+  // The data carries linkLabel and the template may or may not read it. Dropping
+  // the `?? ` expression in roadmap.astro left every card saying "Try it" again
+  // and the whole unit suite stayed green, because a data assertion cannot see a
+  // rendered anchor. This reads the built page.
+  it('renders the Filament card link as documentation, not as something to try', () => {
+    expect(roadmap).toMatch(/<a href="\/filament\/"[^>]*>Read the docs<\/a>/)
+  })
+
+  it('leaves the default label on the cards that really are tried', () => {
+    expect(roadmap).toMatch(/<a href="\/theme-builder\/"[^>]*>Try it<\/a>/)
+  })
+})
+
 describe('the Filament section URL, which is a contract', () => {
   // The plugin's Database schema page carries a Documentation link in its
   // header, and from its first release that link points here. A released

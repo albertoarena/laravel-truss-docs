@@ -29,6 +29,14 @@ export interface RoadmapItem {
    * serve here, being constrained to GitHub.
    */
   tryUrl?: string
+  /**
+   * Label for tryUrl, defaulting to "Try it".
+   *
+   * The demo and the theme builder are things you try in the browser. A package
+   * you install is not, and a card that says "Try it" over a link to its
+   * documentation is making a small promise the destination cannot keep.
+   */
+  linkLabel?: string
 }
 
 export interface RoadmapSection {
@@ -49,6 +57,16 @@ export const SECTIONS: RoadmapSection[] = [
     commitment: 'Released',
     blurb: 'Recent releases. The project moves.',
     items: [
+      {
+        title: 'Filament plugin',
+        status: 'shipped',
+        version: 'v1.0.0',
+        tag: 'separate package',
+        tryUrl: '/filament/',
+        linkLabel: 'Read the docs',
+        blurb:
+          'A Database schema page inside a Filament panel, built from the panel\'s own components and wearing its theme rather than dropped in as a frame around another page. It ships as albertoarena/filament-truss, a package of its own, so nothing changes for anybody who does not use Filament and Truss itself stays free of any Filament dependency. Structure only and never row data, with the same access rules as the Truss dashboard.',
+      },
       {
         title: 'Laravel Boost support',
         status: 'shipped',
@@ -161,12 +179,6 @@ export const SECTIONS: RoadmapSection[] = [
     commitment: 'Committed, building next',
     blurb: 'Decided. This is what comes next.',
     items: [
-      {
-        title: 'Filament plugin',
-        status: 'approved',
-        blurb:
-          'Surface the diagram inside a Filament admin panel as a first-class page, built from the panel\'s own components and styled by its own theme rather than dropped in as a frame around another page. It ships as a separate package, so nothing changes for anybody who does not use Filament, and Truss itself stays free of any Filament dependency.',
-      },
       {
         title: 'Self-contained HTML export',
         status: 'approved',
