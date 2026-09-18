@@ -4,6 +4,7 @@ import {
   SECTIONS,
   sectionOf,
   groupIntoSections,
+  routeIdOf,
   renderLlmsTxt,
   renderLlmsFullTxt,
 } from '../src/scripts/llms-txt.js'
@@ -46,6 +47,28 @@ describe('sectionOf', () => {
   it('puts an unrecognised directory under Optional rather than dropping it', () => {
     // Losing a page silently is the failure this generator exists to prevent.
     expect(sectionOf('something-new/page')).toBe('Optional')
+  })
+})
+
+describe('routeIdOf', () => {
+  it('drops the source extension, which would otherwise 404', () => {
+    expect(routeIdOf('guides/theming.mdx')).toBe('guides/theming')
+  })
+
+  it('drops index from a section landing page, which Starlight serves at the directory', () => {
+    // /filament/ is linked from inside other people's admin panels by a released
+    // package, so it is the one URL on this site that cannot be advertised wrong.
+    expect(routeIdOf('filament/index.mdx')).toBe('filament')
+  })
+
+  it('leaves a bare index alone, so no caller can build a double slash', () => {
+    // Callers write `${site}/${routeIdOf(id)}/`. An empty string there is
+    // https://trussphp.com// rather than the site root.
+    expect(routeIdOf('index.mdx')).toBe('index')
+  })
+
+  it('leaves index inside a filename alone', () => {
+    expect(routeIdOf('reference/indexes.mdx')).toBe('reference/indexes')
   })
 })
 

@@ -21,6 +21,7 @@
 export const SECTIONS = [
   { dir: 'getting-started', heading: 'Getting started' },
   { dir: 'guides', heading: 'Guides' },
+  { dir: 'filament', heading: 'Filament panel' },
   { dir: 'reference', heading: 'Reference' },
   { dir: 'help', heading: 'Help' },
 ]
@@ -44,8 +45,18 @@ const ORDER = [...SECTIONS.map((section) => section.heading), 'Optional']
 /**
  * Collection ids keep the source extension: "guides/theming.mdx". The route does
  * not. Left in, every URL in this file pointed at a 404.
+ *
+ * A section landing page is written as "filament/index.mdx" and Starlight serves
+ * it at /filament/, so the trailing "index" comes off too. Without that the
+ * first landing page this site gained was advertised to every answer engine at
+ * /filament/index/, which is a 404, and it is the one URL in the section that a
+ * released package links to from inside other people's admin panels.
+ *
+ * Only "<dir>/index" is stripped, never a bare "index": callers build the URL as
+ * `${site}/${routeIdOf(id)}/`, so returning an empty string would emit a double
+ * slash rather than the site root.
  */
-export const routeIdOf = (id) => id.replace(/\.mdx?$/, '')
+export const routeIdOf = (id) => id.replace(/\.mdx?$/, '').replace(/\/index$/, '')
 
 export function groupIntoSections(site, entries) {
   const byHeading = new Map()

@@ -453,6 +453,17 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Filament panel',
+          badge: 'New',
+          items: [
+            { label: 'Overview', link: '/filament/' },
+            { label: 'Installation', link: '/filament/installation/' },
+            { label: 'Theming', link: '/filament/theming/' },
+            { label: 'Open the diagram on a table', link: '/filament/open-on-a-table/' },
+            { label: 'Configuration', link: '/filament/configuration/' },
+          ],
+        },
+        {
           label: 'Reference',
           items: [
             { label: 'Configuration', link: '/reference/configuration/' },

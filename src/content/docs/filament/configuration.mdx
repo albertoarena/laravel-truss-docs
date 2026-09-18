@@ -1,0 +1,34 @@
+---
+title: Configuration
+description: Hidden tables, Truss's config, and the single option the Filament plugin adds
+---
+
+The diagram reads Truss's config, which is the single place to change what is drawn. Publish it if you have not already:
+
+```bash
+php artisan vendor:publish --tag=truss-config
+```
+
+Everything about which tables appear, how deep focus reaches and what the diagram shows is [configured there](/reference/configuration/), not here.
+
+## Hidden tables
+
+Truss keeps framework plumbing out of the diagram through its own `truss.excluded_tables`, so a panel on 16 tables may draw 8 of them. **The footer says so**, reading `8 of 16 tables` rather than presenting a filtered diagram as the whole schema.
+
+Where `truss.reveal_excluded` allows it, a **Show hidden tables** toggle draws the excluded ones muted. That is on by default in `local` and off elsewhere, matching `truss.enabled` and the `viewTruss` gate.
+
+**Both switches live in Truss's config and the plugin adds none of its own.** So the toggle being absent in production is a setting rather than a bug, and excluding a table to keep it off a shared panel keeps working: there is no query parameter and no plugin option that puts it back.
+
+## The one option
+
+The link to the project in the page header, which is on by default and off in one call:
+
+```php
+$panel->plugin(FilamentTrussPlugin::make()->documentationLink(false));
+```
+
+It is on by default because it is where a developer goes next, and removable because a permanent link to somebody's project in somebody else's admin panel is a billboard.
+
+That is the entire configuration surface of the plugin. Everything else is Truss's.
+
+**Theming is not configured at all.** The diagram follows the panel's palette by reading it, so there is nothing to set and no `truss.theme` to publish for it. See [Theming](/filament/theming/).

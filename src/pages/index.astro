@@ -73,6 +73,14 @@ const features = [
       <a class="btn ghost" href="/getting-started/installation/">Get started</a>
     </div>
 
+    {/* Not a sixth button. The row above is five ways into the same product and
+        a sixth would read as more of the same, while this is a different
+        package that only some readers want. A sentence can say who it is for,
+        which a button cannot. */}
+    <p class="aside-link">
+      Using Filament? <a href="/filament/">The panel plugin</a> puts this diagram inside your admin, as a page rather than a frame.
+    </p>
+
     <p class="proof">
       <a
         class="proof-pill"
@@ -247,6 +255,16 @@ const features = [
   .install .copy.copied { color: var(--truss-cyan); }
 
   .actions { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* Sits under the action row and reads as a note rather than competing with
+     it: the plugin is a second package and only some readers want it. */
+  .aside-link {
+    margin-top: 16px;
+    font-size: 14.5px;
+    color: var(--truss-muted);
+    max-width: 52ch;
+  }
+  .aside-link a { color: var(--truss-ink); font-weight: 600; }
   .btn {
     font-family: var(--truss-font-mono);
     font-size: 13.5px;

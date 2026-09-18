@@ -128,6 +128,27 @@ describe('site header', () => {
   })
 })
 
+describe('the Filament section URL, which is a contract', () => {
+  // The plugin's Database schema page carries a Documentation link in its
+  // header, and from its first release that link points here. A released
+  // package cannot be told the page has moved: a panel on an old version keeps
+  // requesting whatever it shipped with, for as long as it stays installed.
+  //
+  // So this path is not an ordinary docs URL and renaming it is not a rename.
+  // If it ever has to move, it owes a permanent redirect in public/.htaccess
+  // and a case in scripts/check-redirects.mjs, the same as /docs got.
+  it('still builds the page the plugin links to', () => {
+    expect(existsSync(dist('filament/index.html'))).toBe(true)
+  })
+
+  it('reaches the rest of the section from it', () => {
+    const html = readFileSync(dist('filament/index.html'), 'utf8')
+    for (const path of ['/filament/installation/', '/filament/open-on-a-table/', '/filament/configuration/']) {
+      expect(html).toContain(`href="${path}"`)
+    }
+  })
+})
+
 describe('site footer', () => {
   // The site has two footers that must stay in step: SiteLayout (hand-authored
   // pages) and the Starlight Footer override (docs pages).

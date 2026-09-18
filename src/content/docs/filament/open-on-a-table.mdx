@@ -1,0 +1,95 @@
+---
+title: Open the diagram on a table
+description: Give a Filament resource a button that opens the Database schema page with its own table already focused
+---
+
+import ThemedImage from '../../../components/ThemedImage.astro'
+import focusLight from '../../../assets/filament/focus-button-light.jpg'
+import focusDark from '../../../assets/filament/focus-button-dark.jpg'
+
+A resource can offer a button that opens the diagram with **its own table already focused**. Truss reads `focus` from the query string and applies it on load, so the whole feature is a URL:
+
+```
+/admin/database-schema?focus=books
+```
+
+<ThemedImage
+  light={focusLight}
+  dark={focusDark}
+  alt="The header of a Books resource list page, with a View in schema button beside the New book button"
+/>
+
+**Nothing of the plugin's runs in the browser for this.** There is no JavaScript to publish, no asset to build and nothing added to the payload. It is also why the feature cannot drift: the parameter is Truss's, and the plugin only writes it.
+
+## Opting a resource in
+
+The trait is the short way, and it works because every Filament resource can answer `getModel()`:
+
+```php
+use AlbertoArena\FilamentTruss\Actions\Concerns\HasViewInSchemaAction;
+use Filament\Resources\Resource;
+
+class BookResource extends Resource
+{
+    use HasViewInSchemaAction;
+
+    // ...
+}
+```
+
+Then put the action wherever the panel wants it. In a page header, beside Create:
+
+```php
+use App\Filament\Resources\Books\BookResource;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
+
+class ListBooks extends ListRecords
+{
+    protected static string $resource = BookResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            BookResource::viewInSchemaAction(),
+            CreateAction::make(),
+        ];
+    }
+}
+```
+
+**Put the trait on a base resource class and every resource extending it is opted in**, which is why it is a trait rather than a copied closure.
+
+## Without the trait
+
+`ViewInSchemaAction` is an ordinary `Filament\Actions\Action`, so it goes anywhere an action goes: a page header, a table row action, an action group.
+
+```php
+use AlbertoArena\FilamentTruss\Actions\ViewInSchemaAction;
+
+ViewInSchemaAction::make()->forModel(Book::class);
+ViewInSchemaAction::make()->forTable('books');
+```
+
+Being an ordinary action, it takes the ordinary methods too: `->label()`, `->icon()`, `->color()`, `->link()`, `->button()`. The defaults are **View in schema**, a grey outlined circle-stack icon, and the panel's own styling.
+
+:::note[It is per table, not per record]
+Focus narrows the diagram to a table and its neighbours, so every row of Books points at the same place. A row action is a legitimate placement, it just does not focus "this book".
+:::
+
+## When the button is not there
+
+**It removes itself rather than greying out**, in three cases. In each one there is nothing the viewer could do about it, and a disabled control invites them to try.
+
+| Case | Why |
+| --- | --- |
+| The panel has no schema page | A resource registered on two panels where only one has the plugin. Building the URL would otherwise throw. |
+| The viewer may not see the page | The page's own rule, which is [Truss's rule](/filament/installation/#who-can-see-the-page). Being allowed to list Books is not being allowed to read the database structure. |
+| Truss excludes the table | `?focus=` naming an [excluded table](/filament/configuration/#hidden-tables) matches no drawn table and is ignored, so the button would land on an unfocused diagram and read as broken. |
+
+## Worth knowing
+
+- **The focused URL is an address.** It bookmarks, it shares and it survives a reload, because the state is in the query string rather than in the page.
+- **Depth is Truss's**, from `truss.focus.default_depth`. The link does not set it, and the plugin adds no way to set it per button.
+
+See [Focus and filter](/guides/focus-and-filter/) for what focus does to the diagram.

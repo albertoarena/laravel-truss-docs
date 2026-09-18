@@ -1,0 +1,48 @@
+---
+title: Theming
+description: The Database schema page reads your panel's own CSS custom properties at runtime, so it follows the panel it is installed in with no configuration and no build step
+---
+
+The diagram **reads the panel's own CSS custom properties at runtime**. It follows the panel it is installed in, including one it has never seen, with no configuration, no build step and no palette to keep in step.
+
+There is nothing to do, which is the point of the page.
+
+:::note[Checked rather than reasoned about]
+Everything below was verified in a browser on **17/09/2026**, against Truss v1.13.0, Filament 5.8.1, Laravel 13 and Chrome.
+:::
+
+## What follows the panel
+
+**The primary colour.** With `->colors(['primary' => Color::Teal])`, the rule under the toolbar, the focused table's border, the focus ring, the checkbox accent, the zoom control and its slider, the legend keys, a utility button's open state and the diff button all go teal. Nothing is left on the default amber.
+
+**The grey scale.** `->colors(['gray' => Color::Slate])` moves the diagram background, the entity fill, the hairlines, the blueprint grid and the entity text with it.
+
+**Dark mode**, instantly and with no reload, because the panel's own toggle is what the diagram listens to.
+
+**The typeface.** `->font('Poppins')` takes the heading, the toolbar labels, the inputs and the footer.
+
+**The layout.** Top navigation, full content width and a collapsing sidebar were each run: the diagram box ends where the page ends and nothing overflows sideways. Its height is measured from the page rather than assumed, so a panel with a taller heading or a breadcrumb gets the right answer.
+
+**A custom compiled theme**, from `php artisan make:filament-theme` and `viteTheme()`, which replaces Filament's own stylesheet entirely. Everything above still holds.
+
+## What does not follow, deliberately
+
+**The diagram itself stays monospaced**, and so do the legend's `PK` and `FK` keys, whatever the panel's font is. Those are notation rather than interface, and a schema read in a proportional face is harder to scan. It is a line rather than an oversight.
+
+**Severity colours stay severe.** Warnings and errors take Filament's `--warning-*` and `--danger-*` rather than the primary, so a red health badge stays red on a teal panel. A severity is not an accent.
+
+**`PK` and `FK` badges** are entity text and take the grey scale, not the primary.
+
+## The one caveat
+
+**Colours come from `->colors()`, not from the theme's own CSS.**
+
+Overriding Tailwind's `--color-gray-*` inside `resources/css/filament/<panel>/theme.css` changes nothing here. That is not a gap in the plugin: Filament emits its `--gray-*` custom properties from `colors()`, so a Tailwind-level override moves neither the panel's own chrome nor the diagram. Both ways were measured.
+
+The rule worth remembering: **whatever changes Filament's palette changes the diagram, and whatever does not, does not.**
+
+## There is no theming config here
+
+The plugin adds no theming setting, and **`truss.theme` does not reach this page**. That config colours [Truss's own dashboard](/guides/theming/) at `/truss`, and it is read on the server, while a Filament panel decides its theme in the browser. The separation is deliberate rather than pending.
+
+What is promised is that the page reads the panel's properties, so a theme nobody anticipated arrives with the right values. Whether a particular grey step reads well at a particular size is a judgement, and that is the one thing here nobody has automated.
