@@ -34,6 +34,24 @@ import { chromium } from '@playwright/test'
 const BASE = process.env.ART_BASE ?? 'http://127.0.0.1:8000'
 const OUT = process.argv[2] ?? 'src/assets/filament'
 
+/**
+ * --accent=<name> takes only the theming pair, cropped to the diagram box, and
+ * names the files after the panel's current primary.
+ *
+ * The page it feeds argues that the diagram takes the panel's palette, and the
+ * only way to show that is the same view under two primaries. So this is run
+ * twice with the demo app's ->colors() changed in between, and the name is
+ * passed in rather than detected: the script cannot know what the panel was
+ * configured with, and guessing it from a rendered pixel would be worse than
+ * being told.
+ *
+ * Cropped to #truss-app, with ?focus=books applied. Focus is what puts an
+ * accent border and a focus ring on screen, and it shrinks the diagram so the
+ * crop stays legible at prose width, where two full panel screenshots would
+ * not be.
+ */
+const ACCENT = process.argv.find((a) => a.startsWith('--accent='))?.split('=')[1] ?? null
+
 async function open(dark) {
   const browser = await chromium.launch()
   const context = await browser.newContext({
@@ -56,6 +74,23 @@ async function forceDark(page) {
 
 for (const dark of [false, true]) {
   const theme = dark ? 'dark' : 'light'
+
+  if (ACCENT) {
+    const { browser, page } = await open(dark)
+    await page.goto(`${BASE}/admin/database-schema?focus=books`, { waitUntil: 'networkidle' })
+    if (dark) await forceDark(page)
+    await page.waitForFunction(() => !!document.querySelector('#truss-canvas svg'), { timeout: 20000 })
+    await page.waitForTimeout(2000)
+    const box = await page.evaluate(() => {
+      const el = document.getElementById('truss-app')
+      const r = el.getBoundingClientRect()
+      return { x: r.x, y: r.y, width: r.width, height: r.height }
+    })
+    await page.screenshot({ path: `${OUT}/accent-${ACCENT}-${theme}.jpg`, type: 'jpeg', quality: 92, clip: box })
+    console.log(`accent-${ACCENT}-${theme}.jpg  ${Math.round(box.width)}x${Math.round(box.height)}`)
+    await browser.close()
+    continue
+  }
 
   // The schema page. Fitted rather than left at the default 70%: at 70% the
   // outer tables are cut by the frame, which reads as a broken screenshot. The
