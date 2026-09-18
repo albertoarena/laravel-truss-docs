@@ -1,6 +1,7 @@
 # Filament panel screenshots
 
-Taken on 18/09/2026 by `scripts/shoot-filament.mjs`, against the demo panel on
+Taken on 18/09/2026 by `scripts/shoot-filament.mjs`, the panel pair re-taken the
+same day after the brand changed, against the demo panel on
 `http://127.0.0.1:8000`, a real Filament panel on a seeded bookshop database.
 Committed here rather than fetched at build time, unlike the demo's frontend
 assets: those have to match the released package, while a screenshot that
@@ -27,7 +28,13 @@ once taken.
 resource list page is nothing but rows, which is why the focus button shot is
 clipped to the page header rather than framed loosely.
 
-**Nothing identifying a real application.**
+**Nothing identifying a real application**, and that cuts both ways: the panel is
+branded after the bookshop it manages rather than after the plugin. These frames
+keep the sidebar and the topbar deliberately, because the chrome is the evidence
+that the schema page is native to the panel, so the brand in the corner is
+published along with the claim. A panel named for the plugin would read as a toy
+and undo the sentence the picture is there to support. The demo application holds
+that in a test of its own.
 
 ## Why these are not the package's art/filamentphp/ shots
 
@@ -54,11 +61,18 @@ that field absorbed the whole shortfall. `toolbar-layout.js` now measures the
 bar itself, and an embedded 810px bar behaves the way an 810px window always
 did.
 
-**The screenshots here were taken before that**, against a demo panel running
-v1.13.0, so they are unaffected either way: 1440 was always above the range
-where it bit. A re-shoot could now use a narrower viewport and get a larger,
-more legible diagram, which is worth doing next time these are re-taken rather
-than on its own.
+**The panel pair has since been re-taken against v1.13.1**, at the same 1440
+viewport, and it is identical but for the brand: measured rather than assumed,
+the bar is 1054px there, which is above the first step, so nothing folds that did
+not fold before. At 1280 it is 894px and the steps now fire, which is the fix.
+The theming pair is still from a v1.13.0 panel and is unaffected, because 1440
+was always above the range where this bit.
+
+**The narrower viewport is still not taken.** A re-shoot could now go below 1280
+and get a larger, more legible diagram, which was impossible while the Filter
+field collapsed there. It was deliberately not done in the same change as the
+brand, so that one hero image did not change for two reasons at once, and it
+remains worth doing on its own.
 
 ## The theming pair
 
