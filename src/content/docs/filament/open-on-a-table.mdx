@@ -3,11 +3,21 @@ title: Open the diagram on a table
 description: Give a Filament resource a button that opens the Database schema page with its own table already focused
 ---
 
+import ThemedImage from '../../../components/ThemedImage.astro'
+import focusLight from '../../../assets/filament/focus-button-light.jpg'
+import focusDark from '../../../assets/filament/focus-button-dark.jpg'
+
 A resource can offer a button that opens the diagram with **its own table already focused**. Truss reads `focus` from the query string and applies it on load, so the whole feature is a URL:
 
 ```
 /admin/database-schema?focus=books
 ```
+
+<ThemedImage
+  light={focusLight}
+  dark={focusDark}
+  alt="The header of a Books resource list page, with a View in schema button beside the New book button"
+/>
 
 **Nothing of the plugin's runs in the browser for this.** There is no JavaScript to publish, no asset to build and nothing added to the payload. It is also why the feature cannot drift: the parameter is Truss's, and the plugin only writes it.
 
