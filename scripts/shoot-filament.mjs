@@ -28,6 +28,7 @@
 //   Nothing identifying a real application.
 //
 
+import { writeFileSync } from 'node:fs'
 import { chromium } from '@playwright/test'
 
 const BASE = process.env.ART_BASE ?? 'http://127.0.0.1:8000'
@@ -71,6 +72,24 @@ for (const dark of [false, true]) {
     await page.waitForTimeout(1500)
     await page.screenshot({ path: `${OUT}/panel-${theme}.jpg`, type: 'jpeg', quality: 92 })
     console.log(`panel-${theme}.jpg`)
+
+    // Record the footer the camera actually saw.
+    //
+    // The prose on /filament/configuration/ quotes this count, and it was wrong
+    // once already: it was copied from the package README, which says 8 of 17,
+    // while the demo and both screenshots say 8 of 16. A picture and a sentence
+    // one click apart disagreed, and nothing could have failed. Now the figure
+    // is written down here and tests/filament-footer.test.js reads it, so the
+    // two can only drift with a red build.
+    if (!dark) {
+      const footer = await page.evaluate(
+        () => document.querySelector('#truss-app')?.textContent.match(/\d+ of \d+ tables/)?.[0] ?? null,
+      )
+      if (!footer) throw new Error('no table count in the footer, so nothing can be asserted about it')
+      writeFileSync(`${OUT}/panel.json`, JSON.stringify({ footer }, null, 2) + '\n')
+      console.log(`panel.json  footer "${footer}"`)
+    }
+
     await browser.close()
   }
 
