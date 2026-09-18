@@ -1,7 +1,8 @@
 # Filament panel screenshots
 
-Taken on 18/09/2026 by `scripts/shoot-filament.mjs`, the panel pair re-taken the
-same day after the brand changed, against the demo panel on
+Taken on 18/09/2026 by `scripts/shoot-filament.mjs`, the panel pair twice more
+the same day: once when the brand changed, and once to take the viewport taller,
+against the demo panel on
 `http://127.0.0.1:8000`, a real Filament panel on a seeded bookshop database.
 Committed here rather than fetched at build time, unlike the demo's frontend
 assets: those have to match the released package, while a screenshot that
@@ -15,8 +16,8 @@ once taken.
 
 | File | What it shows | Size |
 | --- | --- | --- |
-| `panel-light.jpg` | The Database schema page, panel chrome included | 2880x1800 |
-| `panel-dark.jpg` | The same, in the panel's dark mode | 2880x1800 |
+| `panel-light.jpg` | The Database schema page, panel chrome included | 2880x2400 |
+| `panel-dark.jpg` | The same, in the panel's dark mode | 2880x2400 |
 | `focus-button-light.jpg` | The View in schema button on a resource header | 2208x184 |
 | `focus-button-dark.jpg` | The same, dark | 2208x184 |
 | `accent-amber-*.jpg` | The diagram focused on books, panel primary Amber | 2112x1280 |
@@ -46,12 +47,11 @@ Here the panel chrome is the evidence for what the page claims, so nothing is
 removed and the real heading stays. The two sets answer different questions and
 both are correct for the place they appear.
 
-## Why 1440, and why that is now history
+## Why 1440 wide, and why 1200 tall
 
-The schema page is shot at a 1440 viewport. It had to be: until Truss v1.13.1
-the toolbar's Filter input collapsed to a 24px empty box in a Filament panel,
-anywhere from roughly 1280 down to 1100, while the Focus input beside it kept
-its full width.
+**The width is 1440 and is not a preference.** Until Truss v1.13.1 the toolbar's
+Filter input collapsed to a 24px empty box in a Filament panel, anywhere from
+roughly 1280 down to 1100, while the Focus input beside it kept its full width.
 
 **Fixed in v1.13.1**, and the cause was deeper than it looked from here. The
 toolbar's responsive steps were media queries keyed on the window, so a 1280px
@@ -61,18 +61,34 @@ that field absorbed the whole shortfall. `toolbar-layout.js` now measures the
 bar itself, and an embedded 810px bar behaves the way an 810px window always
 did.
 
-**The panel pair has since been re-taken against v1.13.1**, at the same 1440
-viewport, and it is identical but for the brand: measured rather than assumed,
-the bar is 1054px there, which is above the first step, so nothing folds that did
-not fold before. At 1280 it is 894px and the steps now fire, which is the fix.
-The theming pair is still from a v1.13.0 panel and is unaffected, because 1440
-was always above the range where this bit.
+**1440 is still the width, and now for a second reason.** Truss's toolbar sizes
+its responsive steps from the bar rather than the window, and in this panel the
+bar is the window less about 386px of sidebar and padding. Below roughly 1410,
+the bar crosses the first step and Focus, Depth and the checkboxes fold behind
+the `...` button, so a narrower shot stops showing the controls it is here to
+show. 1440 leaves the bar at 1054px, comfortably above it.
 
-**The narrower viewport is still not taken.** A re-shoot could now go below 1280
-and get a larger, more legible diagram, which was impossible while the Filter
-field collapsed there. It was deliberately not done in the same change as the
-brand, so that one hero image did not change for two reasons at once, and it
-remains worth doing on its own.
+**The height is 1200 because the fit is limited by height, not by width.** This
+was measured at seven viewports rather than guessed, and the guess this file used
+to carry was wrong: it said a *narrower* viewport would give a larger diagram.
+It gives exactly the same one. 1280x900 fits at 47%, the same as 1440x900, and
+folds the toolbar as well.
+
+| Viewport | Fit | Toolbar | Diagram, as a share of the frame |
+| --- | --- | --- | --- |
+| 1440x900 | 47% | intact | 29% |
+| 1280x900 | 47% | **folds** | 33% |
+| **1440x1200** | **65%** | **intact** | **43%** |
+| 1600x1200 | 71% | intact | 46% |
+
+1600x1200 reads better still and was not taken: it narrows the sidebar's share of
+the frame, and the sidebar is part of what these images are evidence for. 1440
+wide keeps the panel in the proportions a reader meets it in.
+
+**Only the panel pair is tall.** The focus button pair is clipped to the page
+header, whose geometry follows the width alone, so it comes back byte for byte
+from the same run and never reaches the diff. The theming pair is cropped to the
+diagram box and is taken at 900.
 
 ## The theming pair
 

@@ -52,10 +52,31 @@ const OUT = process.argv[2] ?? 'src/assets/filament'
  */
 const ACCENT = process.argv.find((a) => a.startsWith('--accent='))?.split('=')[1] ?? null
 
-async function open(dark) {
+/**
+ * The panel shot is taken tall, and that is measured rather than preferred.
+ *
+ * The diagram is fitted, and at 1440x900 the fit is limited by height: it
+ * settles at 47% and leaves a wide band of empty grid down each side, so the
+ * tables arrive at prose width smaller than the frame could carry. Height is
+ * the lever. At 1440x1200 the same fit reaches 65% and the diagram covers 43%
+ * of the frame rather than 29%, with nothing else on the page moving.
+ *
+ * Width is deliberately not the lever, though it looks like the obvious one. A
+ * narrower window does not enlarge a height-limited diagram at all (1280x900
+ * fits at the same 47%), and below about 1410 the toolbar's own width crosses
+ * Truss's first responsive step, so Focus, Depth and the checkboxes fold behind
+ * the ... button and the shot stops showing the controls it is there to show.
+ *
+ * Holding the width also keeps the header geometry identical, which is why the
+ * focus button pair comes back byte for byte and stays out of the diff.
+ */
+const PANEL_VIEWPORT = { width: 1440, height: 1200 }
+const CROP_VIEWPORT = { width: 1440, height: 900 }
+
+async function open(dark, viewport = CROP_VIEWPORT) {
   const browser = await chromium.launch()
   const context = await browser.newContext({
-    viewport: { width: 1440, height: 900 },
+    viewport,
     deviceScaleFactor: 2,
     colorScheme: dark ? 'dark' : 'light',
   })
@@ -92,13 +113,14 @@ for (const dark of [false, true]) {
     continue
   }
 
-  // The schema page. Fitted rather than left at the default 70%: at 70% the
+  // The schema page, fitted rather than left at the default 70%: at 70% the
   // outer tables are cut by the frame, which reads as a broken screenshot. The
-  // panel is the subject here, not the schema, so a complete diagram at 47%
-  // beats a cropped one at 70%. (On the demo landings the diagram IS the
-  // subject and the opposite call is the right one.)
+  // panel is the subject here, not the schema, so a complete diagram beats a
+  // cropped one. (On the demo landings the diagram IS the subject and the
+  // opposite call is the right one.) Fit lands at 65% in the taller viewport
+  // above, where it used to land at 47%.
   {
-    const { browser, page } = await open(dark)
+    const { browser, page } = await open(dark, PANEL_VIEWPORT)
     await page.goto(`${BASE}/admin/database-schema`, { waitUntil: 'networkidle' })
     if (dark) await forceDark(page)
     await page.waitForFunction(() => !!document.querySelector('#truss-canvas svg'), { timeout: 20000 })
