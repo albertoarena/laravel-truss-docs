@@ -92,6 +92,8 @@ Revealing never changes the schema diff or the doctor findings, which always run
 
 Null (the default) self-hosts Mermaid from the package, so no CDN is contacted. Set a URL to load Mermaid from a CDN or your own copy instead.
 
+It is also where `truss:export --format=html --mermaid=cdn` looks: an install that has already said where its copy of Mermaid lives gets that URL in the exported file rather than a public CDN. See [the single-file HTML export](/guides/schema-export/#the-whole-diagram-as-one-file).
+
 ### `diagram.min_zoom`
 
 The lowest zoom the automatic fit will use, so a large schema stays legible and you pan around it rather than being dumped into an unreadable overview. The Fit button ignores this floor.
@@ -106,7 +108,7 @@ Declare the business meaning a type cannot carry, so it renders into the exports
 
 ### `export.default_format`
 
-The format `truss:export` and the `Truss` facade use when none is given, one of `dbml`, `json`, `csv`, `markdown`, `mermaid`, or `llm`. Defaults to `dbml`, a standard other tools already read.
+The format `truss:export` and the `Truss` facade use when none is given, one of `dbml`, `json`, `csv`, `markdown`, `mermaid`, or `llm`. Defaults to `dbml`, a standard other tools already read. Not `html`: that format is a document and requires `--output`, which makes it a poor default for a command that otherwise writes to stdout.
 
 ### `mcp.enabled`
 

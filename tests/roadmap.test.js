@@ -155,13 +155,16 @@ describe('roadmap data', () => {
     expect(formats.status).toBe('exploring')
   })
 
-  it('carries the self-contained HTML export as approved next', () => {
+  it('files the self-contained HTML export as shipped in v1.14.0', () => {
     const html = ALL.find((i) => /HTML export/i.test(i.title))
     expect(html, 'HTML export card exists').toBeTruthy()
-    expect(html.status).toBe('approved')
-    expect(html.version, 'unshipped items carry no version').toBeUndefined()
+    expect(html.status).toBe('shipped')
+    expect(html.version, 'a shipped item says which release').toBe('v1.14.0')
     // The point of the format is that the file needs nothing at all to open.
     expect(html.blurb).toMatch(/single|self-contained/i)
+    // No tryUrl: it is a command that writes a file, not something a visitor
+    // can have a go at in a browser, and a link here would promise one.
+    expect(html.tryUrl, 'nothing to try in a browser').toBeUndefined()
   })
 
   it('carries the standalone binary as approved next', () => {

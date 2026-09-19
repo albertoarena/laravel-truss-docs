@@ -56,6 +56,17 @@
         "basis": "public-post"
     },
     {
+        "kind": "community",
+        "quote": "مستندسازی فقط نوشتن یک فایل توضیحات نیست؛ گاهی خود ساختار سیستم بهترین مستندات ماست.",
+        "quoteLang": "fa",
+        "translation": "Documentation is not only writing a file of explanations. Sometimes the structure of the system itself is our best documentation.",
+        "author": "Ehsan Rafiee",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/posts/ehsan-rafiee-87b52b62_laravel-php-database-share-7493023074347532288-Oc4D/",
+        "date": "2026-08-11",
+        "basis": "public-post"
+    },
+    {
         "kind": "report",
         "quote": "[Bug] Table connection prefix (`prefix` / `DB_PREFIX`) causes empty columns, keys, and foreign   key relationships",
         "author": "Nguyễn Tiến Lộc",
@@ -102,6 +113,17 @@
         "source": "LinkedIn",
         "url": "https://www.linkedin.com/posts/mohammad-ghanem-901108186_laravel-php-laraveltips-share-7494400677201424385--oas/",
         "date": "2026-08-15",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "نکته‌ی مهمش امنیته: فقط ساختار (جدول‌ها، ستون‌ها، کلیدها، ایندکس‌ها) رو می‌خونه و هیچ‌وقت به داده‌های واقعی جدول‌ها دسترسی نداره یا نمایششون نمی‌ده.",
+        "quoteLang": "fa",
+        "translation": "The important part is the security: it reads only the structure, tables, columns, keys, indexes, and it never touches the real data in the tables or shows it.",
+        "author": "Milad Niroee",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/posts/miladniroee_%DB%8C%D9%87-%D8%A8%D8%A7%D8%B1-%D8%B3%D8%B1-%D9%BE%D8%B1%D9%88%DA%98%D9%87%D8%A7%DB%8C-%DA%A9%D9%87-%D8%B3%D8%A7%D8%AE%D8%AA%D8%A7%D8%B1-%D8%AF%DB%8C%D8%AA%D8%A7%D8%A8%DB%8C%D8%B3%D8%B4-%D9%BE%DB%8C%DA%86%DB%8C%D8%AF%D9%87-share-7495010948030644224-4VTc/",
+        "date": "2026-08-17",
         "basis": "public-post"
     },
     {
@@ -203,6 +225,15 @@
         "source": "LinkedIn",
         "url": "https://www.linkedin.com/feed/update/urn:li:activity:7500481031939174400/",
         "date": "2026-09-01",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Truss is for once it's live, seeing what's actually there. Different moments in the same project.",
+        "author": "Stelios Ioannides",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7502333364688023552?commentUrn=urn%3Ali%3Acomment%3A%28activity%3A7502333364688023552%2C7503071169047183361%29&replyUrn=urn%3Ali%3Acomment%3A%28activity%3A7502333364688023552%2C7503096166960635905%29",
+        "date": "2026-09-08",
         "basis": "public-post"
     }
 ]

@@ -68,9 +68,12 @@ php artisan truss:export --format=json --output=docs/schema.json
 
 # Fail the build if the committed file is out of date
 php artisan truss:export --format=dbml --output=docs/schema.dbml --check
+
+# The whole diagram as one file that opens with no server
+php artisan truss:export --format=html --output=schema.html
 ```
 
-Options: `--format` (`dbml` / `json` / `csv` / `markdown` / `mermaid` / `llm`), `--connection`, `--tables` and `--exclude` (config `excluded_tables` always wins), `--output` (a file path; stdout otherwise), `--check` (exit non-zero if `--output` would change, writing nothing), and `--fresh` (rebuild the snapshot first). For AI-context output, add `--compact` (drop defaults and non-unique indexes), `--focus=<table>` with `--depth=<n>` (a table and its foreign-key neighbourhood), and `--no-annotations` (strip configured annotations). Exit codes are `0` (written or up to date), `1` (`--check` found drift), and `2` (a usage or runtime error). See the [Schema export guide](/guides/schema-export/) for the formats and the CI drift-check recipe, and [Truss as AI context](/guides/ai-context/) for the annotation, compact, and focus flags.
+Options: `--format` (`dbml` / `json` / `csv` / `markdown` / `mermaid` / `llm` / `html`), `--connection`, `--tables` and `--exclude` (config `excluded_tables` always wins), `--output` (a file path; stdout otherwise, and required for `html`), `--check` (exit non-zero if `--output` would change, writing nothing), `--fresh` (rebuild the snapshot first), and `--mermaid` (`html` only: `inline`, the default, or `cdn` for a small file that loads Mermaid from a URL). For AI-context output, add `--compact` (drop defaults and non-unique indexes), `--focus=<table>` with `--depth=<n>` (a table and its foreign-key neighbourhood), and `--no-annotations` (strip configured annotations). Exit codes are `0` (written or up to date), `1` (`--check` found drift), and `2` (a usage or runtime error). See the [Schema export guide](/guides/schema-export/) for the formats, the [single-file HTML export](/guides/schema-export/#the-whole-diagram-as-one-file), and the CI drift-check recipe, and [Truss as AI context](/guides/ai-context/) for the annotation, compact, and focus flags.
 
 ## `truss:doctor`
 

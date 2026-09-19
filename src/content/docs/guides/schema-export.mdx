@@ -7,7 +7,7 @@ description: Export your database structure from the command line for CI, toolin
 
 ## Formats
 
-One flag, five formats. Pick the one that suits the job:
+One flag, seven formats. Pick the one that suits the job:
 
 | `--format` | Best for |
 | --- | --- |
@@ -17,6 +17,7 @@ One flag, five formats. Pick the one that suits the job:
 | `markdown` | A data dictionary to paste into a README or wiki |
 | `mermaid` | An `erDiagram` block to embed in Markdown docs |
 | `llm` | Feeding a coding agent: a dense, token-tuned plaintext layout |
+| `html` | A person: the whole diagram as one file that opens with no server, see [below](#the-whole-diagram-as-one-file) |
 
 ## The command
 
@@ -36,9 +37,52 @@ php artisan truss:export --tables=orders,order_lines
 php artisan truss:export --connection=mysql --exclude=telemetry
 ```
 
-Options: `--format`, `--connection`, `--tables` (allowlist), `--exclude` (blocklist, applied after `--tables`), `--output` (a file path; stdout otherwise), `--check` (see below), and `--fresh` (rebuild the cached snapshot first). For feeding an agent, `--compact`, `--focus`/`--depth`, and `--no-annotations` are covered in [Truss as AI context](/guides/ai-context/).
+Options: `--format`, `--connection`, `--tables` (allowlist), `--exclude` (blocklist, applied after `--tables`), `--output` (a file path; stdout otherwise, and required for `html`), `--check` (see below), `--fresh` (rebuild the cached snapshot first), and `--mermaid` (`html` only: `inline` or `cdn`). For feeding an agent, `--compact`, `--focus`/`--depth`, and `--no-annotations` are covered in [Truss as AI context](/guides/ai-context/).
 
 Config `excluded_tables` always wins over `--tables`, so you cannot filter your way to an excluded table and the export never exposes structure the dashboard hides.
+
+## The whole diagram as one file
+
+`--format=html` is the odd one out. The other six render your tables as text for a tool to read; this one writes the dashboard itself as a single file: the diagram, the filter, the focus picker, the health panel, zoom and pan. It opens by double-clicking it. No server, no network, no database, and whoever opens it does not need Truss, PHP, or access to your application.
+
+```bash
+php artisan truss:export --format=html --output=schema.html
+```
+
+That is the schema review that used to need a screen share. Attach it to a pull request, send it to a contractor on their first day, or keep one per release so you can open last quarter's structure next to today's.
+
+### What is in the file
+
+Everything it needs, which is why it is around 3.6 MB: your structure, the stylesheet, the fonts, and a copy of Mermaid. The diagram is drawn in the browser from an embedded snapshot, exactly as the dashboard draws it, because it is the same code.
+
+The [structure health](/guides/schema-doctor/) findings ride along too, so a reviewer sees the same flags you do. One consequence worth knowing: a Truss upgrade that changes a doctor rule changes the file, so a committed export can report drift under `--check` on an upgrade rather than on a schema change.
+
+### A smaller file, at a price
+
+`--mermaid=cdn` leaves Mermaid out and loads it from a URL instead, which takes the file from megabytes to kilobytes:
+
+```bash
+php artisan truss:export --format=html --mermaid=cdn --output=schema.html
+```
+
+The file then needs a network to open, and it will change when the CDN's version moves. It uses `truss.diagram.mermaid_url` when you have set one, so an install that already self-hosts Mermaid points at its own copy. Use it when size matters more than the guarantee; keep the default when you want a file that still works in five years with the wifi off.
+
+### `--output` is required
+
+Unlike the other six formats, `html` refuses to write to stdout:
+
+```bash
+php artisan truss:export --format=html
+# --format=html requires --output: the file is around 3.6 MB and is not meant for a terminal.
+```
+
+Several megabytes of minified JavaScript is not something to discover in a terminal or a CI log, and there is no undo once it has scrolled past.
+
+### Before you commit one
+
+The file is structure only, like every format. It is still worth deciding deliberately: it contains your table names, column names, types, defaults, and comments, so committing one puts your schema into a pull request diff where it outlives the branch. Often that is exactly the point. Just do it on purpose.
+
+`--check` works with it. The embedded snapshot deliberately leaves out the generated-at timestamp and the diff against your baseline, so a committed file does not report drift on a day when nothing about your schema changed.
 
 ## Deterministic by design
 
@@ -59,7 +103,7 @@ Now a migration that changes the structure without refreshing the committed file
 
 - `0`: written, or (with `--check`) the file is up to date.
 - `1`: `--check` found drift. The one actionable non-error signal, so CI can tell "the file is stale" from "the command broke".
-- `2`: a usage or runtime error (unknown format, an unmanaged or unreachable connection, an unwritable path, `--check` without `--output`, or no tables matched the filters).
+- `2`: a usage or runtime error (unknown format, an unmanaged or unreachable connection, an unwritable path, `--check` without `--output`, `--format=html` without `--output`, an unknown `--mermaid` value, or no tables matched the filters).
 
 ## Committing a schema file
 
