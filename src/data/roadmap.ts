@@ -58,6 +58,15 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Self-contained HTML export',
+        status: 'shipped',
+        version: 'v1.14.0',
+        linkLabel: 'Read the guide',
+        tryUrl: '/guides/schema-export/#the-whole-diagram-as-one-file',
+        blurb:
+          'Export the whole diagram as a single HTML file that needs nothing to open it: no server, no network, no build step. Commit it next to the migrations, attach it to a pull request, or send it to somebody who has no access to the database, and it opens in any browser exactly as the dashboard drew it, filter and focus picker included. Structure only, as always.',
+      },
+      {
         title: 'Filament plugin',
         status: 'shipped',
         version: 'v1.0.0',
@@ -179,12 +188,6 @@ export const SECTIONS: RoadmapSection[] = [
     commitment: 'Committed, building next',
     blurb: 'Decided. This is what comes next.',
     items: [
-      {
-        title: 'Self-contained HTML export',
-        status: 'approved',
-        blurb:
-          'Export the whole diagram as a single HTML file that needs nothing to open it: no server, no network, no build step. Commit it next to the migrations, attach it to a pull request, or send it to somebody who has no access to the database, and it opens in any browser exactly as the dashboard drew it. Structure only, as always.',
-      },
       {
         title: 'Schema doctor: more rules',
         status: 'approved',
