@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import sharp from 'sharp'
 
 import {
   DEFAULT_COVER,
@@ -65,6 +66,22 @@ describe('the social card for a docs page', () => {
     // pasted. Nothing else in this repo would catch that.
     for (const path of [DEFAULT_COVER, ...Object.values(SECTION_COVERS)]) {
       expect(existsSync(localPath(path)), `public${path} is missing`).toBe(true)
+    }
+  })
+
+  it('names files cut to the shape the tags declare', async () => {
+    // Every page declares og:image:width 1200 and height 630. A card that is not
+    // that shape gets cropped by each platform to its own taste, which is the
+    // failure this whole file exists to avoid, and no test upstream of the pixels
+    // can see it. A whole multiple is allowed because cover-light.png is 2400x1260
+    // and flat art survives the platforms' downscale; the ratio is not negotiable.
+    for (const path of [DEFAULT_COVER, ...Object.values(SECTION_COVERS)]) {
+      const { width, height } = await sharp(localPath(path)).metadata()
+
+      expect(width % 1200, `public${path} is ${width} wide, not a multiple of 1200`).toBe(0)
+      expect(height, `public${path} is ${width}x${height}, not the card ratio`).toBe(
+        (width / 1200) * 630,
+      )
     }
   })
 })

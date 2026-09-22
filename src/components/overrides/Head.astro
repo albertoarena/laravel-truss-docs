@@ -38,8 +38,8 @@ const url = new URL(pathname, `${site}/`).href
 // Two other paths emit the same tags and share no code with this one: SiteLayout
 // for the landing, the roadmap and in the wild, and scripts/static-page-meta.mjs
 // injecting into the pages copied verbatim out of public/. All three declare the
-// same nominal 1200x630, which is the size the cards are cut to rather than the
-// size of the files, which are that doubled.
+// same nominal 1200x630, which every card is cut to the shape of. The file behind
+// it may be that size or a whole multiple of it, and a test holds both.
 const cover = coverUrlOf(entry.id, {
   site: `${site}/`,
   base: import.meta.env.BASE_URL.replace(/\/$/, ''),
