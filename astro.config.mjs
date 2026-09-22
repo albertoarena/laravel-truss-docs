@@ -353,11 +353,12 @@ export default defineConfig({
             crossorigin: 'anonymous',
           },
         })),
-        { tag: 'meta', attrs: { property: 'og:image', content: COVER } },
-        { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
-        { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
         { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
-        { tag: 'meta', attrs: { name: 'twitter:image', content: COVER } },
+        // og:image and twitter:image are NOT here. They are emitted from the
+        // Head override, because the card depends on the page: /filament/
+        // documents a separate package and shares its own art. A copy here
+        // would win nothing and lose that, since a head array applies to every
+        // Starlight page equally.
         // Cloudflare Web Analytics beacon (cookieless, no consent banner). The
         // token is public, not a secret. Manual install because the domain is
         // grey-cloud (DNS-only), so Cloudflare cannot auto-inject it.
