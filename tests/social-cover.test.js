@@ -8,6 +8,7 @@ import {
   SECTION_COVERS,
   coverPathOf,
   coverUrlOf,
+  versionOf,
 } from '../src/scripts/social-cover.js'
 
 /**
@@ -87,9 +88,9 @@ describe('the social card for a docs page', () => {
 })
 
 describe('the absolute form', () => {
-  it('is the origin plus the path', () => {
+  it('is the origin plus the path, versioned', () => {
     expect(coverUrlOf('filament/index.mdx', { site: 'https://trussphp.com/' })).toBe(
-      'https://trussphp.com/filament-cover-light.jpg',
+      `https://trussphp.com/filament-cover-light.jpg?v=${versionOf(SECTION_COVERS.filament)}`,
     )
   })
 
@@ -98,6 +99,25 @@ describe('the absolute form', () => {
     // dropped it would point at a file the preview does not host.
     expect(
       coverUrlOf('guides/theming.mdx', { site: 'https://example.test/', base: '/preview' }),
-    ).toBe('https://example.test/preview/cover-light.png')
+    ).toBe(`https://example.test/preview/cover-light.png?v=${versionOf(DEFAULT_COVER)}`)
+  })
+})
+
+describe('the version', () => {
+  /**
+   * Re-cutting a card has to change its URL, or the change never reaches anyone.
+   * LinkedIn refetched /filament/ after the card was recut on 22/09/2026, read
+   * the same og:image URL, and went on serving its stored copy of the old image.
+   * Their cache is keyed on the URL and no re-scrape reaches it.
+   */
+  it('is taken from the bytes of the file it points at', () => {
+    expect(versionOf(DEFAULT_COVER)).toMatch(/^[0-9a-f]{8}$/)
+    expect(versionOf(SECTION_COVERS.filament)).toMatch(/^[0-9a-f]{8}$/)
+  })
+
+  it('differs between two different cards', () => {
+    // A constant, or a version read from package.js, would pass the test above
+    // and still hand every platform one unchanging URL per card.
+    expect(versionOf(DEFAULT_COVER)).not.toBe(versionOf(SECTION_COVERS.filament))
   })
 })

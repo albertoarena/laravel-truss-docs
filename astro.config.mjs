@@ -8,6 +8,8 @@ import { DEMO_APPS, appPageFile, APP_ASSET_TOKEN } from './scripts/demo-apps.mjs
 import { STATIC_PAGES, metaTags, injectMeta } from './scripts/static-page-meta.mjs'
 import { staticPageUrls, addUrls } from './scripts/static-page-sitemap.mjs'
 import { MENU_PAGES } from './scripts/demo-nav.mjs'
+import { DEFAULT_COVER, coverUrl } from './src/scripts/social-cover.js'
+import { AUTHOR_NAME, AUTHOR_PROFILE } from './src/config/package.js'
 
 // Cache-bust the live demo's frontend: at build, move the copied assets into a
 // version-stamped folder and repoint the demo HTML at it, so a new package
@@ -318,7 +320,10 @@ function rehypeScrollableTables() {
 // elsewhere. SITE_BASE uses ?? so an explicit '' still means "root, no subpath".
 const SITE = process.env.SITE_URL || 'https://trussphp.com'
 const BASE = process.env.SITE_BASE ?? ''
-const COVER = `${SITE}${BASE}/cover-light.png`
+// The card for the pages copied verbatim out of public/, which are never a
+// section. Versioned, for the reason social-cover.js sets out: LinkedIn keeps a
+// stored copy per URL and re-scraping the page does not touch it.
+const COVER = coverUrl(DEFAULT_COVER, { site: `${SITE}/`, base: BASE })
 
 export default defineConfig({
   site: SITE,
@@ -354,6 +359,14 @@ export default defineConfig({
           },
         })),
         { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+        // The byline. The JSON-LD has carried a Person since it was added and
+        // every article points at it, but LinkedIn reads neither, and reported
+        // "No author found" for every page on the site. Both tags come from the
+        // same constants the graph is built from, so the two cannot disagree.
+        // article:author belongs here rather than in SiteLayout because Starlight
+        // sets og:type=article on these pages and website on those.
+        { tag: 'meta', attrs: { name: 'author', content: AUTHOR_NAME } },
+        { tag: 'meta', attrs: { property: 'article:author', content: AUTHOR_PROFILE } },
         // og:image and twitter:image are NOT here. They are emitted from the
         // Head override, because the card depends on the page: /filament/
         // documents a separate package and shares its own art. A copy here

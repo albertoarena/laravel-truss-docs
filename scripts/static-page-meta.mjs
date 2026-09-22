@@ -16,6 +16,7 @@
  */
 
 import { DEMO_APPS, appPageFile, appPagePath } from './demo-apps.mjs'
+import { AUTHOR_NAME } from '../src/config/package.js'
 
 /**
  * The per-application demo pages, in the shape the rest of this file expects.
@@ -82,6 +83,7 @@ export function metaTags({ site, page, cover }) {
 
   return [
     `<meta name="description" content="${attr(page.description)}">`,
+    `<meta name="author" content="${attr(AUTHOR_NAME)}">`,
     `<link rel="canonical" href="${url}">`,
     `<meta property="og:type" content="website">`,
     `<meta property="og:title" content="${attr(page.title)}">`,

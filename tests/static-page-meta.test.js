@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import { STATIC_PAGES, metaTags, injectMeta } from '../scripts/static-page-meta.mjs'
+import { AUTHOR_NAME } from '../src/config/package.js'
 import { DEMO_APPS, appPagePath } from '../scripts/demo-apps.mjs'
 
 // The demo, its multi-connection variant and the theme builder are hand-authored
@@ -67,6 +68,7 @@ describe('metaTags', () => {
 
   it('states a description', () => {
     expect(tags).toContain(`<meta name="description" content="${page.description}">`)
+    expect(tags).toContain(`<meta name="author" content="${AUTHOR_NAME}">`)
   })
 
   it('declares a canonical URL built from the site it was given', () => {

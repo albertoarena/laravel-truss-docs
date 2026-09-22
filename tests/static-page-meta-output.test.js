@@ -47,8 +47,12 @@ describe('the hand-authored pages carry head metadata', () => {
   it('points at a cover image that exists in the build', () => {
     const match = built(STATIC_PAGES[0]).match(/property="og:image" content="([^"]+)"/)
     expect(match).not.toBeNull()
-    const path = match[1].replace(SITE, '')
-    expect(existsSync(join(distRoot, path.replace(/^\//, ''))), `${path} is a 404`).toBe(true)
+    // pathname, not the raw value: the URL carries a ?v= content hash so that a
+    // re-cut card gets a new URL and the platforms stop serving a stored copy.
+    const { pathname } = new URL(match[1])
+    expect(existsSync(join(distRoot, pathname.replace(/^\//, ''))), `${pathname} is a 404`).toBe(
+      true,
+    )
   })
 
   it('keeps the title each page already had', () => {
