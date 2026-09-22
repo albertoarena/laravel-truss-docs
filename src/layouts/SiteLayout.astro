@@ -11,6 +11,8 @@ import Logo from '../components/Logo.astro'
 import CookieConsent from '../components/CookieConsent.astro'
 import ConsentSettings from '../components/ConsentSettings.astro'
 import { graph, personNode, websiteNode } from '../scripts/structured-data.js'
+import { DEFAULT_COVER, coverUrl } from '../scripts/social-cover.js'
+import { AUTHOR_NAME } from '../config/package.js'
 
 interface Props {
   title: string
@@ -33,7 +35,9 @@ const {
 
 const site = Astro.site ?? new URL('https://trussphp.com')
 const canonical = new URL(Astro.url.pathname, site).href
-const cover = new URL('/cover-light.png', site).href
+// These pages are never a section, so they take the default card. Versioned:
+// see social-cover.js for what an unversioned URL cost on LinkedIn.
+const cover = coverUrl(DEFAULT_COVER, { site })
 
 const nav = [
   { label: 'Docs', href: '/getting-started/installation/' },
@@ -49,6 +53,12 @@ const nav = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {/* One person writes all of this, and the JSON-LD has said so from the start.
+        LinkedIn reads neither JSON-LD nor the graph for a byline and reported
+        "No author found" on every page, so the same constant is stated here in
+        the form it does read. Not article:author, which belongs with
+        og:type=article: these pages are og:type=website. */}
+    <meta name="author" content={AUTHOR_NAME} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 

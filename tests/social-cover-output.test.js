@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join, relative } from 'node:path'
 
-import { DEFAULT_COVER, SECTION_COVERS } from '../src/scripts/social-cover.js'
+import { DEFAULT_COVER, SECTION_COVERS, versionOf } from '../src/scripts/social-cover.js'
 
 /**
  * The card a built page actually carries.
@@ -64,8 +64,9 @@ describe('the built pages', () => {
       route.startsWith('/filament/') ? SECTION_COVERS.filament : DEFAULT_COVER
 
     for (const page of carded) {
+      // The version is asserted separately; here only which card it is.
       expect(page.og[0], `${page.route} shares the wrong card`).toBe(
-        `https://trussphp.com${expected(page.route)}`,
+        `https://trussphp.com${expected(page.route)}?v=${versionOf(expected(page.route))}`,
       )
       expect(page.twitter[0], `${page.route} shares the wrong card on Twitter`).toBe(page.og[0])
     }
