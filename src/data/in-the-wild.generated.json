@@ -235,5 +235,26 @@
         "url": "https://www.linkedin.com/feed/update/urn:li:activity:7502333364688023552?commentUrn=urn%3Ali%3Acomment%3A%28activity%3A7502333364688023552%2C7503071169047183361%29&replyUrn=urn%3Ali%3Acomment%3A%28activity%3A7502333364688023552%2C7503096166960635905%29",
         "date": "2026-09-08",
         "basis": "public-post"
+    },
+    {
+        "kind": "press",
+        "quote": "Lo escribe Alberto Arena, mantenedor del paquete Laravel Truss, en un ensayo publicado esta semana donde pone cifras a un debate que el open source viene esquivando: 281 estrellas en GitHub frente a 24.000 instalaciones en Packagist en su propio proyecto.",
+        "quoteLang": "es",
+        "author": "Equipo Ecosistema Startup",
+        "source": "Ecosistema Startup",
+        "url": "https://ecosistemastartup.com/open-source-vs-agentes-ia-us88t-en-riesgo/",
+        "date": "2026-09-22",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Analizamos el paquete de Laravel Truss, con el cual, podemos ver el esquema de la base de datos en vivo y exportarla.",
+        "quoteLang": "es",
+        "translation": "We analyse the Laravel Truss package, with which we can see the database schema live and export it.",
+        "author": "LibreDesarrollo",
+        "source": "Desarrollo Libre",
+        "url": "https://x.com/LibreDesarrollo/status/2102377232551518712",
+        "date": "2026-09-22",
+        "basis": "public-post"
     }
 ]

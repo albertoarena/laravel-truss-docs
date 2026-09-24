@@ -20,6 +20,8 @@ import {
   initialsOf,
   verbatimFieldLine,
   verbatimFieldStart,
+  isRtl,
+  languageName,
 } from '../src/scripts/in-the-wild.js'
 import { VALID, INVALID, USER_ISSUE } from './fixtures/in-the-wild.js'
 
@@ -354,28 +356,53 @@ describe('the template', () => {
     // This was a template assertion while every row was English, since an output
     // check would have passed by having nothing to look at. A translated row
     // ships now, so it is promoted to the built HTML as promised.
+    //
+    // It asked every non-English row for dir="rtl" until 24/09/2026, which was
+    // indistinguishable from correct while every one of them was Arabic or
+    // Persian. The first Spanish row failed it, and the row was right: rtl on
+    // Spanish is a rendering bug, not a missing attribute. The assertion follows
+    // isRtl now, and checks both directions, so the next left-to-right language
+    // is covered by the test rather than by nobody having tried it.
     const translated = MENTIONS.filter((m) => m.quoteLang)
     expect(translated.length, 'a non-English row exists to check').toBeGreaterThan(0)
 
     const html = readFileSync(join(root, 'dist/in-the-wild/index.html'), 'utf8')
     for (const row of translated) {
-      const marked = new RegExp(
-        `<p[^>]*lang="${row.quoteLang}"[^>]*dir="rtl"[^>]*>[^<]*${escapeRe(row.quote.slice(0, 24))}`,
+      // Where the original sits depends on whether we translated it: in its own
+      // paragraph under our English, or alone inside the blockquote.
+      const carrier = row.translation
+        ? `<p[^>]*lang="${row.quoteLang}"[^>]*>`
+        : `<blockquote[^>]*lang="${row.quoteLang}"[^>]*>\\s*<p[^>]*>`
+      const marked = html.match(
+        new RegExp(`${carrier}\\s*${escapeRe(row.quote.slice(0, 24))}`),
       )
-      expect(html, `${row.author}'s original carries lang and dir`).toMatch(marked)
+      expect(marked, `${row.author}'s original carries lang="${row.quoteLang}"`).not.toBeNull()
+
+      const rtl = isRtl(row.quoteLang)
+      expect(
+        /dir="rtl"/.test(marked[0]),
+        `${row.author}'s original in ${languageName(row.quoteLang)} ${rtl ? 'carries' : 'omits'} dir="rtl"`,
+      ).toBe(rtl)
     }
   })
 
   it('never presents our translation as the words of the person quoted', () => {
-    // The one thing that must not happen on the Arabic row. The English leads
+    // The one thing that must not happen on a translated row. The English leads
     // because most readers can use it, so the label carrying "translated" has to
     // be present and has to name the language it came from.
+    //
+    // The language is taken from the row rather than written in. Asserting
+    // /Translated from Arabic/ passed for the Persian rows too, because one
+    // Arabic row anywhere in the page satisfied it: the check was for a string
+    // in the document, not for a label on this row.
     const html = readFileSync(join(root, 'dist/in-the-wild/index.html'), 'utf8')
     for (const row of MENTIONS.filter((m) => m.translation)) {
-      expect(html, `${row.author}'s translation is labelled`).toMatch(
-        /Translated from Arabic/,
+      expect(html, `${row.author}'s translation is labelled`).toContain(
+        `Translated from ${languageName(row.quoteLang)}.`,
       )
       expect(html, `${row.author}'s original is present too`).toContain(row.quote)
+      // No pronoun in the label: the row may be an account rather than a person.
+      expect(html, 'the label assigns nobody a gender').not.toContain('His words')
     }
   })
 

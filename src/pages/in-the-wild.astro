@@ -76,10 +76,15 @@ const description =
                 {/* The English leads because it is what most readers can use,
                     and it is labelled as ours in the same breath. The original
                     is present, in its own language and direction. What must
-                    never happen is the English reading as though he wrote it. */}
+                    never happen is the English reading as though they wrote it. */}
                 <p class="excerpt">{mention.translation}</p>
+                {/* No pronoun. The label read "His words" while every translated
+                    row was one man, and the first Spanish row is an account
+                    rather than a person, so the page was about to assign a
+                    gender to somebody it cannot know. Naming the thing instead
+                    of its author says the same and cannot be wrong. */}
                 <p class="original-label">
-                  Translated from {languageName(mention.quoteLang)}. His words:
+                  Translated from {languageName(mention.quoteLang)}. The original:
                 </p>
                 <p class="original" lang={mention.quoteLang} dir={isRtl(mention.quoteLang) ? 'rtl' : undefined}>
                   {mention.quote}
