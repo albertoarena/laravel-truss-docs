@@ -125,3 +125,10 @@ testimonial on a public site is the one failure here that cannot be walked back.
   `Claude-Session:`, no "Generated with Claude Code". The package repo and the
   private notes repo both state this; it was missing here, and the gap produced
   a pull request full of them.
+- **Pull requests: short.** A few lines on what changed and why, and anything
+  the reviewer has to decide before merging. Nothing else. No blow-by-blow of
+  what broke, no test-by-test narration, no restating the diff in prose. The
+  commits carry the depth and `git log` is where somebody goes looking for it,
+  so a long PR body is the same story told twice and the second telling is the
+  one that goes stale. The same applies to the AI-attribution rule above: it
+  covers PR bodies too.
