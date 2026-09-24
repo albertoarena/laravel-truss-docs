@@ -52,19 +52,22 @@ to run `npm run copy-demo-assets` to restore them. Do not deploy a local build.
 
 ## Working in this repo
 
-**Which flow applies depends on what the change touches, not on the fact that
-this is the docs repo.**
+**Everything goes through a branch and a pull request.** Prose, a typo, a
+component, a workflow, this file. There is no change small enough to push
+straight to `main`.
 
-- **Straight to `main`:** prose and content. `.mdx` pages under
-  `src/content/docs/`, `README.md`, and Claude-facing files like this one.
-- **Branch + PR:** anything else. `.astro` components and layouts, `.css`,
-  `astro.config.mjs`, `package.json`, lockfiles, scripts, CI workflows. A mixed
-  change follows the code side and gets a PR.
+A push to `main` here **is** the deploy, and `main` is protected: a pull request
+is required and the `build` check has to pass. Pushing directly does not fail,
+because the repository owner can bypass the rule, so the only thing standing
+between a direct push and the live site is somebody deciding not to. That is the
+reason the exception is gone.
 
-A push to `main` here **is** the deploy, so the PR is what keeps a code change
-off the live site until it has been looked at. Do not treat "it is only the docs
-site" as a reason to skip it: a CSS or layout change is a code change wherever
-it lives.
+This used to carve out prose and content, on the grounds that an `.mdx` page
+cannot break a build. Two things were wrong with it. Bypassing protection also
+skips `build`, so a prose push shipped with nothing checked at all. And the
+carve-out asked for a judgement about whether a change is "only prose", which is
+exactly the judgement that goes wrong on a mixed change, quietly and in the
+direction of less review.
 
 ## Quoting other people
 
