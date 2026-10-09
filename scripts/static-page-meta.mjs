@@ -78,6 +78,12 @@ const attr = (value) =>
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
 
+/**
+ * `cover` is what cardOf() in social-cover.js returns: the URL and the size of
+ * the file it points at, together. Taken as one value rather than as a URL and a
+ * width, because a caller free to pass them separately can declare the size of a
+ * different file, and from 29/07/2026 to 09/10/2026 all three emitters did.
+ */
 export function metaTags({ site, page, cover }) {
   const url = `${site.replace(/\/$/, '')}${page.path}`
 
@@ -89,11 +95,11 @@ export function metaTags({ site, page, cover }) {
     `<meta property="og:title" content="${attr(page.title)}">`,
     `<meta property="og:description" content="${attr(page.description)}">`,
     `<meta property="og:url" content="${url}">`,
-    `<meta property="og:image" content="${cover}">`,
-    `<meta property="og:image:width" content="1200">`,
-    `<meta property="og:image:height" content="630">`,
+    `<meta property="og:image" content="${cover.url}">`,
+    `<meta property="og:image:width" content="${cover.width}">`,
+    `<meta property="og:image:height" content="${cover.height}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
-    `<meta name="twitter:image" content="${cover}">`,
+    `<meta name="twitter:image" content="${cover.url}">`,
   ].join('\n    ')
 }
 

@@ -11,7 +11,7 @@ import Logo from '../components/Logo.astro'
 import CookieConsent from '../components/CookieConsent.astro'
 import ConsentSettings from '../components/ConsentSettings.astro'
 import { graph, personNode, websiteNode } from '../scripts/structured-data.js'
-import { DEFAULT_COVER, coverUrl } from '../scripts/social-cover.js'
+import { DEFAULT_COVER, cardOf } from '../scripts/social-cover.js'
 import { AUTHOR_NAME } from '../config/package.js'
 
 interface Props {
@@ -37,7 +37,7 @@ const site = Astro.site ?? new URL('https://trussphp.com')
 const canonical = new URL(Astro.url.pathname, site).href
 // These pages are never a section, so they take the default card. Versioned:
 // see social-cover.js for what an unversioned URL cost on LinkedIn.
-const cover = coverUrl(DEFAULT_COVER, { site })
+const cover = cardOf(DEFAULT_COVER, { site })
 
 const nav = [
   { label: 'Docs', href: '/getting-started/installation/' },
@@ -76,11 +76,14 @@ const nav = [
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={cover} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image" content={cover.url} />
+    {/* The size of the file being served, read from its own bytes at build. This
+        pair was a hardcoded 1200x630 from 29/07/2026 until 09/10/2026, against a
+        cover that has been 2400x1260 since July. */}
+    <meta property="og:image:width" content={cover.width} />
+    <meta property="og:image:height" content={cover.height} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content={cover} />
+    <meta name="twitter:image" content={cover.url} />
 
     {/* schema.org graph. The Starlight pages do not use this layout, so they
         carry their own copy via the Head override; both build their nodes from

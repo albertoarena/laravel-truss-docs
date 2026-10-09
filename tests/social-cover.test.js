@@ -6,8 +6,10 @@ import sharp from 'sharp'
 import {
   DEFAULT_COVER,
   SECTION_COVERS,
+  cardOf,
+  cardOfPage,
   coverPathOf,
-  coverUrlOf,
+  dimensionsOf,
   versionOf,
 } from '../src/scripts/social-cover.js'
 
@@ -70,12 +72,12 @@ describe('the social card for a docs page', () => {
     }
   })
 
-  it('names files cut to the shape the tags declare', async () => {
-    // Every page declares og:image:width 1200 and height 630. A card that is not
-    // that shape gets cropped by each platform to its own taste, which is the
-    // failure this whole file exists to avoid, and no test upstream of the pixels
-    // can see it. A whole multiple is allowed because cover-light.png is 2400x1260
-    // and flat art survives the platforms' downscale; the ratio is not negotiable.
+  it('names files cut to the shape every platform crops to', async () => {
+    // The declared size now comes from the file, so a card of the wrong shape no
+    // longer lies about itself; it gets cropped instead, by each platform to its
+    // own taste, and no test upstream of the pixels can see that. A whole multiple
+    // is allowed because cover-light.png is 2400x1260 and flat art survives the
+    // platforms' downscale; the ratio is not negotiable.
     for (const path of [DEFAULT_COVER, ...Object.values(SECTION_COVERS)]) {
       const { width, height } = await sharp(localPath(path)).metadata()
 
@@ -87,9 +89,47 @@ describe('the social card for a docs page', () => {
   })
 })
 
+describe('the declared size', () => {
+  /**
+   * og:image:width and og:image:height were a hardcoded 1200x630 in all three
+   * emitters from the 29/07/2026 redesign until 09/10/2026, against a default
+   * cover that has been 2400x1260 since July. Reading the file is the fix, so the
+   * test reads it with sharp: a different library, nothing shared with the parser
+   * in social-cover.js, which is the only way this assertion means anything.
+   */
+  it('is the size of the file being served, measured independently', async () => {
+    for (const path of [DEFAULT_COVER, ...Object.values(SECTION_COVERS)]) {
+      const { width, height } = await sharp(localPath(path)).metadata()
+
+      expect(dimensionsOf(path), `public${path}`).toEqual({ width, height })
+    }
+  })
+
+  it('is read per card, not shared', () => {
+    // The two cards this site ships are genuinely different sizes, which is why
+    // no single constant was ever going to be right for both.
+    expect(dimensionsOf(DEFAULT_COVER)).not.toEqual(dimensionsOf(SECTION_COVERS.filament))
+  })
+
+  it('is handed out with the URL, so the two cannot disagree', () => {
+    // A caller free to take the URL from one card and the size from elsewhere is
+    // exactly how this bug happened. cardOf() gives no such opportunity.
+    const card = cardOf(SECTION_COVERS.filament, { site: 'https://trussphp.com/' })
+
+    expect(card.url).toContain('/filament-cover-light.jpg')
+    expect(card).toMatchObject(dimensionsOf(SECTION_COVERS.filament))
+  })
+
+  it('refuses a card in a format it cannot measure', () => {
+    // A third card added as a WebP or an AVIF would otherwise declare NaN to
+    // every scraper and pass every other test in this file.
+    expect(() => dimensionsOf('/favicon.svg')).toThrow(/not a PNG or a JPEG/)
+  })
+})
+
 describe('the absolute form', () => {
   it('is the origin plus the path, versioned', () => {
-    expect(coverUrlOf('filament/index.mdx', { site: 'https://trussphp.com/' })).toBe(
+    expect(cardOfPage('filament/index.mdx', { site: 'https://trussphp.com/' }).url).toBe(
       `https://trussphp.com/filament-cover-light.jpg?v=${versionOf(SECTION_COVERS.filament)}`,
     )
   })
@@ -98,7 +138,7 @@ describe('the absolute form', () => {
     // A preview build can be served from a subpath, and an OpenGraph image that
     // dropped it would point at a file the preview does not host.
     expect(
-      coverUrlOf('guides/theming.mdx', { site: 'https://example.test/', base: '/preview' }),
+      cardOfPage('guides/theming.mdx', { site: 'https://example.test/', base: '/preview' }).url,
     ).toBe(`https://example.test/preview/cover-light.png?v=${versionOf(DEFAULT_COVER)}`)
   })
 })

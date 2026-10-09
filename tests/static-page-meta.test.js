@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { STATIC_PAGES, metaTags, injectMeta } from '../scripts/static-page-meta.mjs'
 import { AUTHOR_NAME } from '../src/config/package.js'
 import { DEMO_APPS, appPagePath } from '../scripts/demo-apps.mjs'
+import { DEFAULT_COVER, cardOf } from '../src/scripts/social-cover.js'
 
 // The demo, its multi-connection variant and the theme builder are hand-authored
 // files under public/, copied verbatim, so they never pass through either
@@ -17,7 +18,9 @@ import { DEMO_APPS, appPagePath } from '../scripts/demo-apps.mjs'
 // pointing at production.
 
 const SITE = 'https://trussphp.com'
-const COVER = `${SITE}/cover-light.png`
+// The real card, not a stand-in string: the size it declares has to be the size
+// of the file, and a handmade URL would assert nothing about that.
+const COVER = cardOf(DEFAULT_COVER, { site: `${SITE}/` })
 
 describe('STATIC_PAGES', () => {
   it('covers every hand-authored page, including one per demo application', () => {
@@ -79,12 +82,21 @@ describe('metaTags', () => {
     expect(tags).toContain('property="og:type"')
     expect(tags).toContain(`content="${page.title}"`)
     expect(tags).toContain(`<meta property="og:url" content="${SITE}${page.path}">`)
-    expect(tags).toContain(`<meta property="og:image" content="${COVER}">`)
+    expect(tags).toContain(`<meta property="og:image" content="${COVER.url}">`)
+  })
+
+  it('declares the size of the card it points at', () => {
+    // A hardcoded 1200x630 here, and in the two layouts, outlived the cover
+    // becoming a 2x asset: from 29/07/2026 to 09/10/2026 every page declared a
+    // size the file had not been for months.
+    expect(tags).toContain(`<meta property="og:image:width" content="${COVER.width}">`)
+    expect(tags).toContain(`<meta property="og:image:height" content="${COVER.height}">`)
+    expect(COVER.width).toBeGreaterThan(0)
   })
 
   it('carries the Twitter card', () => {
     expect(tags).toContain('name="twitter:card" content="summary_large_image"')
-    expect(tags).toContain(`<meta name="twitter:image" content="${COVER}">`)
+    expect(tags).toContain(`<meta name="twitter:image" content="${COVER.url}">`)
   })
 
   it('escapes quotes so a description cannot break out of the attribute', () => {
