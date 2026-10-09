@@ -1,0 +1,66 @@
+{
+  "connection": "main",
+  "fallback": false,
+  "skipped_migrations": [],
+  "generated_at": "2026-07-23T10:00:00Z",
+  "tables": [
+    {
+      "name": "users",
+      "columns": [
+        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "name", "type": "varchar(255)", "nullable": false, "default": null },
+        { "name": "email", "type": "varchar(255)", "nullable": false, "default": null },
+        { "name": "created_at", "type": "timestamp", "nullable": true, "default": null }
+      ],
+      "primary_key": ["id"],
+      "indexes": [
+        { "name": "users_email_unique", "columns": ["email"], "unique": true }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "teams",
+      "columns": [
+        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "name", "type": "varchar(255)", "nullable": false, "default": null },
+        { "name": "owner_id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "created_at", "type": "timestamp", "nullable": true, "default": null }
+      ],
+      "primary_key": ["id"],
+      "indexes": [],
+      "foreign_keys": [
+        { "name": "teams_owner_id_foreign", "columns": ["owner_id"], "references_table": "users", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" }
+      ]
+    },
+    {
+      "name": "team_user",
+      "columns": [
+        { "name": "team_id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "user_id", "type": "bigint unsigned", "nullable": false, "default": null }
+      ],
+      "primary_key": ["team_id", "user_id"],
+      "indexes": [],
+      "foreign_keys": [
+        { "name": "team_user_team_id_foreign", "columns": ["team_id"], "references_table": "teams", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" },
+        { "name": "team_user_user_id_foreign", "columns": ["user_id"], "references_table": "users", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" }
+      ]
+    },
+    {
+      "name": "projects",
+      "columns": [
+        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "team_id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "name", "type": "varchar(255)", "nullable": false, "default": null },
+        { "name": "status", "type": "varchar(20)", "nullable": false, "default": "active" },
+        { "name": "created_at", "type": "timestamp", "nullable": true, "default": null }
+      ],
+      "primary_key": ["id"],
+      "indexes": [
+        { "name": "projects_team_id_index", "columns": ["team_id"], "unique": false }
+      ],
+      "foreign_keys": [
+        { "name": "projects_team_id_foreign", "columns": ["team_id"], "references_table": "teams", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" }
+      ]
+    }
+  ]
+}
