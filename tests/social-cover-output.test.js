@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join, relative } from 'node:path'
+import sharp from 'sharp'
 
 import { DEFAULT_COVER, SECTION_COVERS, versionOf } from '../src/scripts/social-cover.js'
 
@@ -20,6 +21,11 @@ import { DEFAULT_COVER, SECTION_COVERS, versionOf } from '../src/scripts/social-
  * per-section card only works because that entry came out. Left in, every
  * Filament page would carry two og:image tags and each scraper would pick a
  * different one, which is worse than either card on its own.
+ *
+ * The declared size is checked here against the shipped file for the same reason.
+ * All three paths carried a hardcoded 1200x630 from the 29/07/2026 redesign until
+ * 09/10/2026, against a default cover that has been 2400x1260 since July, and a
+ * source-level assertion would have passed on all three while the HTML lied.
  */
 
 const distRoot = fileURLToPath(new URL('../dist', import.meta.url))
@@ -40,11 +46,16 @@ const tags = (html, attr, value) => [
 
 /** Only the pages that ship a card at all: the demo's inner frames do not. */
 const carded = htmlPages()
-  .map((file) => ({
-    route: `/${relative(distRoot, file).replace(/index\.html$/, '')}`,
-    og: tags(readFileSync(file, 'utf8'), 'property', 'og:image'),
-    twitter: tags(readFileSync(file, 'utf8'), 'name', 'twitter:image'),
-  }))
+  .map((file) => {
+    const html = readFileSync(file, 'utf8')
+    return {
+      route: `/${relative(distRoot, file).replace(/index\.html$/, '')}`,
+      og: tags(html, 'property', 'og:image'),
+      twitter: tags(html, 'name', 'twitter:image'),
+      width: tags(html, 'property', 'og:image:width'),
+      height: tags(html, 'property', 'og:image:height'),
+    }
+  })
   .filter((page) => page.og.length > 0)
 
 describe('the built pages', () => {
@@ -83,6 +94,29 @@ describe('the built pages', () => {
     for (const path of new Set(carded.map((page) => page.og[0]))) {
       const file = join(distRoot, new URL(path).pathname)
       expect(existsSync(file), `${path} is not in dist`).toBe(true)
+    }
+  })
+
+  it('declare the size of the file each one points at', async () => {
+    // The exact shape of the bug this replaced: a page may carry a correct
+    // og:image and still declare a size the file has not been since July. Read
+    // from dist with sharp, so the assertion shares nothing with the parser that
+    // produced the numbers.
+    const sizes = new Map()
+    for (const url of new Set(carded.map((page) => page.og[0]))) {
+      const { width, height } = await sharp(join(distRoot, new URL(url).pathname)).metadata()
+      sizes.set(url, { width, height })
+    }
+
+    for (const page of carded) {
+      const actual = sizes.get(page.og[0])
+
+      expect(page.width.length, `${page.route} has ${page.width.length} og:image:width`).toBe(1)
+      expect(page.height.length, `${page.route} has ${page.height.length} og:image:height`).toBe(1)
+      expect(
+        [Number(page.width[0]), Number(page.height[0])],
+        `${page.route} declares ${page.width[0]}x${page.height[0]} for a ${actual.width}x${actual.height} file`,
+      ).toEqual([actual.width, actual.height])
     }
   })
 })

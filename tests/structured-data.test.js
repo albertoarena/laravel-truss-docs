@@ -301,9 +301,14 @@ describe('the version constant', () => {
     'matches the release the build actually resolved',
     () => {
       // .demo-asset-version is written by the prebuild step from the latest
-      // GitHub release. It is gitignored, so this only runs after a real build,
-      // but when it does it catches the landing page and the structured data
-      // advertising a version the site no longer ships.
+      // GitHub release. It is gitignored, so this runs only once a build has
+      // written one, and it then catches the landing page and the structured
+      // data advertising a version the site no longer ships.
+      //
+      // CI builds before it tests (ci.yml), so the stamp is fresh and this is a
+      // live gate there. `npm test` is not that build: pretest is `astro build`
+      // without the prebuild hook, so it never refreshes the stamp and a local
+      // run can fail on one left over from an older release.
       const stamp = readFileSync(versionFile, 'utf8').trim()
 
       // A build made with PACKAGE_PATH carries a local checkout's frontend

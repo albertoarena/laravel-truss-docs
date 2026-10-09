@@ -8,7 +8,7 @@ import { DEMO_APPS, appPageFile, APP_ASSET_TOKEN } from './scripts/demo-apps.mjs
 import { STATIC_PAGES, metaTags, injectMeta } from './scripts/static-page-meta.mjs'
 import { staticPageUrls, addUrls } from './scripts/static-page-sitemap.mjs'
 import { MENU_PAGES } from './scripts/demo-nav.mjs'
-import { DEFAULT_COVER, coverUrl } from './src/scripts/social-cover.js'
+import { DEFAULT_COVER, cardOf } from './src/scripts/social-cover.js'
 import { AUTHOR_NAME, AUTHOR_PROFILE } from './src/config/package.js'
 
 // Cache-bust the live demo's frontend: at build, move the copied assets into a
@@ -322,8 +322,10 @@ const SITE = process.env.SITE_URL || 'https://trussphp.com'
 const BASE = process.env.SITE_BASE ?? ''
 // The card for the pages copied verbatim out of public/, which are never a
 // section. Versioned, for the reason social-cover.js sets out: LinkedIn keeps a
-// stored copy per URL and re-scraping the page does not touch it.
-const COVER = coverUrl(DEFAULT_COVER, { site: `${SITE}/`, base: BASE })
+// stored copy per URL and re-scraping the page does not touch it. Carries the
+// size of the file as well, so these pages cannot declare one card's dimensions
+// while pointing at another's.
+const COVER = cardOf(DEFAULT_COVER, { site: `${SITE}/`, base: BASE })
 
 export default defineConfig({
   site: SITE,
