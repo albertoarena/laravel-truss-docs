@@ -36,8 +36,8 @@ manual step.
 | Build + publish | `.github/workflows/publish.yml` (push to `main` + manual dispatch) |
 | Built output | `deploy` branch (force-pushed each build) |
 | Server pull script | `scripts/server-deploy.sh` (source of truth in this repo) |
-| Running copy on host | `~/bin/server-deploy.sh` (fetched from this repo) |
-| Cron (host) | `*/5 * * * * /bin/bash $HOME/bin/server-deploy.sh >> $HOME/server-deploy.log 2>&1` |
+| Running copy on host | `~/bin/truss-php-server-deploy.sh` (fetched from this repo, renamed on the host) |
+| Cron (host) | `*/5 * * * * /bin/bash $HOME/bin/truss-php-server-deploy.sh >> $HOME/logs/deploys/truss-php-server-deploy.log 2>&1` |
 | Docroot | `~/<docroot>/` with an `.htaccess` that normalises the host, then rewrites all traffic to `current/`. Applied by hand; tracked copy in `deploy/docroot.htaccess` |
 | Releases + symlink | `~/<docroot>/releases/<ts>/`, `~/<docroot>/current` |
 
@@ -52,15 +52,15 @@ a build is stamped `local` and must never be deployed.
 
 **Deploy immediately (skip the cron wait)** — on the host:
 ```
-bash ~/bin/server-deploy.sh
+bash ~/bin/truss-php-server-deploy.sh
 ```
 If CI hasn't published yet, run Actions → **Publish** → Run workflow first.
 
 **Update the server script** — edit `scripts/server-deploy.sh`, commit, then on
 the host:
 ```
-curl -fsSL https://raw.githubusercontent.com/albertoarena/laravel-truss-docs/main/scripts/server-deploy.sh -o ~/bin/server-deploy.sh
-chmod +x ~/bin/server-deploy.sh
+curl -fsSL https://raw.githubusercontent.com/albertoarena/laravel-truss-docs/main/scripts/server-deploy.sh -o ~/bin/truss-php-server-deploy.sh
+chmod +x ~/bin/truss-php-server-deploy.sh
 ```
 
 **Rollback** — point `current` at a previous release (pause the cron to hold it,
@@ -89,7 +89,7 @@ argument if you need to point it somewhere else.
 
 **Wait for the release to land first.** The cron pulls every ~5 minutes, so a
 green run against the previous release means nothing. Either wait, or force it
-on the host with `bash ~/bin/server-deploy.sh`.
+on the host with `bash ~/bin/truss-php-server-deploy.sh`.
 
 **`Options -Indexes` needs nothing done on the server.** The docroot
 `.htaccess` already carries `Options +FollowSymLinks -Indexes`, so the host
@@ -133,8 +133,8 @@ on `main` properly.
 
 ## Troubleshooting
 
-- Log: `tail -n 50 ~/server-deploy.log`
-- Run by hand: `bash ~/bin/server-deploy.sh` → `deployed release <ts> …` or
+- Log: `tail -n 50 ~/logs/deploys/truss-php-server-deploy.log`
+- Run by hand: `bash ~/bin/truss-php-server-deploy.sh` → `deployed release <ts> …` or
   `up to date (<sha>)`.
 - `up to date` means the `deploy` branch has no new commit; check the Publish
   workflow ran green.
