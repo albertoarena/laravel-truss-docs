@@ -46,13 +46,15 @@ describe('the New badges in the sidebar', () => {
     expect(newBadges.length).toBeGreaterThan(0)
   })
 
-  it('mark the two most recent releases', () => {
+  it('mark the most recent additions', () => {
     // Laravel Boost is the newest Truss feature with a page of its own, and the
     // Filament panel section is the newest thing on the site. Asserted by name
     // so that a badge surviving on something older is caught here rather than
     // only by the count.
     expect(config).toMatch(/label: 'Laravel Boost'[^\n]*badge: 'New'/)
     expect(config).toMatch(/label: 'Filament panel',\s*\n\s*badge: 'New'/)
+    // The framework-free binary, from v1.15.0, takes the last slot.
+    expect(config).toMatch(/label: 'Truss binary',\s*\n\s*badge: 'New'/)
   })
 
   it('leave the Live badge alone, which says a state rather than an age', () => {
