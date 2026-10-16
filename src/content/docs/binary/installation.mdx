@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install the framework-free truss binary, one PHAR that reads any MySQL, MariaDB, PostgreSQL or SQLite structure from a connection string, with no Laravel application
+description: Install the framework-free truss binary, one PHAR that reads a MySQL, MariaDB, PostgreSQL or SQLite database from a connection string and exports its structure, as an ER diagram (ERD) among others, with no Laravel application
 ---
 
 The `truss` binary runs Truss against a database you have a connection string for, with **no Laravel application, no project and no `composer require`**. It is for Symfony, WordPress and plain PHP codebases, for CI, and for the database somebody just handed you.
@@ -16,10 +16,10 @@ Truss draws what the schema declares and invents nothing. WordPress, for example
 - **PHP 8.2 or newer** on your machine. The binary runs on the PHP you already have and installs none.
 - The PDO extension for your database: `pdo_mysql` for MySQL and MariaDB, `pdo_pgsql` for PostgreSQL, `pdo_sqlite` for SQLite. `php -m` lists what you have.
 
-On an older PHP it stops before doing anything else and says so, with exit code 2:
+On an older PHP it stops before doing anything else and says so, with exit code 2. On PHP 8.1.27, for example:
 
 ```text
-Truss needs PHP 8.2 or newer, found 8.1.27
+Truss needs PHP 8.2 or newer, found 8.1.27. Install a newer PHP, or run Truss inside a Laravel application with the package instead.
 ```
 
 ## Download the PHAR
