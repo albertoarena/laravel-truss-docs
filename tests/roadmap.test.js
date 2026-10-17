@@ -188,6 +188,12 @@ describe('roadmap data', () => {
     expect(tap.tryUrl).toBe('/binary/installation/')
   })
 
+  it('leads Approved next with the MySQL and MariaDB diff', () => {
+    const approved = SECTIONS.find((s) => s.status === 'approved').items
+    expect(approved[0].title).toBe('Schema diff across MySQL and MariaDB')
+    expect(approved[0].version, 'unshipped items carry no version').toBeUndefined()
+  })
+
   it('files the structural lint hints as shipped, since truss:doctor is what they became', () => {
     const hints = ALL.find((i) => /lint hints/i.test(i.title))
     expect(hints, 'structural lint hints card exists').toBeTruthy()
