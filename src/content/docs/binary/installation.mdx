@@ -65,7 +65,11 @@ brew install albertoarena/truss/truss
 truss --version
 ```
 
-**The formula installs no PHP.** It uses the `php` already on your machine, so the same PHP 8.2 floor applies. If it finds none, it says so:
+**One command is enough.** Given the full name, Homebrew adds the tap by itself, so there is no separate `brew tap` step. `brew upgrade` keeps it current like anything else you installed with Homebrew.
+
+The short form, `brew install truss`, works only once you trust the tap, because Homebrew refuses formulae from an untrusted one. Trust it once with `brew trust albertoarena/truss`. `brew install albertoarena/truss`, with one slash, is not a short form: Homebrew reads it as a formula named `truss` in its own repository, and finds none.
+
+**The formula installs no PHP.** It uses the `php` already on your machine, so the same PHP 8.2 floor applies. If it finds none, it says so and exits 2:
 
 ```text
 Truss needs PHP. Run: brew install php
