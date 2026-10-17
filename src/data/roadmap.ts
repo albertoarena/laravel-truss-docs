@@ -58,6 +58,15 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Truss as a standalone binary',
+        status: 'shipped',
+        version: 'v1.15.0',
+        tryUrl: '/binary/installation/',
+        linkLabel: 'Read the docs',
+        blurb:
+          'Run Truss against any database with a connection string, with no framework and no project to install it into: one download, on PHP 8.2 or newer. Four commands: show the structure, export it in any of the seven formats, review it with the doctor, and diff two live databases, such as staging against production right now, which the package itself cannot do. Connection strings are read from the environment, so they stay out of shell history. It changes nothing for anybody installing Truss the usual way.',
+      },
+      {
         title: 'Self-contained HTML export',
         status: 'shipped',
         version: 'v1.14.0',
@@ -193,10 +202,10 @@ export const SECTIONS: RoadmapSection[] = [
           'A second pass on the rule catalogue, aimed at the problems a migration file cannot show you: a collation that silently stops an index being used across a foreign key, a storage engine that accepts a foreign key and then ignores it, a key pointing at a column nothing keeps unique, the same relationship declared twice, and identifiers stored as plain text. Every new rule is measured against a field study of real applications before it ships, because a rule that cries wolf costs more than the one it catches.',
       },
       {
-        title: 'Truss as a standalone binary',
+        title: 'The standalone binary on Homebrew',
         status: 'approved',
         blurb:
-          'Run Truss against any database with a connection string, with no framework and no project to install it into: one download, or one line with Homebrew. The diagram, the doctor and the exports, on a plain PHP codebase, in CI, or against a database somebody just handed you. It is a second way in to the same tool, and it changes nothing for anybody installing Truss the usual way.',
+          'Install the standalone binary with one line of Homebrew, and keep it current with the rest of your tools, instead of downloading each release by hand.',
       },
       {
         title: 'Lighthouse CI',

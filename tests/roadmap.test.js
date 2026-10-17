@@ -167,14 +167,25 @@ describe('roadmap data', () => {
     expect(html.tryUrl, 'nothing to try in a browser').toBeUndefined()
   })
 
-  it('carries the standalone binary as approved next', () => {
-    const binary = ALL.find((i) => /binary/i.test(i.title))
+  it('files the standalone binary as shipped in v1.15.0', () => {
+    const binary = ALL.find((i) => /^Truss as a standalone binary$/i.test(i.title))
     expect(binary, 'standalone binary card exists').toBeTruthy()
-    expect(binary.status).toBe('approved')
-    expect(binary.version, 'unshipped items carry no version').toBeUndefined()
+    expect(binary.status).toBe('shipped')
+    expect(binary.version, 'a shipped item says which release').toBe('v1.15.0')
+    expect(binary.tryUrl).toBe('/binary/installation/')
     // A card shares the concept, not the plan: how it is built and shipped is
     // an implementation decision that is not committed to in public.
     expect(binary.blurb, 'no build mechanics in the card').not.toMatch(/phar|box|export-ignore/i)
+    // Homebrew did not ship with v1.15.0. A shipped card promising it would
+    // send readers to a brew install that fails.
+    expect(binary.blurb, 'Homebrew is not shipped').not.toMatch(/homebrew|brew/i)
+  })
+
+  it('keeps the Homebrew tap as approved next until its formula is live', () => {
+    const tap = ALL.find((i) => /homebrew/i.test(i.title))
+    expect(tap, 'Homebrew card exists').toBeTruthy()
+    expect(tap.status).toBe('approved')
+    expect(tap.version, 'unshipped items carry no version').toBeUndefined()
   })
 
   it('files the structural lint hints as shipped, since truss:doctor is what they became', () => {
@@ -262,14 +273,17 @@ describe('try-it links', () => {
   })
 
   it('say what the link leads to, when it is not something to try', () => {
-    // The demo and the theme builder are tried in a browser. A package you have
-    // to install is not, so the Filament card links to its documentation under
-    // its own label rather than promising a hands-on the destination cannot
-    // give. Everything else keeps the default.
-    const filament = ALL.find((i) => /filament/i.test(i.title))
-    expect(filament.linkLabel).toBe('Read the docs')
+    // The demo and the theme builder are tried in a browser. Something you have
+    // to install is not, so the Filament plugin and the binary link to their
+    // documentation under their own label rather than promising a hands-on the
+    // destination cannot give. Everything else keeps the default.
+    const installed = (i) => /filament|standalone binary/i.test(i.title)
+    for (const item of withTry.filter(installed)) {
+      expect(item.linkLabel, item.title).toBe('Read the docs')
+    }
+    expect(withTry.filter(installed).length).toBe(2)
 
-    for (const item of withTry.filter((i) => !/filament/i.test(i.title))) {
+    for (const item of withTry.filter((i) => !installed(i))) {
       expect(item.linkLabel, `${item.title} should use the default label`).toBeUndefined()
     }
   })
