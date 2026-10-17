@@ -58,6 +58,15 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'The standalone binary on Homebrew',
+        status: 'shipped',
+        version: 'v1.15.0',
+        tryUrl: '/binary/installation/',
+        linkLabel: 'Read the docs',
+        blurb:
+          'Install the standalone binary with one line of Homebrew, and keep it current with the rest of your tools, instead of downloading each release by hand. It runs on the PHP you already have and installs none.',
+      },
+      {
         title: 'Truss as a standalone binary',
         status: 'shipped',
         version: 'v1.15.0',
@@ -200,12 +209,6 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'approved',
         blurb:
           'A second pass on the rule catalogue, aimed at the problems a migration file cannot show you: a collation that silently stops an index being used across a foreign key, a storage engine that accepts a foreign key and then ignores it, a key pointing at a column nothing keeps unique, the same relationship declared twice, and identifiers stored as plain text. Every new rule is measured against a field study of real applications before it ships, because a rule that cries wolf costs more than the one it catches.',
-      },
-      {
-        title: 'The standalone binary on Homebrew',
-        status: 'approved',
-        blurb:
-          'Install the standalone binary with one line of Homebrew, and keep it current with the rest of your tools, instead of downloading each release by hand.',
       },
       {
         title: 'Lighthouse CI',

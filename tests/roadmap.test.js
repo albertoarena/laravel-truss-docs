@@ -176,16 +176,16 @@ describe('roadmap data', () => {
     // A card shares the concept, not the plan: how it is built and shipped is
     // an implementation decision that is not committed to in public.
     expect(binary.blurb, 'no build mechanics in the card').not.toMatch(/phar|box|export-ignore/i)
-    // Homebrew did not ship with v1.15.0. A shipped card promising it would
-    // send readers to a brew install that fails.
-    expect(binary.blurb, 'Homebrew is not shipped').not.toMatch(/homebrew|brew/i)
   })
 
-  it('keeps the Homebrew tap as approved next until its formula is live', () => {
+  it('files the Homebrew tap as shipped, carrying the binary release it installs', () => {
+    // The tap has no release numbering of its own. Its formula installs the
+    // v1.15.0 binary, so that is the version the card reports.
     const tap = ALL.find((i) => /homebrew/i.test(i.title))
     expect(tap, 'Homebrew card exists').toBeTruthy()
-    expect(tap.status).toBe('approved')
-    expect(tap.version, 'unshipped items carry no version').toBeUndefined()
+    expect(tap.status).toBe('shipped')
+    expect(tap.version).toBe('v1.15.0')
+    expect(tap.tryUrl).toBe('/binary/installation/')
   })
 
   it('files the structural lint hints as shipped, since truss:doctor is what they became', () => {
@@ -274,14 +274,14 @@ describe('try-it links', () => {
 
   it('say what the link leads to, when it is not something to try', () => {
     // The demo and the theme builder are tried in a browser. Something you have
-    // to install is not, so the Filament plugin and the binary link to their
-    // documentation under their own label rather than promising a hands-on the
-    // destination cannot give. Everything else keeps the default.
+    // to install is not, so the Filament plugin, the binary and its Homebrew tap
+    // link to their documentation under their own label rather than promising
+    // a hands-on the destination cannot give. Everything else keeps the default.
     const installed = (i) => /filament|standalone binary/i.test(i.title)
     for (const item of withTry.filter(installed)) {
       expect(item.linkLabel, item.title).toBe('Read the docs')
     }
-    expect(withTry.filter(installed).length).toBe(2)
+    expect(withTry.filter(installed).length).toBe(3)
 
     for (const item of withTry.filter((i) => !installed(i))) {
       expect(item.linkLabel, `${item.title} should use the default label`).toBeUndefined()
