@@ -58,6 +58,13 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Schema diff across MySQL and MariaDB',
+        status: 'shipped',
+        version: 'v1.15.1',
+        blurb:
+          'Diffing a MariaDB staging database against MySQL production shows what actually differs, not how the two servers spell the same column. An integer display width, a quoted default or a missing default written as the text NULL no longer count as changes, so a handful of real differences no longer hide among dozens that are not. The diff compares what a column means, and a real change still shows each side as that server wrote it.',
+      },
+      {
         title: 'The standalone binary on Homebrew',
         status: 'shipped',
         version: 'v1.15.0',
@@ -204,12 +211,6 @@ export const SECTIONS: RoadmapSection[] = [
     commitment: 'Committed, building next',
     blurb: 'Decided. This is what comes next.',
     items: [
-      {
-        title: 'Schema diff across MySQL and MariaDB',
-        status: 'approved',
-        blurb:
-          'Diffing a MariaDB staging database against MySQL production should show what actually differs, not how the two servers spell the same column. Today an integer display width, a quoted default or a missing default written as the text NULL each count as a change, so a handful of real differences can hide among dozens that are not. The diff will compare what a column means rather than how each server writes it.',
-      },
       {
         title: 'Schema doctor: more rules',
         status: 'approved',
