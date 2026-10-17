@@ -1,0 +1,167 @@
+---
+title: Commands
+description: The truss binary's four commands, show, export, doctor and diff, with connection strings, exit codes, and a CI job comparing two live databases
+---
+
+The binary has four commands. Every one reads the database named by `TRUSS_DSN`, or by `--dsn` when it is given.
+
+| Command | What it does |
+| --- | --- |
+| [`truss show`](#truss-show) | Print the structure as a table in the terminal |
+| [`truss export`](#truss-export) | Write the structure in one of seven formats |
+| [`truss doctor`](#truss-doctor) | Review the structure for problems |
+| [`truss diff`](#truss-diff) | Compare **two live databases** |
+
+The text exports and the doctor's report are **byte-identical** to the artisan commands run against the same database, because both call one implementation. What you learn on the [artisan commands](/reference/commands/) page applies here.
+
+## Connection strings
+
+| Database | Connection string |
+| --- | --- |
+| MySQL | `mysql://user:pass@host:3306/database` |
+| MariaDB | `mariadb://user:pass@host:3306/database` |
+| PostgreSQL | `pgsql://user:pass@host:5432/database` |
+| SQLite | `sqlite:/path/to/database.sqlite`, or just the path |
+
+The port is optional and defaults to the driver's usual one. `postgres://` and `postgresql://` are accepted as well as `pgsql://`. A bare path is read as a SQLite file when it contains a `/` or ends in `.sqlite`, `.sqlite3` or `.db`. A password with special characters needs them URL-encoded, the same as in any other connection string.
+
+Query parameters are passed to the connection, so `?sslmode=require` or `?charset=latin1` works as it would in a Laravel `database.php`.
+
+**No error message ever contains the connection string.** A failure names the driver, host, port and database, and never the user or password, so it is safe to leave in a CI log.
+
+A connection that cannot be opened exits `2`, whatever the reason: a wrong host or port, a wrong password, or a PHP that lacks the PDO extension for your database (`php -m` shows which you have).
+
+## Exit codes
+
+The same as the artisan commands, which is what makes the binary safe to put in CI:
+
+| Code | Meaning |
+| --- | --- |
+| `0` | Clean: the command ran and found nothing to fail on |
+| `1` | `doctor` found something at the `--fail-on` level, or `export --check` found drift |
+| `2` | **Anything else**: a bad connection string, an unreachable host, an unknown command or option, a PHP older than 8.2 |
+
+A `2` never means your schema has a problem. An unreachable host can never be mistaken for a schema with findings, so a CI step that fails on `1` and on `2` tells you which it was.
+
+## `truss show`
+
+The structure as a terminal table: one row per table, with its column count and foreign-key count.
+
+```bash
+truss show
+```
+
+## `truss export`
+
+Writes the structure to stdout, or to a file with `--output`. The formats are the package's: see the [Schema export guide](/guides/schema-export/) for what each one is for.
+
+```bash
+truss export --format=dbml
+truss export --format=mermaid --output=docs/schema.mmd
+truss export --format=llm --focus=orders --depth=2
+truss export --format=html --output=schema.html
+```
+
+| Option | |
+| --- | --- |
+| `--format` | `dbml` (the default), `json`, `csv`, `markdown`, `mermaid`, `llm` or `html` |
+| `--tables` | Only these tables, comma-separated |
+| `--exclude` | Skip these tables, comma-separated, applied after `--tables` |
+| `--focus` | Reduce to this table and its foreign-key neighbourhood |
+| `--depth` | How many hops `--focus` reaches (default 1) |
+| `--compact` | Drop defaults and non-unique indexes to shrink the output |
+| `--no-annotations` | Strip annotations from the export |
+| `--mermaid` | `html` only: `inline` (self-contained, the default) or `cdn` (a small file that needs a network to render) |
+| `--output` | Write to this file instead of stdout. Required for `html` |
+| `--check` | Compare against `--output` and exit `1` if it would change. Writes nothing |
+
+`--check` is the drift check for CI: commit an export, and the build fails when the database no longer matches it.
+
+```bash
+truss export --format=dbml --output=schema.dbml --check
+```
+
+## `truss doctor`
+
+Reviews the structure for problems: integrity, indexing and column types. It is the same rule set as [Schema doctor](/guides/schema-doctor/), with the same findings in the same order. `truss check` is an alias.
+
+```bash
+truss doctor
+truss doctor --preset=strict --fail-on=warning
+truss doctor --table=orders --format=json
+```
+
+| Option | |
+| --- | --- |
+| `--table` | Review only this table |
+| `--only` | Only these categories, comma-separated: `integrity`, `index`, `type` |
+| `--skip` | Skip these categories, comma-separated |
+| `--preset` | `recommended` (the default), `strict` or `none` |
+| `--format` | `console` (the default) or `json` |
+| `--fail-on` | The lowest severity that exits `1`: `error` (the default), `warning`, `info` or `never` |
+
+## `truss diff`
+
+**Compares two live databases**, for example staging against production, right now. This is the one thing the binary does that the package cannot.
+
+Inside a Laravel application, [`truss:diff`](/guides/schema-diff/) answers "what changed since the last migration", which is a question about time. Given two connection strings, `truss diff` answers "what differs between these two databases", which is a question about place. No migration and no baseline are involved: both sides are read live.
+
+```bash
+TRUSS_DSN="$STAGING_DSN" TRUSS_AGAINST_DSN="$PRODUCTION_DSN" truss diff
+```
+
+The second database is read from `TRUSS_AGAINST_DSN`, for the same reason the first is read from `TRUSS_DSN`: a connection string passed as an argument lands in shell history and is visible in `ps`. `--against` is there for when you need it, and when both are given it wins, just as `--dsn` wins over `TRUSS_DSN`.
+
+**Direction matters.** `TRUSS_DSN` is the current state and `TRUSS_AGAINST_DSN` is what it is compared to, so a table only staging has reads as **added**, and a table only production has reads as **removed**.
+
+The report names both sides with the driver, host and database, and neither set of credentials.
+
+:::caution[Compare like with like]
+Diff two databases on the same engine. Between MySQL and MariaDB, `truss diff` currently reports differences in how the two engines describe the same column, such as `int(11)` against `int`, or a default quoted on one side and not the other, alongside any real ones. Between two MySQL databases, every line it reports is a real difference.
+:::
+
+:::note[It reports, it does not fail]
+`truss diff` exits `0` whether or not it finds differences, exactly as `truss:diff` does. It exits `2` if either connection cannot be opened. To fail a build on structural drift, use `truss export --check` against a committed export.
+:::
+
+### In CI
+
+A GitHub Actions job that prints what differs between staging and production on every push, with both connection strings held as repository secrets:
+
+```yaml
+name: Schema drift
+
+on: [push]
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql
+
+      - name: Download truss
+        run: |
+          curl -L -o truss https://github.com/albertoarena/laravel-truss/releases/latest/download/truss.phar
+          chmod +x truss
+
+      - name: Staging against production
+        env:
+          TRUSS_DSN: ${{ secrets.STAGING_DSN }}
+          TRUSS_AGAINST_DSN: ${{ secrets.PRODUCTION_DSN }}
+        run: ./truss diff
+```
+
+The runner needs network access to both databases, which for most production databases means a self-hosted runner or an allow-listed address. If either connection cannot be opened, the step exits `2` and fails, naming which database it was.
+
+## Who can run it
+
+**Whoever holds the connection string.** The binary has no dashboard, no route and nothing to log in to, so there is nothing for an authorization gate to protect. The credentials are the protection: a user who can run `truss` against a database could already connect to it with any other client.
+
+What it reads is the same as the package: structure, and never row data.
+
+## Not in the binary
+
+`open` and `rebuild` exist only as artisan commands. `truss:open` opens the dashboard, and the binary has no dashboard to open. `truss:rebuild` refreshes the cached snapshot, and the binary keeps no cache between runs: every command reads the database live.

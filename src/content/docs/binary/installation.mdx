@@ -1,0 +1,74 @@
+---
+title: Installation
+description: Install the framework-free truss binary, one PHAR that reads a MySQL, MariaDB, PostgreSQL or SQLite database from a connection string and exports its structure, as an ER diagram (ERD) among others, with no Laravel application
+---
+
+The `truss` binary runs Truss against a database you have a connection string for, with **no Laravel application, no project and no `composer require`**. It is for Symfony, WordPress and plain PHP codebases, for CI, and for the database somebody just handed you.
+
+If you have a Laravel application, you do not need it: [install the package](/getting-started/installation/) and use the dashboard, the artisan commands and the MCP server from inside the app. The binary is a separate way in for a different audience, and installing it changes nothing about the package.
+
+**Structure only, never row data.** Tables, columns, indexes and foreign keys, exactly as the package reads them. The binary never queries the contents of a table.
+
+Truss draws what the schema declares and invents nothing. WordPress, for example, declares no foreign keys, so a WordPress database shows its tables and no relationships between them.
+
+## Requirements
+
+- **PHP 8.2 or newer** on your machine. The binary runs on the PHP you already have and installs none.
+- The PDO extension for your database: `pdo_mysql` for MySQL and MariaDB, `pdo_pgsql` for PostgreSQL, `pdo_sqlite` for SQLite. `php -m` lists what you have.
+
+On an older PHP it stops before doing anything else and says so, with exit code 2. On PHP 8.1.27, for example:
+
+```text
+Truss needs PHP 8.2 or newer, found 8.1.27. Install a newer PHP, or run Truss inside a Laravel application with the package instead.
+```
+
+## Download the PHAR
+
+The binary is a single file, `truss.phar`, attached to every [GitHub release](https://github.com/albertoarena/laravel-truss/releases) from v1.15.0. It is built from the release tag by CI, so the binary and the package of the same version always agree about a database.
+
+```bash
+curl -L -o truss https://github.com/albertoarena/laravel-truss/releases/latest/download/truss.phar
+chmod +x truss
+./truss --version
+```
+
+That prints the version it was built from, for example `Truss v1.15.0`.
+
+To run it from anywhere, move it onto your `PATH`:
+
+```bash
+sudo mv truss /usr/local/bin/truss
+```
+
+To pin a version rather than take the latest, download it from that release:
+
+```bash
+curl -L -o truss https://github.com/albertoarena/laravel-truss/releases/download/v1.15.0/truss.phar
+```
+
+### Without making it executable
+
+On Windows, or anywhere you would rather not `chmod`, hand the file to PHP:
+
+```bash
+php truss.phar --version
+```
+
+Everything on these pages works the same way with `php truss.phar` in place of `truss`.
+
+## Point it at a database
+
+Set the connection string in `TRUSS_DSN` and run a command:
+
+```bash
+export TRUSS_DSN='pgsql://user:pass@localhost:5432/shop'
+truss show
+```
+
+**Use the environment variable rather than `--dsn`.** A connection string passed as an argument lands in your shell history and is visible in `ps` to everyone on the machine. `--dsn` is there for when you need it, and when both are given it wins.
+
+See [Commands](/binary/commands/) for the connection string forms, the four commands and their exit codes.
+
+## Not the `truss` syscall tracer
+
+The `truss` command on FreeBSD, Solaris and AIX that traces system calls is an unrelated tool. If both are on your `PATH`, the one listed first wins: check with `truss --version`.

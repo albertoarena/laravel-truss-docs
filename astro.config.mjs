@@ -479,6 +479,17 @@ export default defineConfig({
             { label: 'Configuration', link: '/filament/configuration/' },
           ],
         },
+        // The framework-free binary: a separate audience from everything above,
+        // which runs inside a Laravel application. Its own group for the same
+        // reason the Filament panel has one.
+        {
+          label: 'Truss binary',
+          badge: 'New',
+          items: [
+            { label: 'Installation', link: '/binary/installation/' },
+            { label: 'Commands', link: '/binary/commands/' },
+          ],
+        },
         {
           label: 'Reference',
           items: [

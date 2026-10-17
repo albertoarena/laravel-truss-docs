@@ -22,6 +22,7 @@ export const SECTIONS = [
   { dir: 'getting-started', heading: 'Getting started' },
   { dir: 'guides', heading: 'Guides' },
   { dir: 'filament', heading: 'Filament panel' },
+  { dir: 'binary', heading: 'Truss binary' },
   { dir: 'reference', heading: 'Reference' },
   { dir: 'help', heading: 'Help' },
 ]
