@@ -116,8 +116,10 @@ The second database is read from `TRUSS_AGAINST_DSN`, for the same reason the fi
 
 The report names both sides with the driver, host and database, and neither set of credentials.
 
-:::caution[Compare like with like]
-Diff two databases on the same engine. Between MySQL and MariaDB, `truss diff` currently reports differences in how the two engines describe the same column, such as `int(11)` against `int`, or a default quoted on one side and not the other, alongside any real ones. Between two MySQL databases, every line it reports is a real difference.
+:::note[MySQL against MariaDB]
+MySQL and MariaDB can be diffed against each other. They describe some columns and foreign keys in different words, such as `int(11)` against `int`, a quoted default, or `restrict` against `no action`, and `truss diff` compares what they mean rather than how each server writes them. A difference it does report shows each side in that server's own words.
+
+One edge case remains: a string default that is literally `'NULL'` still shows as a change, because MySQL writes it the way MariaDB writes no default.
 :::
 
 :::note[It reports, it does not fail]

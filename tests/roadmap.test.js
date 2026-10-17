@@ -188,10 +188,11 @@ describe('roadmap data', () => {
     expect(tap.tryUrl).toBe('/binary/installation/')
   })
 
-  it('leads Approved next with the MySQL and MariaDB diff', () => {
-    const approved = SECTIONS.find((s) => s.status === 'approved').items
-    expect(approved[0].title).toBe('Schema diff across MySQL and MariaDB')
-    expect(approved[0].version, 'unshipped items carry no version').toBeUndefined()
+  it('files the MySQL and MariaDB diff as shipped in v1.15.1', () => {
+    const diff = ALL.find((i) => i.title === 'Schema diff across MySQL and MariaDB')
+    expect(diff, 'MySQL and MariaDB diff card exists').toBeTruthy()
+    expect(diff.status).toBe('shipped')
+    expect(diff.version).toBe('v1.15.1')
   })
 
   it('files the structural lint hints as shipped, since truss:doctor is what they became', () => {
