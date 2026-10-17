@@ -208,7 +208,7 @@ export const SECTIONS: RoadmapSection[] = [
         title: 'Schema diff across MySQL and MariaDB',
         status: 'approved',
         blurb:
-          'Diffing a MariaDB staging database against MySQL production should show what actually differs, not how the two servers spell the same column. Today an integer display width, a quoted default or the case of NULL each count as a change, so a handful of real differences can hide among dozens that are not. The diff will compare what a column means rather than how each server writes it.',
+          'Diffing a MariaDB staging database against MySQL production should show what actually differs, not how the two servers spell the same column. Today an integer display width, a quoted default or a missing default written as the text NULL each count as a change, so a handful of real differences can hide among dozens that are not. The diff will compare what a column means rather than how each server writes it.',
       },
       {
         title: 'Schema doctor: more rules',
