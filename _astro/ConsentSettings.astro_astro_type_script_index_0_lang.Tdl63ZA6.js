@@ -1,0 +1,1 @@
+import{c as e}from"./consent.BdIALTad.js";for(const o of document.querySelectorAll("[data-consent-reset]"))o.addEventListener("click",()=>{const t=(()=>{try{return window.localStorage}catch{return}})();e(t),window.location.reload()});
