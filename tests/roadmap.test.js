@@ -255,6 +255,14 @@ describe('roadmap data', () => {
     }
   })
 
+  it('keeps every card to 40 words at most', () => {
+    // Cards ran to 130 words and read like changelogs. The target is about 30;
+    // 40 is the ceiling, so a card that needs more is saying too much.
+    for (const item of ALL) {
+      expect(item.blurb.trim().split(/\s+/).length, item.title).toBeLessThanOrEqual(40)
+    }
+  })
+
   it('uses no em or en dashes in any blurb', () => {
     for (const item of ALL) {
       expect(item.blurb + (item.tag ?? ''), item.title).not.toMatch(/[—–]/)

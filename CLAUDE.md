@@ -114,6 +114,11 @@ testimonial on a public site is the one failure here that cannot be walked back.
 ## Conventions
 
 - Keep docs accurate to the shipped **release**, not unreleased work.
+- **Roadmap cards are short: about 30 words, never more than 40**, at most
+  two sentences. Say what is wrong or missing, then what the change does for
+  the reader. Leave out the mechanism, the list of every surface it touches
+  and anything the linked issue already says. The roadmap informs; technical
+  detail belongs in the docs. `tests/roadmap.test.js` fails a blurb over 40.
 - Never commit generated or fetched directories (`dist/`, `.astro/`, `_pkg/`,
   `public/demo/assets/`).
 - **One generated file is tracked on purpose:
