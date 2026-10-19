@@ -212,6 +212,14 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Decided. This is what comes next.',
     items: [
       {
+        title: 'Mermaid diagrams with awkward names',
+        status: 'approved',
+        tag: 'community requested',
+        issueUrl: `${REPO}/issues/94`,
+        blurb:
+          'A column whose name starts with a digit, such as 429_error_date, is legal in MySQL and MariaDB, but Mermaid cannot parse it, and today that one name leaves the whole diagram blank. The fix will rewrite only the names Mermaid rejects: a leading digit, a $ in a name, a column called pk, fk or uk, and some table names. Every name that works today, accented ones included, stays exactly as it is, so a committed export checked with --check does not drift. The dashboard will still show the real names, and the Mermaid text export will keep the real name in a comment. The same rule applies to the dashboard and the HTML export, and to the Mermaid export from the command line, the binary and the MCP server.',
+      },
+      {
         title: 'Schema doctor: more rules',
         status: 'approved',
         blurb:
