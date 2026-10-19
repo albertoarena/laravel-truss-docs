@@ -195,6 +195,13 @@ describe('roadmap data', () => {
     expect(diff.version).toBe('v1.15.1')
   })
 
+  it('leads Approved next with the Mermaid fix for awkward names', () => {
+    const approved = SECTIONS.find((s) => s.status === 'approved').items
+    expect(approved[0].title).toBe('Mermaid diagrams with awkward names')
+    expect(approved[0].issueUrl).toBe('https://github.com/albertoarena/laravel-truss/issues/94')
+    expect(approved[0].version, 'unshipped items carry no version').toBeUndefined()
+  })
+
   it('files the structural lint hints as shipped, since truss:doctor is what they became', () => {
     const hints = ALL.find((i) => /lint hints/i.test(i.title))
     expect(hints, 'structural lint hints card exists').toBeTruthy()
