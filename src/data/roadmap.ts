@@ -62,7 +62,7 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'shipped',
         version: 'v1.15.1',
         blurb:
-          'Diffing a MariaDB staging database against MySQL production shows what actually differs, not how the two servers spell the same column. An integer display width, a quoted default or a missing default written as the text NULL no longer count as changes, so a handful of real differences no longer hide among dozens that are not. The diff compares what a column means, and a real change still shows each side as that server wrote it.',
+          'Diffing a MariaDB database against MySQL now shows only the real differences. How each server writes the same column, such as a quoted default, no longer counts as a change.',
       },
       {
         title: 'The standalone binary on Homebrew',
@@ -71,7 +71,7 @@ export const SECTIONS: RoadmapSection[] = [
         tryUrl: '/binary/installation/',
         linkLabel: 'Read the docs',
         blurb:
-          'Install the standalone binary with one line of Homebrew, and keep it current with the rest of your tools, instead of downloading each release by hand. It runs on the PHP you already have and installs none.',
+          'Install the standalone binary with one line of Homebrew and keep it updated with the rest of your tools. It runs on the PHP you already have.',
       },
       {
         title: 'Truss as a standalone binary',
@@ -80,14 +80,14 @@ export const SECTIONS: RoadmapSection[] = [
         tryUrl: '/binary/installation/',
         linkLabel: 'Read the docs',
         blurb:
-          'Run Truss against any database with a connection string, with no framework and no project to install it into: one download, on PHP 8.2 or newer. Four commands: show the structure, export it in any of the seven formats, review it with the doctor, and diff two live databases, such as staging against production right now, which the package itself cannot do. Connection strings are read from the environment, so they stay out of shell history. It changes nothing for anybody installing Truss the usual way.',
+          'Run Truss against any database with a connection string, with no Laravel project needed: one download, on PHP 8.2 or newer. It can also diff two live databases, such as staging against production.',
       },
       {
         title: 'Self-contained HTML export',
         status: 'shipped',
         version: 'v1.14.0',
         blurb:
-          'Export the whole diagram as a single HTML file that needs nothing to open it: no server, no network, no build step. Commit it next to the migrations, attach it to a pull request, or send it to somebody who has no access to the database, and it opens in any browser exactly as the dashboard drew it, filter and focus picker included. Structure only, as always.',
+          'Export the whole diagram as a single HTML file that opens in any browser, with no server and no network. Attach it to a pull request or send it to anyone.',
       },
       {
         title: 'Filament plugin',
@@ -97,7 +97,7 @@ export const SECTIONS: RoadmapSection[] = [
         tryUrl: '/filament/',
         linkLabel: 'Read the docs',
         blurb:
-          'A Database schema page inside a Filament panel, built from the panel\'s own components and wearing its theme rather than dropped in as a frame around another page. It ships as albertoarena/filament-truss, a package of its own, so nothing changes for anybody who does not use Filament and Truss itself stays free of any Filament dependency. Structure only and never row data, with the same access rules as the Truss dashboard.',
+          'A Database schema page inside your Filament panel, in the panel\'s own theme. It ships as albertoarena/filament-truss, so Truss itself gains no Filament dependency.',
       },
       {
         title: 'Laravel Boost support',
@@ -105,7 +105,7 @@ export const SECTIONS: RoadmapSection[] = [
         version: 'v1.10.0',
         tag: 'community requested',
         blurb:
-          'Truss ships Boost guidelines and a skill inside the package, so an agent set up with Laravel Boost knows Truss is installed and reaches for your real schema instead of guessing at columns, with no MCP server to wire up by hand. Run boost:install and tick Truss in the third-party list: nothing third-party is selected by default, so it stays your call. The standalone MCP server and truss:export are unchanged, for people not using Boost. Read-only and structure only, as always.',
+          'Agents set up with Laravel Boost see your real schema instead of guessing columns. Run boost:install and tick Truss: nothing third-party is selected by default.',
       },
       {
         title: 'Searchable Focus picker',
@@ -113,7 +113,7 @@ export const SECTIONS: RoadmapSection[] = [
         version: 'v1.9.0',
         tag: 'community requested',
         blurb:
-          'Focus a table by typing part of its name. The picker matches anywhere in the name, not just the start, marks what it matched in each row, and ranks exact names first, so a couple of hundred tables is a search rather than a scroll. It agrees with the toolbar filter, which has always matched substrings.',
+          'Focus a table by typing any part of its name. Exact names come first, so a schema with hundreds of tables becomes a search instead of a scroll.',
         issueUrl: `${REPO}/issues/39`,
       },
       {
@@ -121,21 +121,21 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'shipped',
         version: 'v1.9.0',
         blurb:
-          'The dashboard answers the keyboard. Table names, type labels and health markers behave like the buttons they announce themselves as, Escape closes a menu and hands focus back, every trigger has a visible focus ring, and the diagram names and describes the view it is showing for assistive technology. Verified by hand with a screen reader, and guarded by axe-core in CI so it stays that way.',
+          'The dashboard works with the keyboard: every control can be reached, with a visible focus ring, and the diagram describes itself to screen readers. Tested by hand and checked with axe-core in CI.',
       },
       {
         title: 'Truss as AI context',
         status: 'shipped',
         version: 'v1.8.0',
         blurb:
-          'Turn your schema into grounding context for a coding agent so it stops inventing columns. Annotate it with meaning from config or database comments, trim it with compact mode, narrow it to one table and its foreign-key neighbourhood, and export a token-tuned llm format. Build it in code with the fluent Truss facade or fetch it over a gated route. Structure only, no AI inside Truss.',
+          'Give a coding agent your real schema so it stops inventing columns. Add meaning from comments, narrow it to one table and its neighbours, and export a compact format for LLMs.',
       },
       {
         title: 'MCP server',
         status: 'shipped',
         version: 'v1.8.0',
         blurb:
-          'An optional Model Context Protocol server so agents like Claude Code and Cursor pull your live schema on demand, with tools to list and describe tables, export the structure in any format, and focus a table. Read-only and structure only.',
+          'An optional MCP server, so agents like Claude Code and Cursor read your live schema when they need it. Read-only and structure only.',
       },
       {
         title: 'Try Truss on your own schema',
@@ -143,7 +143,7 @@ export const SECTIONS: RoadmapSection[] = [
         tag: 'docs-site',
         tryUrl: '/demo/your-schema/',
         blurb:
-          'Paste a schema dump into the demo on this site, a mysqldump with no data or a schema exported from Truss itself, and see your own tables drawn without installing anything. It is parsed in your browser and never uploaded. MySQL and MariaDB to begin with, and other input formats, including DBML, after that.',
+          'Paste a MySQL or MariaDB schema dump into the demo and see your own tables drawn, with nothing to install. It is parsed in your browser and never uploaded.',
       },
       {
         title: 'Theme builder',
@@ -151,35 +151,35 @@ export const SECTIONS: RoadmapSection[] = [
         tag: 'docs-site',
         tryUrl: '/theme-builder/',
         blurb:
-          'Design a Truss theme in the browser: dial in colours and fonts against a live dashboard preview, then copy a ready-to-paste config block. Every value maps to the shipped truss.theme knobs, so what you build is exactly what the package produces.',
+          'Design a Truss theme in the browser against a live preview, then copy the config block. It uses the same settings as the package, so the result matches exactly.',
       },
       {
         title: 'Schema export for CI and tooling',
         status: 'shipped',
         version: 'v1.6.0',
         blurb:
-          'Generate your schema from the command line with truss:export (DBML, JSON, CSV, Markdown, or Mermaid), so CI can commit an up-to-date schema file and fail the build when it drifts. Deterministic, structure only, and pipeable into your own tools.',
+          'Export your schema from the command line with truss:export, so CI can commit it and fail the build when it drifts. Five formats, structure only.',
       },
       {
         title: 'Theming and custom palettes',
         status: 'shipped',
         version: 'v1.6.0',
         blurb:
-          'Define your own colours and fonts from config so the dashboard matches the app Truss is embedded in. A few semantic knobs re-skin the whole diagram, chrome and all, in light and dark. Config driven, CSP safe, no build step.',
+          'Set your own colours and fonts in config so the dashboard matches your app, in light and dark mode. No build step.',
       },
       {
         title: 'Schema doctor',
         status: 'shipped',
         version: 'v1.5.0',
         blurb:
-          'Run truss:doctor to review your schema for problems visible from structure alone: missing primary keys, unindexed foreign keys, duplicate indexes, money stored as float, and more. It runs in the terminal and in CI, failing the build when a migration introduces a new problem, and a dashboard Health panel flags the same findings on the diagram. Deterministic and structure only, with no AI and no query stats. Recalibrated in v1.10.0 against sixteen real Laravel applications, narrowing TRUSS-INT-007 so an entity table with two foreign keys is no longer called a pivot. v1.11.0 added TRUSS-INT-010, which catches a foreign key that points at the wrong table: found on a real schema where cart line ids were being validated against carts, and silent for years because the database accepted every write.',
+          'truss:doctor finds problems the structure alone shows, such as a missing primary key or an unindexed foreign key, in the terminal, in CI and on the dashboard. v1.11.0 added a check for foreign keys that point at the wrong table.',
       },
       {
         title: 'Structural lint hints',
         status: 'shipped',
         version: 'v1.5.0',
         blurb:
-          'The wishlist idea that became truss:doctor. Problems the structure alone can show, a missing primary key or a foreign key with no index behind it, are marked on the diagram itself rather than left for you to notice: a health marker on the table, the finding and its code a click away, and each rule yours to silence or re-grade from config. The markers are on by default, since a finding nobody sees helps nobody, and a single config switch turns them off.',
+          'The wishlist idea that became truss:doctor. Problems such as a missing primary key are marked on the diagram itself, one click from the details, and one config switch turns the markers off.',
       },
       {
         title: 'Schema diff',
@@ -217,20 +217,20 @@ export const SECTIONS: RoadmapSection[] = [
         tag: 'community requested',
         issueUrl: `${REPO}/issues/94`,
         blurb:
-          'A column whose name starts with a digit, such as 429_error_date, is legal in MySQL and MariaDB, but Mermaid cannot parse it, and today that one name leaves the whole diagram blank. The fix will rewrite only the names Mermaid rejects: a leading digit, a $ in a name, a column called pk, fk or uk, and some table names. Every name that works today, accented ones included, stays exactly as it is, so a committed export checked with --check does not drift. The dashboard will still show the real names, and the Mermaid text export will keep the real name in a comment. The same rule applies to the dashboard and the HTML export, and to the Mermaid export from the command line, the binary and the MCP server.',
+          'A column name Mermaid cannot parse, such as 429_error_date, blanks the whole diagram today. The fix will rewrite only the names Mermaid rejects, and the dashboard will still show the real names.',
       },
       {
         title: 'Schema doctor: more rules',
         status: 'approved',
         blurb:
-          'A second pass on the rule catalogue, aimed at the problems a migration file cannot show you: a collation that silently stops an index being used across a foreign key, a storage engine that accepts a foreign key and then ignores it, a key pointing at a column nothing keeps unique, the same relationship declared twice, and identifiers stored as plain text. Every new rule is measured against a field study of real applications before it ships, because a rule that cries wolf costs more than the one it catches.',
+          'More doctor rules for problems a migration file cannot show you, such as a foreign key the database quietly ignores. Each rule is tested on real applications first, so it does not raise false alarms.',
       },
       {
         title: 'Lighthouse CI',
         status: 'approved',
         tag: 'docs-site',
         blurb:
-          'Automated Lighthouse audits in CI for this site and the live demo, in both light and dark mode, so performance, accessibility, and best-practices scores stay high and a regression fails the build.',
+          'Automated Lighthouse checks in CI for this site and the live demo, in light and dark mode, so a drop in performance or accessibility fails the build.',
       },
     ],
   },
@@ -244,19 +244,19 @@ export const SECTIONS: RoadmapSection[] = [
         title: 'Accessible structure view',
         status: 'exploring',
         blurb:
-          'A toggle that swaps the canvas for the same structure written as ordinary HTML tables, honouring the filter, focus and depth you already set. It is the text alternative a drawn diagram cannot be, and it earns its place beyond that: printable, searchable with the browser\'s own find, copy-pasteable into a ticket or a wiki, and far better on a phone than pan and zoom.',
+          'A toggle that shows the same structure as plain HTML tables instead of a drawing. Easier for screen readers, and also printable, searchable and much better on a phone.',
       },
       {
         title: 'Accessibility conformance review',
         status: 'exploring',
         blurb:
-          'Measure the criteria the keyboard work did not cover, including contrast on control boundaries and inside the diagram itself, fix what fails, and then publish a statement saying exactly what is supported, what is not, how a custom palette changes the answer, and how to report a barrier. Measured first, written second: the statement is worth having only if it is true.',
+          'Measure what the keyboard work did not cover, such as contrast inside the diagram, fix what fails, then publish an honest statement of what is supported and how to report a problem.',
       },
       {
         title: 'Schema doctor: CI formats',
         status: 'exploring',
         blurb:
-          'Make the doctor a better citizen of a pull request: GitHub and JUnit output so findings land as inline annotations rather than buried log lines, a preset tuned to Laravel conventions, a suppression workflow to baseline what you already know about, and a mode that reports only what a migration newly introduced.',
+          'Show doctor findings as comments on the pull request instead of lines in a log, and report only the problems a new migration adds.',
       },
       {
         title: 'Eloquent relations as a schema source',
@@ -264,7 +264,7 @@ export const SECTIONS: RoadmapSection[] = [
         tag: 'community requested',
         issueUrl: `${REPO}/issues/38`,
         blurb:
-          'Read Eloquent model relationships as a second source of edges, so relations your app declares but the database never enforces still appear on the diagram, including polymorphic ones a foreign key cannot express. Inferred edges would be drawn distinctly from enforced ones, and the relation kind (hasMany, belongsToMany) would label what the database does enforce. Opt in from config, read from model definitions, structure only.',
+          'Read relationships from your Eloquent models, so relations the database does not enforce still appear on the diagram, drawn differently from real foreign keys. Opt in from config.',
       },
       {
         title: 'Large-schema navigation',
@@ -277,7 +277,7 @@ export const SECTIONS: RoadmapSection[] = [
         status: 'exploring',
         tag: 'community requested',
         blurb:
-          'Key the cached schema by the resolved database, not just the connection name, so multi-tenant apps that swap databases behind one connection always show the right schema.',
+          'Multi-tenant apps that switch databases behind one connection will always see the right schema, not a cached one from another tenant.',
       },
     ],
   },
@@ -307,7 +307,7 @@ export const SECTIONS: RoadmapSection[] = [
         tag: 'community requested',
         issueUrl: `${REPO}/issues/45`,
         blurb:
-          'Truss installs one small helper package alongside itself, for a handful of one-line conveniences it could do without. Standing on its own would mean one less thing in your vendor directory, and one less package sitting between a new Laravel release and Truss running on it.',
+          'Truss installs one small helper package it could do without. Removing it means one less package in your vendor directory, and one less thing to wait for when Laravel releases a new version.',
       },
     ],
   },
