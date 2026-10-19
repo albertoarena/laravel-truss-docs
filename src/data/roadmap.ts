@@ -80,7 +80,7 @@ export const SECTIONS: RoadmapSection[] = [
         tryUrl: '/binary/installation/',
         linkLabel: 'Read the docs',
         blurb:
-          'Run Truss against any database with a connection string, with no Laravel project needed: one download, on PHP 8.2 or newer. It can also diff two live databases, such as staging against production.',
+          'Run Truss against a MySQL, MariaDB, PostgreSQL or SQLite database with a connection string, with no Laravel project needed: one download, on PHP 8.2 or newer. It can also diff two live databases, such as staging against production.',
       },
       {
         title: 'Self-contained HTML export',
@@ -105,7 +105,7 @@ export const SECTIONS: RoadmapSection[] = [
         version: 'v1.10.0',
         tag: 'community requested',
         blurb:
-          'Agents set up with Laravel Boost see your real schema instead of guessing columns. Run boost:install and tick Truss: nothing third-party is selected by default.',
+          'Agents set up with Laravel Boost see your real schema instead of guessing columns. Run boost:install and tick Truss, because Boost selects no third-party packages by default.',
       },
       {
         title: 'Searchable Focus picker',
@@ -223,7 +223,7 @@ export const SECTIONS: RoadmapSection[] = [
         title: 'Schema doctor: more rules',
         status: 'approved',
         blurb:
-          'More doctor rules for problems a migration file cannot show you, such as a foreign key the database quietly ignores. Each rule is tested on real applications first, so it does not raise false alarms.',
+          'More doctor rules for problems a migration file cannot show you, such as a foreign key the database quietly ignores. Each rule is tested on real applications first, to keep false alarms low.',
       },
       {
         title: 'Lighthouse CI',
