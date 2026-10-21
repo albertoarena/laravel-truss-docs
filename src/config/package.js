@@ -28,3 +28,12 @@ export const AUTHOR_NAME = 'Alberto Arena'
  * helping it, so this holds only what is already linked from the site itself.
  */
 export const AUTHOR_PROFILE = 'https://github.com/albertoarena'
+
+/**
+ * The author's Mastodon account, linked from the landing page with rel="me".
+ *
+ * The profile lists trussphp.com, and phpc.social marks that field verified
+ * only when the site links back with rel="me" in its static HTML: Mastodon
+ * does not run JavaScript. The tag loads nothing.
+ */
+export const MASTODON_PROFILE = 'https://phpc.social/@albertoarena'

@@ -52,6 +52,9 @@ function walk(dir, out = []) {
 /** src= and href= on elements that fetch. Deliberately not <a href>. */
 const FETCHING = /<(?:script|iframe|img|source|video|audio|embed|track)\b[^>]*\bsrc="(https?:\/\/[^"]+)"/gi
 const LINKED_RESOURCE = /<link\b[^>]*\bhref="(https?:\/\/[^"]+)"/gi
+// rel="me" is an identity assertion for Mastodon: like an anchor, it requests
+// nothing, so it is a link and not a resource.
+const NOT_FETCHED = /\brel="me"/i
 
 let pages = []
 
@@ -67,7 +70,10 @@ const hostsIn = (html) => {
   const found = []
   for (const pattern of [FETCHING, LINKED_RESOURCE]) {
     pattern.lastIndex = 0
-    for (const match of html.matchAll(pattern)) found.push(new URL(match[1]).hostname)
+    for (const match of html.matchAll(pattern)) {
+      if (pattern === LINKED_RESOURCE && NOT_FETCHED.test(match[0])) continue
+      found.push(new URL(match[1]).hostname)
+    }
   }
   return found
 }
@@ -106,6 +112,10 @@ describe('third-party origins in the built output', () => {
     )
     expect(inTheWild.html, 'links to the video it cites').toMatch(
       /<a[^>]+href="https:\/\/www\.youtube\.com\/watch/,
+    )
+    const landing = pages.find((p) => p.name === 'index.html')
+    expect(landing.html, 'carries the Mastodon rel="me" link').toContain(
+      '<link rel="me" href="https://phpc.social/@albertoarena">',
     )
   })
 })
