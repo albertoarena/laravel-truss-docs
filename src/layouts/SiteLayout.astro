@@ -12,7 +12,7 @@ import CookieConsent from '../components/CookieConsent.astro'
 import ConsentSettings from '../components/ConsentSettings.astro'
 import { graph, personNode, websiteNode } from '../scripts/structured-data.js'
 import { DEFAULT_COVER, cardOf } from '../scripts/social-cover.js'
-import { AUTHOR_NAME } from '../config/package.js'
+import { AUTHOR_NAME, MASTODON_PROFILE } from '../config/package.js'
 
 interface Props {
   title: string
@@ -59,6 +59,9 @@ const nav = [
         the form it does read. Not article:author, which belongs with
         og:type=article: these pages are og:type=website. */}
     <meta name="author" content={AUTHOR_NAME} />
+    {/* Verifies trussphp.com on the author's Mastodon profile. A link, not a
+        fetch: nothing is requested from phpc.social. */}
+    <link rel="me" href={MASTODON_PROFILE} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
