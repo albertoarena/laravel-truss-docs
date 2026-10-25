@@ -200,6 +200,15 @@
     },
     {
         "kind": "community",
+        "quote": "Need to understand a large Laravel database? Instead of opening dozens of migration files, Truss can generate a live interactive ER diagram.",
+        "author": "Noman Hameed",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/posts/inoman-hameed_laravel-php-laravel13-share-7497690238950154240-OauW/",
+        "date": "2026-08-24",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
         "quote": "تتيح لك فهم علاقات الجداول فوراً في المتصفح، تتبع الفروقات بعد الـ Migrations، واكتشاف المفاتيح والفهارس المفقودة بدون قراءة البيانات الفعلية.",
         "quoteLang": "ar",
         "translation": "It lets you understand how the tables relate straight away in the browser, track what changed after your migrations, and find the missing keys and indexes, all without reading the actual data.",
@@ -207,15 +216,6 @@
         "source": "LinkedIn",
         "url": "https://www.linkedin.com/posts/maigd-hammoud-822a513a2_laravel-php-backend-share-7497666164010004480-drg-/",
         "date": "2026-08-24",
-        "basis": "public-post"
-    },
-    {
-        "kind": "community",
-        "quote": "Need to understand a large Laravel database? Instead of opening dozens of migration files, Truss can generate a live interactive ER diagram.",
-        "author": "Noman Hameed",
-        "source": "LinkedIn",
-        "url": "https://www.linkedin.com/posts/inoman-hameed_laravel-php-laravel13-share-7497690238950154240-OauW/",
-        "date": "2026-08-25",
         "basis": "public-post"
     },
     {
@@ -237,6 +237,25 @@
         "basis": "public-post"
     },
     {
+        "kind": "community",
+        "quote": "Laravel Truss allows you to visualize your Laravel database as a live, interactive and zoomable Entity Relationship Diagram (ERD) directly inside your application.",
+        "author": "Unity Coding",
+        "source": "Unity Coding",
+        "url": "https://www.youtube.com/watch?v=aQPZoVwb6yE",
+        "date": "2026-09-09",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Truss: Schema doctor for Laravel Database",
+        "contribution": "Shared the Truss schema doctor docs with the PHP Dev squad on daily.dev.",
+        "author": "Damien Seguy",
+        "source": "Damien Seguy, daily.dev PHP Dev squad",
+        "url": "https://daily.dev/posts/truss-schema-doctor-for-laravel-database-9qaowbm12",
+        "date": "2026-09-14",
+        "basis": "public-post"
+    },
+    {
         "kind": "press",
         "quote": "Lo escribe Alberto Arena, mantenedor del paquete Laravel Truss, en un ensayo publicado esta semana donde pone cifras a un debate que el open source viene esquivando: 281 estrellas en GitHub frente a 24.000 instalaciones en Packagist en su propio proyecto.",
         "quoteLang": "es",
@@ -255,6 +274,46 @@
         "source": "Desarrollo Libre",
         "url": "https://x.com/LibreDesarrollo/status/2102377232551518712",
         "date": "2026-09-22",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Le package lit la structure de votre base de données en direct et la restitue sous forme de diagramme entité-relation interactif, directement dans votre application. Il ne lit que la structure (tables, colonnes, clés, index) et n'interroge jamais les données elles-mêmes.",
+        "quoteLang": "fr",
+        "translation": "The package reads your database structure live and shows it as an interactive entity-relationship diagram, right inside your application. It reads only the structure (tables, columns, keys, indexes) and never queries the data itself.",
+        "author": "Aud Mbag",
+        "source": "Larafrique",
+        "url": "https://larafrique.com/blog/frameworks-et-bibliotheques/laravel-truss-le-schema-de-votre-base-de-donnees-enfin-visible-en-direct/",
+        "date": "2026-09-23",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "thats great Alberto. Was joking about the memo ofcourse, looks great. Going to try straight away!",
+        "author": "Robbert van Gorp",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7508982633322807296/?dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287508985255018819584%2Curn%3Ali%3Aactivity%3A7508982633322807296%29&dashReplyUrn=urn%3Ali%3Afsd_comment%3A%287509150473526992896%2Curn%3Ali%3Aactivity%3A7508982633322807296%29",
+        "date": "2026-09-25",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Achei útil principalmente para quem está chegando em um projeto e ainda precisa entender o banco.",
+        "quoteLang": "pt-BR",
+        "translation": "I found it useful mainly for people who are joining a project and still need to understand the database.",
+        "author": "Rafael Dória",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/posts/rafael-doria_laravel-php-backend-share-7513711073624031232-7dXt/",
+        "date": "2026-10-07",
+        "basis": "public-post"
+    },
+    {
+        "kind": "community",
+        "quote": "Thank you Alberto! After years of Laravel projects, I landed on Django and found myself missing an ER diagram tool that was easy to use, supported MCP and didn’t pull in heavy dependencies. In short, Django was missing its Truss 😉",
+        "author": "Simone Fornasiere",
+        "source": "LinkedIn",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7515289920257568768/?dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287515304052809900032%2Curn%3Ali%3Aactivity%3A7515289920257568768%29",
+        "date": "2026-10-12",
         "basis": "public-post"
     }
 ]
