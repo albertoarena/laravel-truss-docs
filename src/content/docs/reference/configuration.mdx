@@ -92,6 +92,8 @@ Revealing never changes the schema diff or the doctor findings, which always run
 
 Null (the default) self-hosts Mermaid from the package, so no CDN is contacted. Set a URL to load Mermaid from a CDN or your own copy instead.
 
+A URL you set is loaded as it is, so point it at Mermaid 11.16.1 or later. Earlier versions carry [GHSA-c4c3-pg64-4m4v](https://github.com/advisories/GHSA-c4c3-pg64-4m4v), a low-severity prototype pollution in Mermaid's configuration APIs, and the copy Truss vendors has been 11.16.1 since v1.15.3.
+
 It is also where `truss:export --format=html --mermaid=cdn` looks: an install that has already said where its copy of Mermaid lives gets that URL in the exported file rather than a public CDN. See [the single-file HTML export](/guides/schema-export/#the-whole-diagram-as-one-file).
 
 ### `diagram.min_zoom`
