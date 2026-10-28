@@ -44,7 +44,7 @@ $panel->plugin(
 
 Unset, the page is ungrouped, unsorted and keeps its circle-stack icon.
 
-**These apply per panel**, so the same page can sit in a different group on each panel that registers the plugin, and they take precedence over the page's static setters. Set them here rather than on the page class. They need filament-truss 1.1.0 or later; before it, `SchemaPage::navigationGroup()` moved the Dashboard into the group too.
+**These apply per panel**, so the same page can sit in a different group on each panel that registers the plugin, and they take precedence over the page's static setters. Set them here rather than on the page class. They need filament-truss 1.1.0 or later. Before it, `SchemaPage::navigationGroup()` moved the Dashboard and every other page into the group, and `navigationSort()` and `navigationParentItem()` leaked the same way; 1.1.0 fixes all three.
 
 That is the entire configuration surface of the plugin. Everything else is Truss's.
 
