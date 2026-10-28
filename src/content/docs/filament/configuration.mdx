@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Hidden tables, Truss's config, and the single option the Filament plugin adds
+description: Hidden tables, Truss's config, and the options the Filament plugin adds
 ---
 
 The diagram reads Truss's config, which is the single place to change what is drawn. Publish it if you have not already:
@@ -19,7 +19,7 @@ Where `truss.reveal_excluded` allows it, a **Show hidden tables** toggle draws t
 
 **Both switches live in Truss's config and the plugin adds none of its own.** So the toggle being absent in production is a setting rather than a bug, and excluding a table to keep it off a shared panel keeps working: there is no query parameter and no plugin option that puts it back.
 
-## The one option
+## The header link
 
 The link to the project in the page header, which is on by default and off in one call:
 
@@ -28,6 +28,23 @@ $panel->plugin(FilamentTrussPlugin::make()->documentationLink(false));
 ```
 
 It is on by default because it is where a developer goes next, and removable because a permanent link to somebody's project in somebody else's admin panel is a billboard.
+
+## Sidebar placement
+
+Where the page sits in the sidebar is set on the plugin: its group, its sort order and its icon. Each takes a value or a closure:
+
+```php
+$panel->plugin(
+    FilamentTrussPlugin::make()
+        ->navigationGroup('System')
+        ->navigationSort(9)
+        ->navigationIcon('heroicon-o-table-cells'),
+);
+```
+
+Unset, the page is ungrouped, unsorted and keeps its circle-stack icon.
+
+**These apply per panel**, so the same page can sit in a different group on each panel that registers the plugin, and they take precedence over the page's static setters. Set them here rather than on the page class. They need filament-truss 1.1.0 or later; before it, `SchemaPage::navigationGroup()` moved the Dashboard into the group too.
 
 That is the entire configuration surface of the plugin. Everything else is Truss's.
 
