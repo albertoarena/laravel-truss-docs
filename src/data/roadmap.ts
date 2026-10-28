@@ -58,6 +58,15 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Mermaid diagrams with awkward names',
+        status: 'shipped',
+        version: 'v1.15.2',
+        tag: 'community requested',
+        issueUrl: `${REPO}/issues/94`,
+        blurb:
+          'A name Mermaid cannot parse, such as a column called 429_error_date, no longer blanks the whole diagram. Only the names Mermaid rejects are rewritten, and the dashboard still shows the real ones.',
+      },
+      {
         title: 'Schema diff across MySQL and MariaDB',
         status: 'shipped',
         version: 'v1.15.1',
@@ -211,14 +220,6 @@ export const SECTIONS: RoadmapSection[] = [
     commitment: 'Committed, building next',
     blurb: 'Decided. This is what comes next.',
     items: [
-      {
-        title: 'Mermaid diagrams with awkward names',
-        status: 'approved',
-        tag: 'community requested',
-        issueUrl: `${REPO}/issues/94`,
-        blurb:
-          'A column name Mermaid cannot parse, such as 429_error_date, blanks the whole diagram today. The fix will rewrite only the names Mermaid rejects, and the dashboard will still show the real names.',
-      },
       {
         title: 'Schema doctor: more rules',
         status: 'approved',
