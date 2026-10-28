@@ -41,6 +41,18 @@ Options: `--format`, `--connection`, `--tables` (allowlist), `--exclude` (blockl
 
 Config `excluded_tables` always wins over `--tables`, so you cannot filter your way to an excluded table and the export never exposes structure the dashboard hides.
 
+### Names Mermaid rejects
+
+Mermaid's diagram grammar rejects some names that are legal in SQL: a column that starts with a digit (`429_error_date`), a column called `pk`, `fk` or `uk`, a `$`, a space or a quote in a name, or a table called `style`. In the `mermaid` format those names are rewritten to a form Mermaid accepts, and the real name stays in the file. A rewritten table keeps it as its label, and a rewritten column keeps it in the column's comment:
+
+```text
+t_style["style"] {
+  date _429_error_date "429_error_date"
+}
+```
+
+Only names Mermaid would reject are touched, accented and non-Latin names included, so a schema without them exports exactly as before and a committed `--check` file does not move. Every other format uses the names unchanged, and the dashboard always shows the real ones.
+
 ## The whole diagram as one file
 
 `--format=html` is the odd one out. The other six render your tables as text for a tool to read; this one writes the dashboard itself as a single file: the diagram, the filter, the focus picker, the health panel, zoom and pan. It opens by double-clicking it. No server, no network, no database, and whoever opens it does not need Truss, PHP, or access to your application.
