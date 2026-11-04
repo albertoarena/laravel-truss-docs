@@ -72,7 +72,7 @@ The other formats follow the full key. DBML writes the expression in backticks, 
 
 ### Defaults in DBML
 
-SQLite, PostgreSQL and MariaDB report a string default as SQL, such as `'draft'` or `'draft'::character varying`. The DBML export reads that literal and writes a DBML string, `'draft'`. MySQL reports the bare value and comes out the same. The other formats show a default exactly as the database reports it.
+SQLite, PostgreSQL and MariaDB report a string default as SQL, such as `'draft'` or `'draft'::character varying`. The DBML export reads that literal and writes a DBML string, `'draft'`. MySQL reports the bare value, so its DBML output does not change. The other formats show a default exactly as the database reports it.
 
 ## The whole diagram as one file
 
