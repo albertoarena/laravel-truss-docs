@@ -10,7 +10,10 @@ _pkg/
 # the entry would not cover a symlink of the same name, and git records a
 # symlink as a file. Without the slash it covers both.
 .docs
+
+# Local Claude and agent files
 CLAUDE.local.md
+AGENTS.local.md
 
 # Playwright's run artefacts. The spec itself is committed; these are not.
 test-results/
