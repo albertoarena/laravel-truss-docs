@@ -53,6 +53,27 @@ t_style["style"] {
 
 Only names Mermaid would reject are touched, accented and non-Latin names included, so a schema without them exports exactly as before and a committed `--check` file does not move. Every other format uses the names unchanged, and the dashboard always shows the real ones.
 
+### Expression indexes
+
+An index can be built on an expression rather than a column, such as `lower(email)`, alone or mixed with columns. Laravel reports such an index without its expression, so Truss reads the key from the database itself. In the `json` export, and in the MCP tools, an index with an expression gets a `parts` field: every key part in order, each one a column or an expression.
+
+```json
+{
+  "name": "members_tenant_email_unique",
+  "columns": ["tenant_id"],
+  "parts": [{ "column": "tenant_id" }, { "expression": "lower(email)" }],
+  "unique": true
+}
+```
+
+`columns` still lists only real column names. An index with no expression has no `parts` key, so its shape is the same as before. An expression is kept as the database prints it: `lower(email::text)` on PostgreSQL, ``lower(`email`)`` on MySQL, `lower(email)` on SQLite. MariaDB has no expression indexes.
+
+The other formats follow the full key. DBML writes the expression in backticks, as DBML expects, so the index above becomes ``(tenant_id, `lower(email)`) [unique]``. The Markdown data dictionary lists every part, and the `llm` format no longer calls `tenant_id` unique because of an index that is only unique together with an expression. A committed `--check` file only moves where the schema has expression indexes.
+
+### Defaults in DBML
+
+SQLite, PostgreSQL and MariaDB report a string default as SQL, such as `'draft'` or `'draft'::character varying`. The DBML export reads that literal and writes a DBML string, `'draft'`. MySQL reports the bare value and comes out the same. The other formats show a default exactly as the database reports it.
+
 ## The whole diagram as one file
 
 `--format=html` is the odd one out. The other six render your tables as text for a tool to read; this one writes the dashboard itself as a single file: the diagram, the filter, the focus picker, the health panel, zoom and pan. It opens by double-clicking it. No server, no network, no database, and whoever opens it does not need Truss, PHP, or access to your application.

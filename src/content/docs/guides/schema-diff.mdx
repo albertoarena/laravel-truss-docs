@@ -87,6 +87,7 @@ When Truss is enabled in a non-local environment, a deploy that runs `php artisa
 ## Caveats
 
 - **Renames read as a remove plus an add.** Tables, columns, indexes, and foreign keys are matched by name, so there is no rename detection.
+- **Expression indexes are compared by their full key.** A change to the expression in an index, such as `lower(email)`, is a change. A baseline saved before Truss read those expressions reports each such index as changed once.
 - **One baseline per connection.** The diff is always "since the last recorded migration", not a full history.
 - **Removed tables are list-only.** They no longer exist in the current diagram, so the panel lists them rather than drawing them.
 - **Structure only.** Both sides of the comparison are structure-only snapshots, so the diff can never expose row data.
