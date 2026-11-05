@@ -1,0 +1,69 @@
+{
+  "connection": "modules",
+  "fallback": false,
+  "skipped_migrations": [],
+  "generated_at": "2026-07-23T10:00:00Z",
+  "tables": [
+    {
+      "name": "plans",
+      "columns": [
+        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "name", "type": "varchar(255)", "nullable": false, "default": null },
+        { "name": "price_cents", "type": "int unsigned", "nullable": false, "default": null }
+      ],
+      "primary_key": ["id"],
+      "indexes": [],
+      "foreign_keys": []
+    },
+    {
+      "name": "subscriptions",
+      "columns": [
+        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "plan_id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "external_user_id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "status", "type": "varchar(20)", "nullable": false, "default": "active" },
+        { "name": "renews_at", "type": "timestamp", "nullable": true, "default": null }
+      ],
+      "primary_key": ["id"],
+      "indexes": [
+        { "name": "subscriptions_external_user_id_index", "columns": ["external_user_id"], "unique": false }
+      ],
+      "foreign_keys": [
+        { "name": "subscriptions_plan_id_foreign", "columns": ["plan_id"], "references_table": "plans", "references_columns": ["id"], "on_update": null, "on_delete": "restrict" }
+      ]
+    },
+    {
+      "name": "invoices",
+      "columns": [
+        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "subscription_id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "number", "type": "varchar(32)", "nullable": false, "default": null },
+        { "name": "total_cents", "type": "int unsigned", "nullable": false, "default": null },
+        { "name": "status", "type": "varchar(20)", "nullable": false, "default": "pending" },
+        { "name": "issued_at", "type": "timestamp", "nullable": true, "default": null }
+      ],
+      "primary_key": ["id"],
+      "indexes": [
+        { "name": "invoices_number_unique", "columns": ["number"], "unique": true }
+      ],
+      "foreign_keys": [
+        { "name": "invoices_subscription_id_foreign", "columns": ["subscription_id"], "references_table": "subscriptions", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" }
+      ]
+    },
+    {
+      "name": "invoice_lines",
+      "columns": [
+        { "name": "id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "invoice_id", "type": "bigint unsigned", "nullable": false, "default": null },
+        { "name": "description", "type": "varchar(255)", "nullable": false, "default": null },
+        { "name": "amount_cents", "type": "int unsigned", "nullable": false, "default": null },
+        { "name": "quantity", "type": "int unsigned", "nullable": false, "default": "1" }
+      ],
+      "primary_key": ["id"],
+      "indexes": [],
+      "foreign_keys": [
+        { "name": "invoice_lines_invoice_id_foreign", "columns": ["invoice_id"], "references_table": "invoices", "references_columns": ["id"], "on_update": null, "on_delete": "cascade" }
+      ]
+    }
+  ]
+}

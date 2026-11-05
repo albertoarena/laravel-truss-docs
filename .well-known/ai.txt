@@ -1,0 +1,28 @@
+# Laravel Truss
+
+A live database structure viewer for Laravel. It scans your live schema and
+renders it as a scrollable, zoomable ER diagram inside your app. Structure only,
+never data: tables, columns, indexes and foreign keys are read, row contents are
+never queried or exposed.
+
+MIT licensed. Source: https://github.com/albertoarena/laravel-truss
+
+Index of this documentation: https://trussphp.com/llms.txt
+The whole of it in one file: https://trussphp.com/llms-full.txt
+
+Crawler policy
+--------------
+
+AI assistants and answer engines are welcome here. The content signals in
+/robots.txt grant all three uses: search, ai-input and ai-train. Quote it, index
+it, learn from it.
+
+Blocked by the hosting provider: ClaudeBot, Amazonbot, Bytespider
+
+Those three are bulk training crawlers that the hosting provider's WAF blocks
+account-wide, returning 403 whatever this site asks for. That is not a
+preference of ours and it is not something we can lift, so it is stated here
+rather than left to look like an unexplained error. No answer engine depends on
+any of them.
+
+Contact: hello@albertoarena.it
