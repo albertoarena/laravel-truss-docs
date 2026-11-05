@@ -113,6 +113,8 @@ testimonial on a public site is the one failure here that cannot be walked back.
 
 ## Conventions
 
+- Rules for every AI agent, including the confidentiality and clarity
+  pass before each commit, pull request and post: `AGENTS.md`.
 - Keep docs accurate to the shipped **release**, not unreleased work.
 - **Roadmap cards are short: about 30 words, never more than 40**, at most
   two sentences. Say what is wrong or missing, then what the change does for
