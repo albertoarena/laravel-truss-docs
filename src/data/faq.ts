@@ -66,7 +66,7 @@ export const FAQ: FaqItem[] = [
   {
     question: 'Which databases does Laravel Truss support?',
     answer:
-      'It reads through Laravel native schema introspection rather than a separate driver layer, so it follows what your Laravel connection supports, including MySQL, MariaDB, PostgreSQL, SQLite and SQL Server. Native table and column comments are read on MySQL, MariaDB and Postgres; SQLite and SQL Server have none, so they are skipped.',
+      'It reads through Laravel native schema introspection rather than a separate driver layer, so it follows what your Laravel connection supports, including MySQL, MariaDB, PostgreSQL, SQLite and SQL Server. Native table and column comments are read on MySQL, MariaDB and Postgres; SQLite and SQL Server have none, so they are skipped. The package test suite runs against SQLite, MySQL, MariaDB and PostgreSQL.',
     source: '/reference/configuration/',
   },
   {
