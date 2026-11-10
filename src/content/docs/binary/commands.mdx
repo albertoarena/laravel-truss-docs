@@ -27,9 +27,29 @@ The port is optional and defaults to the driver's usual one. `postgres://` and `
 
 Query parameters are passed to the connection, so `?sslmode=require` or `?charset=latin1` works as it would in a Laravel `database.php`.
 
-**No error message ever contains the connection string.** A failure names the driver, host, port and database, and never the user or password, so it is safe to leave in a CI log.
+**No error message ever contains the connection string.** A connection failure names the driver, host, port and database, and never the user or password, so it is safe to leave in a CI log.
 
-A connection that cannot be opened exits `2`, whatever the reason: a wrong host or port, a wrong password, or a PHP that lacks the PDO extension for your database (`php -m` shows which you have).
+### When the connection fails
+
+A connection that cannot be opened exits `2`, whatever the reason. The message says which kind of failure it was. Before v1.15.5, every failure read as a network problem.
+
+| Message | What it means | What to check |
+| --- | --- | --- |
+| `The database refused the user name or password` | The server answered and rejected the login | The user name and password in the connection string |
+| `The database does not exist on its server` | The server answered and has no database by that name | The database name in the connection string |
+| `There is no SQLite file for the database` | The SQLite path has no file behind it | The path in the connection string |
+| `Truss could not reach the database` | No server answered | The host, the port, and whether this machine needs a VPN or an allow-listed address |
+
+A wrong password, for example:
+
+```text
+The database refused the user name or password: mysql at 127.0.0.1:3306/shop.
+The server answered, so this is not a network problem. Check the credentials in the connection string.
+```
+
+The refused and does-not-exist messages work on MySQL, MariaDB and PostgreSQL. On PostgreSQL, the refused message also covers an unknown user on a server that does not ask for a password. When both the password and the database name are wrong, the server rejects the login first, so the message is about the credentials. A PHP that lacks the PDO extension for your database also reads as "could not reach" (`php -m` shows which extensions you have).
+
+If the connection opens but the structure cannot be read, the command prints `Could not load the schema:` and the reason, and exits `2`. The reason is the driver's own error, with any password from the connection strings replaced by `[redacted]`. It can still name the user, as in MySQL's `SELECT command denied to user 'shop'@'10.0.0.4'`.
 
 ## Exit codes
 
@@ -39,7 +59,7 @@ The same as the artisan commands, which is what makes the binary safe to put in 
 | --- | --- |
 | `0` | Clean: the command ran and found nothing to fail on |
 | `1` | `doctor` found something at the `--fail-on` level, or `export --check` found drift |
-| `2` | **Anything else**: a bad connection string, an unreachable host, an unknown command or option, a PHP older than 8.2 |
+| `2` | **Anything else**: a bad connection string, an unreachable host, a refused user name or password, a database name the server does not have, a SQLite file that is not there, a schema that cannot be read, an unknown command or option, a PHP older than 8.2 |
 
 A `2` never means your schema has a problem. An unreachable host can never be mistaken for a schema with findings, so a CI step that fails on `1` and on `2` tells you which it was.
 
@@ -50,6 +70,8 @@ The structure as a terminal table: one row per table, with its column count and 
 ```bash
 truss show
 ```
+
+If the structure cannot be read after connecting, it prints `Could not load the schema:` and exits `2`, the same as `doctor` and `export`. Before v1.15.5 it printed a raw exception and exited `1`.
 
 ## `truss export`
 
@@ -123,7 +145,7 @@ One edge case remains: a string default that is literally `'NULL'` still shows a
 :::
 
 :::note[It reports, it does not fail]
-`truss diff` exits `0` whether or not it finds differences, exactly as `truss:diff` does. It exits `2` if either connection cannot be opened. To fail a build on structural drift, use `truss export --check` against a committed export.
+`truss diff` exits `0` whether or not it finds differences, exactly as `truss:diff` does. It exits `2` if either connection cannot be opened. A failure on the second one reads "The database to compare against", as in `The database to compare against refused the user name or password`. To fail a build on structural drift, use `truss export --check` against a committed export.
 :::
 
 ### In CI
