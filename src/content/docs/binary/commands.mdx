@@ -27,7 +27,7 @@ The port is optional and defaults to the driver's usual one. `postgres://` and `
 
 Query parameters are passed to the connection, so `?sslmode=require` or `?charset=latin1` works as it would in a Laravel `database.php`.
 
-**No error message ever contains the connection string.** A failure names the driver, host, port and database, and never the user or password, so it is safe to leave in a CI log.
+**No error message ever contains the connection string.** A connection failure names the driver, host, port and database, and never the user or password, so it is safe to leave in a CI log.
 
 ### When the connection fails
 
@@ -46,9 +46,9 @@ The database refused the user name or password: mysql at 127.0.0.1:3306/shop.
 The server answered, so this is not a network problem. Check the credentials in the connection string.
 ```
 
-The first two messages work on MySQL, MariaDB and PostgreSQL. On PostgreSQL, the first also covers an unknown user on a server that does not ask for a password. A PHP that lacks the PDO extension for your database also reads as "could not reach" (`php -m` shows which extensions you have).
+The first two messages work on MySQL, MariaDB and PostgreSQL. On PostgreSQL, the first also covers an unknown user on a server that does not ask for a password. A PHP that lacks the PDO extension for your database also reads as "could not reach" (`php -m` shows which extensions you have). On SQLite, a missing database file also reads as "could not reach", with the same host and VPN advice, so check the path first.
 
-If the connection opens but the structure cannot be read, the command prints `Could not load the schema:` and the reason, and exits `2`. Any password from the connection strings is replaced with `[redacted]` in that reason.
+If the connection opens but the structure cannot be read, the command prints `Could not load the schema:` and the reason, and exits `2`. The reason is the driver's own error, with any password from the connection strings replaced by `[redacted]`. It can still name the user, as in MySQL's `SELECT command denied to user 'shop'@'10.0.0.4'`.
 
 ## Exit codes
 
