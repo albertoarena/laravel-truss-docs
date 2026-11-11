@@ -58,6 +58,13 @@ export const SECTIONS: RoadmapSection[] = [
     blurb: 'Recent releases. The project moves.',
     items: [
       {
+        title: 'Schema doctor: three new rules',
+        status: 'shipped',
+        version: 'v1.16.0',
+        blurb:
+          'The doctor now catches a foreign key declared twice, a foreign key pointing at columns with no unique key, and a UUID stored in a wider column than it needs.',
+      },
+      {
         title: 'Mermaid diagrams with awkward names',
         status: 'shipped',
         version: 'v1.15.2',

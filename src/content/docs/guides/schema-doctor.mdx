@@ -90,14 +90,16 @@ See the [configuration reference](/reference/configuration/) for the full key li
 
 ## Rules
 
-Every finding carries a stable **code** (e.g. `TRUSS-INT-003`), shown in both the command output and the Health panel, so you can look it up here, silence it, or change its severity in config. There are fourteen rules across three categories. Heuristic rules are name-based guesses and are **off under `recommended`** (on under `strict`).
+Every finding carries a stable **code** (e.g. `TRUSS-INT-003`), shown in both the command output and the Health panel, so you can look it up here, silence it, or change its severity in config. There are seventeen rules across three categories. Heuristic rules are name-based guesses and are **off under `recommended`** (on under `strict`).
 
 | Code | Checks | Severity | Confidence |
 | --- | --- | --- | --- |
 | `TRUSS-INT-001` | Table has no primary key | error | high |
 | `TRUSS-INT-002` | A `*_id` column matches a table but declares no foreign key, polymorphic columns excluded | warning | heuristic |
 | `TRUSS-INT-003` | A foreign key column's type differs from the key it references | error | high |
+| `TRUSS-INT-004` | The same foreign key is declared more than once on a table | warning | high |
 | `TRUSS-INT-007` | A pivot table has no unique constraint on its key pair | warning | high |
+| `TRUSS-INT-008` | A foreign key references columns that are neither the primary key nor a unique key \* | error | high |
 | `TRUSS-INT-009` | A polymorphic pair (`*_type`, `*_id`) has no composite index | warning | heuristic |
 | `TRUSS-INT-010` | A foreign key references one table while a table named after its column exists and is a different one | error | high |
 | `TRUSS-IDX-001` | A foreign key column has no supporting index | error \* | high |
@@ -108,8 +110,13 @@ Every finding carries a stable **code** (e.g. `TRUSS-INT-003`), shown in both th
 | `TRUSS-IDX-006` | An `email` / `slug` / `uuid` / `token` column has no unique constraint | warning | heuristic |
 | `TRUSS-TYP-001` | A money-looking column is stored as `float` or `double` | error | heuristic |
 | `TRUSS-TYP-002` | An `is_*` / `has_*` column is stored as `varchar` | warning | heuristic |
+| `TRUSS-TYP-009` | A `uuid` or `ulid` column, or a `*_uuid` or `*_ulid` foreign key column, is stored as a `varchar` wider than the identifier \* | warning | heuristic |
 
-\* `TRUSS-IDX-001` is engine-aware: an **error** on PostgreSQL and SQLite, which do not auto-index foreign keys, and only **info** on MySQL and MariaDB, which do.
+\* These rules behave differently per database driver:
+
+- `TRUSS-IDX-001` is an **error** on PostgreSQL and SQLite, which do not auto-index foreign keys, and only **info** on MySQL and MariaDB, which do.
+- `TRUSS-INT-008` runs everywhere but can only fire where the database accepts the key: MySQL up to 8.3 (or 8.4 with `restrict_fk_on_non_standard_key` off), MariaDB and SQLite. PostgreSQL, and MySQL 8.4 with default settings, refuse to create such a foreign key, so there it finds nothing.
+- `TRUSS-TYP-009` checks a column named exactly `uuid` or `ulid`, and a `*_uuid` or `*_ulid` column that is part of a foreign key, composite keys included. A plain `*_uuid` column that is not a foreign key is left alone, because it often holds an external identifier that is not a UUID. It flags a `varchar` longer than 36 characters for a UUID or 26 for a ULID, so `varchar(191)` from `Schema::defaultStringLength(191)` counts too. `varchar(36)`, `varchar(26)` and any `char(n)` are not flagged. For a UUID it suggests the native `uuid` type on PostgreSQL and on MariaDB 10.7 and later (or `char(36)` on MariaDB), and `char(36)` on MySQL. For a ULID it suggests `char(26)` on every driver. It is skipped on SQLite, which reads every string column back without a length.
 
 ### What `TRUSS-INT-007` counts as a pivot
 
@@ -137,6 +144,20 @@ Three further cases produce silence rather than a guess:
 
 A prefixed schema is matched through the prefix the referenced table already carries, so `lunar_cart_lines` is found for a key that references `lunar_carts`, and a table belonging to a different prefix is never treated as the match.
 
+### What `TRUSS-INT-004` treats as the same foreign key
+
+Two constraints are duplicates when they reference the same table with the same column pairs. Composite keys are compared as a set of pairs, so the same constraint written with its columns in another order still counts. Where constraints have names (MySQL, MariaDB and PostgreSQL), the first one declared is kept and each extra copy is reported under its own constraint name, so you know which one to drop. SQLite gives foreign keys no name, so there the copies cannot be told apart and the duplicated key is reported once, under its columns. A duplicate is usually two migrations that each add the same key, or a copy-paste. It is checked twice on every write and makes schema diffs harder to read.
+
+### Why `TRUSS-INT-008` is an error
+
+A foreign key should reference exactly a primary key or a unique key. What goes wrong when it does not depends on the database and on the columns:
+
+- **On MySQL and MariaDB, with referenced columns that are not unique,** one child row can match several parent rows. The relationship is not the one-to-many it looks like.
+- **On SQLite,** the database accepts the key, then fails every write to the child table with "foreign key mismatch" while foreign keys are enforced, which is the Laravel default.
+- **When the referenced columns contain a unique key but are wider than it,** such as a key on `(code, tenant_id)` where `code` alone is unique, each child row still matches one parent. The key is still wrong: PostgreSQL and MySQL 8.4 refuse it, and SQLite fails writes to the child table. The hint suggests a reference to the unique key alone, or a unique index on exactly those columns.
+
+The columns are compared as a set, so a unique index on `(b, a)` covers a key on `(a, b)`. A unique expression index such as `lower(email)` does not make the plain `email` column unique. A single-column key is reported on its column. A composite key is reported under its constraint name, or under its columns on SQLite, which gives foreign keys no name. The rule is skipped when the referenced table is excluded or lives in another database, since Truss cannot see its keys.
+
 Use these codes in `doctor.rules` (to enable, disable, or re-severity a rule) and `doctor.ignore` (to silence a known case per table or `table.column`). More rules land in later phases.
 
 ## Caveats
@@ -148,6 +169,8 @@ Use these codes in `doctor.rules` (to enable, disable, or re-severity a rule) an
 ## Upgrading, and a changed rule
 
 Rules are calibrated against real schemas, so a release can change what the doctor reports on a database nobody touched. The first run after an upgrade is the one to read carefully: a smaller report is usually Truss having got quieter, not your schema having improved.
+
+**v1.16 added three rules.** `TRUSS-INT-004` and `TRUSS-INT-008` are high confidence, so they run under the default `recommended` preset. `TRUSS-INT-008` is an `error`, so a CI job on `--fail-on=error` can go red on a schema nobody has touched, on MySQL up to 8.3, MariaDB or SQLite. `TRUSS-INT-004` is a `warning`, so it fails a job only on `--fail-on=warning` or `info`. `TRUSS-TYP-009` is heuristic and runs only under `strict`.
 
 **v1.15.4 made index rules compare the full key.** An index that mixes a column and an expression, such as `(tenant_id, lower(email))`, used to look like a plain index on `tenant_id`. Seven index and integrity rules could then report a duplicate that did not exist. They could also treat a pair as covered when it was not. These rules are the duplicate, redundant-prefix, primary-key, unindexed foreign key, soft-delete, polymorphic and pivot rules. They now read every part of the key. On an unchanged schema, a report can lose a false finding or gain a finding that the old key hid.
 
