@@ -146,7 +146,7 @@ A prefixed schema is matched through the prefix the referenced table already car
 
 ### What `TRUSS-INT-004` treats as the same foreign key
 
-Two constraints are duplicates when they reference the same table with the same column pairs. Composite keys are compared as a set of pairs, so the same constraint written with its columns in another order still counts. Where constraints have names (MySQL, MariaDB and PostgreSQL), the first one declared is kept and each extra copy is reported under its own constraint name, so you know which one to drop. SQLite gives foreign keys no name, so there the copies cannot be told apart and the duplicated key is reported once, under its columns. A duplicate is usually a migration that ran twice or a copy-paste. It is checked twice on every write and makes schema diffs harder to read.
+Two constraints are duplicates when they reference the same table with the same column pairs. Composite keys are compared as a set of pairs, so the same constraint written with its columns in another order still counts. Where constraints have names (MySQL, MariaDB and PostgreSQL), the first one declared is kept and each extra copy is reported under its own constraint name, so you know which one to drop. SQLite gives foreign keys no name, so there the copies cannot be told apart and the duplicated key is reported once, under its columns. A duplicate is usually two migrations that each add the same key, or a copy-paste. It is checked twice on every write and makes schema diffs harder to read.
 
 ### Why `TRUSS-INT-008` is an error
 
