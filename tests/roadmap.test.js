@@ -196,10 +196,20 @@ describe('roadmap data', () => {
   })
 
   it('files the Mermaid fix for awkward names as shipped in v1.15.2', () => {
+    const mermaid = ALL.find((i) => i.title === 'Mermaid diagrams with awkward names')
+    expect(mermaid, 'Mermaid card exists').toBeTruthy()
+    expect(mermaid.status).toBe('shipped')
+    expect(mermaid.version).toBe('v1.15.2')
+    expect(mermaid.issueUrl).toBe('https://github.com/albertoarena/laravel-truss/issues/94')
+  })
+
+  it('files the three v1.16.0 doctor rules first among shipped, leaving the rest approved', () => {
     const shipped = SECTIONS.find((s) => s.status === 'shipped').items
-    expect(shipped[0].title).toBe('Mermaid diagrams with awkward names')
-    expect(shipped[0].version).toBe('v1.15.2')
-    expect(shipped[0].issueUrl).toBe('https://github.com/albertoarena/laravel-truss/issues/94')
+    expect(shipped[0].title).toBe('Schema doctor: three new rules')
+    expect(shipped[0].version).toBe('v1.16.0')
+    const more = ALL.find((i) => i.title === 'Schema doctor: more rules')
+    expect(more.status).toBe('approved')
+    expect(more.version).toBeUndefined()
   })
 
   it('files the structural lint hints as shipped, since truss:doctor is what they became', () => {
