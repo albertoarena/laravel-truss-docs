@@ -110,13 +110,13 @@ Every finding carries a stable **code** (e.g. `TRUSS-INT-003`), shown in both th
 | `TRUSS-IDX-006` | An `email` / `slug` / `uuid` / `token` column has no unique constraint | warning | heuristic |
 | `TRUSS-TYP-001` | A money-looking column is stored as `float` or `double` | error | heuristic |
 | `TRUSS-TYP-002` | An `is_*` / `has_*` column is stored as `varchar` | warning | heuristic |
-| `TRUSS-TYP-009` | A `uuid` / `*_uuid` / `ulid` / `*_ulid` column is stored as a `varchar` wider than the identifier \* | warning | heuristic |
+| `TRUSS-TYP-009` | A `uuid` or `ulid` column, or a `*_uuid` or `*_ulid` foreign key column, is stored as a `varchar` wider than the identifier \* | warning | heuristic |
 
 \* These rules behave differently per database driver:
 
 - `TRUSS-IDX-001` is an **error** on PostgreSQL and SQLite, which do not auto-index foreign keys, and only **info** on MySQL and MariaDB, which do.
 - `TRUSS-INT-008` runs everywhere but can only fire where the database accepts the key: MySQL up to 8.3 (or 8.4 with `restrict_fk_on_non_standard_key` off), MariaDB and SQLite. PostgreSQL, and MySQL 8.4 with default settings, refuse to create such a foreign key, so there it finds nothing.
-- `TRUSS-TYP-009` flags a `varchar` longer than 36 characters for a UUID or 26 for a ULID, so `varchar(191)` from `Schema::defaultStringLength(191)` counts too. `varchar(36)`, `varchar(26)` and any `char(n)` are not flagged. For a UUID it suggests the native `uuid` type on PostgreSQL and on MariaDB 10.7 and later (or `char(36)` on MariaDB), and `char(36)` on MySQL. For a ULID it suggests `char(26)` on every driver. It is skipped on SQLite, which reads every string column back without a length.
+- `TRUSS-TYP-009` checks a column named exactly `uuid` or `ulid`, and a `*_uuid` or `*_ulid` column that is part of a foreign key, composite keys included. A plain `*_uuid` column that is not a foreign key is left alone, because it often holds an external identifier that is not a UUID. It flags a `varchar` longer than 36 characters for a UUID or 26 for a ULID, so `varchar(191)` from `Schema::defaultStringLength(191)` counts too. `varchar(36)`, `varchar(26)` and any `char(n)` are not flagged. For a UUID it suggests the native `uuid` type on PostgreSQL and on MariaDB 10.7 and later (or `char(36)` on MariaDB), and `char(36)` on MySQL. For a ULID it suggests `char(26)` on every driver. It is skipped on SQLite, which reads every string column back without a length.
 
 ### What `TRUSS-INT-007` counts as a pivot
 
